@@ -29,7 +29,7 @@ class CallListModel {
       phoneNumber: entity.phoneNumber,
       scheduledAt: entity.scheduledAt,
       status: CallStatus.values.firstWhere(
-            (value) => value.name == entity.status.name,
+        (value) => value.name == entity.status.name,
         orElse: () => CallStatus.upcoming,
       ),
       notes: entity.notes,
@@ -47,11 +47,11 @@ class CallListModel {
         map['scheduled_at'] as int,
       ),
       status: CallStatus.values.firstWhere(
-            (value) => value.name == map['status'],
+        (value) => value.name == map['status'],
         orElse: () => CallStatus.upcoming,
       ),
       notes: map['notes'] as String?,
-      repeat: map['repeat'] as String,
+      repeat: map['repeat'] as String? ?? 'Does not repeat',
     );
   }
 

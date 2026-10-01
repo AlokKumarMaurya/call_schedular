@@ -12,6 +12,7 @@ import '../../domain/entity/call_list_entity.dart';
 
 class ScheduleCallView extends StatelessWidget {
   final CallListEntity? call;
+
   const ScheduleCallView({super.key, this.call});
 
   @override
@@ -78,7 +79,7 @@ class ScheduleCallView extends StatelessWidget {
                   Padding(
                     padding: EdgeInsets.fromLTRB(16.w, 8.h, 16.w, 12.h),
                     child: SchedulePrimaryButton(
-                      title: 'Save Call',
+                      title: call == null ? 'Save Call' : 'Update Call',
                       isLoading: controller.isSaving,
                       onPressed: () => _saveCall(controller),
                     ),
