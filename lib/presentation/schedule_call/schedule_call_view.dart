@@ -221,6 +221,8 @@ class ScheduleCallView extends StatelessWidget {
         snackPosition: SnackPosition.BOTTOM,
       );
     } catch (e) {
+      print(e);
+      print(e.toString());
       Get.snackbar(
         'Error',
         'Unable to schedule call. Please try again.',
