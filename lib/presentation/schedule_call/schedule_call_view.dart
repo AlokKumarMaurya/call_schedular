@@ -1,5 +1,4 @@
-import 'package:call_schedular/domain/entity/call_list_entity.dart';
-import 'package:call_schedular/presentation/schedule_call/schedule_call_controller.dart';
+ import 'package:call_schedular/presentation/schedule_call/schedule_call_controller.dart';
 import 'package:call_schedular/presentation/schedule_call/widget/schedule_input_field.dart';
 import 'package:call_schedular/presentation/schedule_call/widget/schedule_option_tile.dart';
 import 'package:call_schedular/presentation/schedule_call/widget/schedule_primary_button.dart';
@@ -10,10 +9,7 @@ import 'package:flutter_screenutil_plus/flutter_screenutil_plus.dart';
 import 'package:get/get.dart';
 
 class ScheduleCallView extends StatelessWidget {
-  final Future<void> Function(CallListEntity call) onSave;
-  final VoidCallback? onPickContact;
-
-  const ScheduleCallView({super.key, required this.onSave, this.onPickContact});
+  const ScheduleCallView({super.key});
 
   @override
   Widget build(BuildContext context) {
@@ -215,7 +211,7 @@ class ScheduleCallView extends StatelessWidget {
     try {
       final call = controller.createCallEntity();
 
-      await onSave(call);
+      await controller.saveContact(call);
 
       Get.back();
 

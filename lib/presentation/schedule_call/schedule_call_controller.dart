@@ -1,4 +1,5 @@
 import 'package:call_schedular/domain/entity/call_list_entity.dart';
+import 'package:call_schedular/domain/usecase/call_use_case.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_native_contact_picker/flutter_native_contact_picker.dart';
 import 'package:get/get.dart';
@@ -228,5 +229,12 @@ class ScheduleCallController extends GetxController {
       isPickingContact = false;
       update();
     }
+  }
+
+  Future<void> saveContact(CallListEntity call) async {
+    isSaving = true;
+    await Get.find<CallUseCase>().addCall(call);
+
+    update();
   }
 }

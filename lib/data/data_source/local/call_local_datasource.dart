@@ -23,11 +23,12 @@ class CallLocalDataSource {
   Future<void> insertCall(CallListEntity entity) async {
     final Database db = await _callDatabase.database;
 
-    await db.insert(
+   final a= await db.insert(
       CallDatabase.tableName,
       CallListModel.fromEntity(entity).toMap(),
       conflictAlgorithm: ConflictAlgorithm.replace,
     );
+   print('=============================== $a');
   }
 
   Future<void> updateCall(CallListEntity entity) async {

@@ -1,4 +1,3 @@
-
 import 'package:call_schedular/constants/app_const.dart';
 import 'package:call_schedular/presentation/home/home_controller.dart';
 import 'package:call_schedular/presentation/home/widget/filter_chip.dart';
@@ -26,12 +25,7 @@ class HomeView extends StatelessWidget {
             fontWeight: FontWeight.w500,
           ),
         ),
-        actions: [
-          Icon(
-            Icons.settings_outlined,
-            color: AppColors.black,
-          ),
-        ],
+        actions: [Icon(Icons.settings_outlined, color: AppColors.black)],
         actionsPadding: EdgeInsets.only(right: 16.w),
       ),
       body: GetBuilder<HomeController>(
@@ -49,8 +43,7 @@ class HomeView extends StatelessWidget {
                   isScrollable: true,
                   tabAlignment: TabAlignment.start,
                   splashFactory: NoSplash.splashFactory,
-                  overlayColor:
-                  WidgetStateProperty.all(Colors.transparent),
+                  overlayColor: WidgetStateProperty.all(Colors.transparent),
                   padding: EdgeInsets.zero,
                   dividerColor: Colors.transparent,
                   indicator: const BoxDecoration(),
@@ -64,14 +57,12 @@ class HomeView extends StatelessWidget {
                       padding: EdgeInsets.symmetric(horizontal: 20.w),
                       child: AppFilterChip(
                         isSelected: controller.tabController.index == 1,
-                        title:
-                        'Upcoming (${controller.upcomingCalls.length})',
+                        title: 'Upcoming (${controller.upcomingCalls.length})',
                       ),
                     ),
                     AppFilterChip(
                       isSelected: controller.tabController.index == 2,
-                      title:
-                      'Completed (${controller.completedCalls.length})',
+                      title: 'Completed (${controller.completedCalls.length})',
                     ),
                   ],
                 ),
@@ -80,26 +71,24 @@ class HomeView extends StatelessWidget {
 
                 Expanded(
                   child: controller.isLoading
-                      ? const Center(
-                    child: CircularProgressIndicator(),
-                  )
+                      ? const Center(child: CircularProgressIndicator())
                       : TabBarView(
-                    controller: controller.tabController,
-                    children: [
-                      _buildCallList(
-                        controller.todayCalls,
-                        emptyMessage: 'No calls scheduled for today',
-                      ),
-                      _buildCallList(
-                        controller.upcomingCalls,
-                        emptyMessage: 'No upcoming calls',
-                      ),
-                      _buildCallList(
-                        controller.completedCalls,
-                        emptyMessage: 'No completed calls yet',
-                      ),
-                    ],
-                  ),
+                          controller: controller.tabController,
+                          children: [
+                            _buildCallList(
+                              controller.todayCalls,
+                              emptyMessage: 'No calls scheduled for today',
+                            ),
+                            _buildCallList(
+                              controller.upcomingCalls,
+                              emptyMessage: 'No upcoming calls',
+                            ),
+                            _buildCallList(
+                              controller.completedCalls,
+                              emptyMessage: 'No completed calls yet',
+                            ),
+                          ],
+                        ),
                 ),
               ],
             ),
@@ -107,31 +96,20 @@ class HomeView extends StatelessWidget {
         },
       ),
       floatingActionButton: FloatingActionButton(
-        onPressed: () {
-          Get.to(
-                () => ScheduleCallView(
-              onSave: (call) async {
-
-                debugPrint(call.contactName);
-                debugPrint(call.phoneNumber);
-              },
-            ),
-          );
+        onPressed: () async {
+          await Get.to(() => ScheduleCallView());
+          await Get.find<HomeController>().getCallList();
         },
         backgroundColor: AppColors.primary,
-        child: Icon(
-          Icons.add,
-          color: AppColors.white,
-          size: 28.sp,
-        ),
+        child: Icon(Icons.add, color: AppColors.white, size: 28.sp),
       ),
     );
   }
 
   Widget _buildCallList(
-      List<CallListEntity> calls, {
-        required String emptyMessage,
-      }) {
+    List<CallListEntity> calls, {
+    required String emptyMessage,
+  }) {
     if (calls.isEmpty) {
       return Center(
         child: Text(
@@ -160,10 +138,7 @@ class HomeView extends StatelessWidget {
 class CallRecordTile extends StatelessWidget {
   final CallListEntity call;
 
-  const CallRecordTile({
-    super.key,
-    required this.call,
-  });
+  const CallRecordTile({super.key, required this.call});
 
   @override
   Widget build(BuildContext context) {
@@ -172,10 +147,7 @@ class CallRecordTile extends StatelessWidget {
         : '?';
 
     return Container(
-      padding: EdgeInsets.symmetric(
-        horizontal: 16.w,
-        vertical: 12.h,
-      ),
+      padding: EdgeInsets.symmetric(horizontal: 16.w, vertical: 12.h),
       decoration: BoxDecoration(
         borderRadius: BorderRadius.circular(12.r),
         color: AppColors.white,
@@ -253,11 +225,7 @@ class CallRecordTile extends StatelessWidget {
             onTap: () => _makeCall(call.phoneNumber),
             child: CircleAvatar(
               backgroundColor: AppColors.iconBlueBackground,
-              child: Icon(
-                Icons.call,
-                size: 20.sp,
-                color: AppColors.iconBlue,
-              ),
+              child: Icon(Icons.call, size: 20.sp, color: AppColors.iconBlue),
             ),
           ),
         ],
@@ -272,8 +240,7 @@ class CallRecordTile extends StatelessWidget {
     final formattedHour = hour % 12 == 0 ? 12 : hour % 12;
     final period = hour >= 12 ? 'PM' : 'AM';
 
-    final time =
-        '$formattedHour:${minute.toString().padLeft(2, '0')} $period';
+    final time = '$formattedHour:${minute.toString().padLeft(2, '0')} $period';
 
     final now = DateTime.now();
 
@@ -295,10 +262,7 @@ class CallRecordTile extends StatelessWidget {
   }
 
   Future<void> _makeCall(String phoneNumber) async {
-    final uri = Uri(
-      scheme: 'tel',
-      path: phoneNumber,
-    );
+    final uri = Uri(scheme: 'tel', path: phoneNumber);
 
     // if (await canLaunchUrl(uri)) {
     //   await launchUrl(uri);
