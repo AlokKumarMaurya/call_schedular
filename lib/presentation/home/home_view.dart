@@ -6,6 +6,7 @@ import 'package:call_schedular/theme/app_font.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_screenutil_plus/flutter_screenutil_plus.dart';
 import 'package:get/get.dart';
+import 'package:url_launcher/url_launcher.dart';
 // import 'package:url_launcher/url_launcher.dart';
 
 import '../../domain/entity/call_list_entity.dart';
@@ -270,8 +271,8 @@ class CallRecordTile extends StatelessWidget {
   Future<void> _makeCall(String phoneNumber) async {
     final uri = Uri(scheme: 'tel', path: phoneNumber);
 
-    // if (await canLaunchUrl(uri)) {
-    //   await launchUrl(uri);
-    // }
+    if (await canLaunchUrl(uri)) {
+      await launchUrl(uri);
+    }
   }
 }
