@@ -1,6 +1,5 @@
-
 import 'package:flutter/material.dart';
 
 class AppFont {
-  static final TextStyle style = TextStyle();
+  static final TextStyle style = TextStyle(height: 1);
 }

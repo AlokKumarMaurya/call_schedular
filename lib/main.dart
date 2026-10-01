@@ -1,4 +1,5 @@
 import 'package:call_schedular/constants/app_const.dart';
+import 'package:call_schedular/di.dart';
 import 'package:call_schedular/local_storage/local_storage.dart';
 import 'package:call_schedular/presentation/home/home_view.dart';
 import 'package:call_schedular/presentation/intro/intro_view.dart';
@@ -11,6 +12,7 @@ import 'package:get_storage/get_storage.dart';
 void main() async {
   WidgetsFlutterBinding.ensureInitialized();
   await GetStorage.init();
+  AppDI.init();
   runApp(const MyApp());
 }
 
