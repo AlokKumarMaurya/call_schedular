@@ -10,6 +10,7 @@ import 'package:get/get.dart';
 // import 'package:url_launcher/url_launcher.dart';
 
 import '../../domain/entity/call_list_entity.dart';
+import '../schedule_call/schedule_call_view.dart';
 
 class HomeView extends StatelessWidget {
   const HomeView({super.key});
@@ -107,9 +108,17 @@ class HomeView extends StatelessWidget {
       ),
       floatingActionButton: FloatingActionButton(
         onPressed: () {
-          // Navigate to Schedule Call screen
+          Get.to(
+                () => ScheduleCallView(
+              onSave: (call) async {
+
+                debugPrint(call.contactName);
+                debugPrint(call.phoneNumber);
+              },
+            ),
+          );
         },
-        backgroundColor: AppColors.iconBlue,
+        backgroundColor: AppColors.primary,
         child: Icon(
           Icons.add,
           color: AppColors.white,
