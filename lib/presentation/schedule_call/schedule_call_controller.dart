@@ -5,6 +5,8 @@ import 'package:flutter_native_contact_picker/flutter_native_contact_picker.dart
 import 'package:get/get.dart';
 
 class ScheduleCallController extends GetxController {
+  final CallListEntity? call;
+  ScheduleCallController({this.call});
   final formKey = GlobalKey<FormState>();
 
   final contactNameController = TextEditingController();
@@ -30,6 +32,21 @@ class ScheduleCallController extends GetxController {
   ];
 
   bool isSaving = false;
+
+  @override
+  void onInit() {
+    super.onInit();
+
+    if (call != null) {
+      contactNameController.text = call!.contactName;
+      phoneNumberController.text = call!.phoneNumber;
+      notesController.text = call!.notes ?? '';
+
+      selectedDate = DateUtils.dateOnly(call!.scheduledAt);
+      selectedTime = TimeOfDay.fromDateTime(call!.scheduledAt);
+      selectedRepeat = call!.repeat;
+    }
+  }
 
   DateTime get scheduledAt => DateTime(
     selectedDate.year,
@@ -177,14 +194,15 @@ class ScheduleCallController extends GetxController {
 
   CallListEntity createCallEntity() {
     return CallListEntity(
-      id: DateTime.now().microsecondsSinceEpoch.toString(),
+      id: call?.id ?? DateTime.now().microsecondsSinceEpoch.toString(),
       contactName: contactNameController.text.trim(),
       phoneNumber: phoneNumberController.text.trim(),
       scheduledAt: scheduledAt,
-      status: CallStatusEntity.upcoming,
+      status: call?.status ?? CallStatusEntity.upcoming,
       notes: notesController.text.trim().isEmpty
           ? null
           : notesController.text.trim(),
+      repeat: selectedRepeat,
     );
   }
 
@@ -231,9 +249,16 @@ class ScheduleCallController extends GetxController {
     }
   }
 
-  Future<void> saveContact(CallListEntity call) async {
+  Future<void> saveContact(CallListEntity entity) async {
     isSaving = true;
-    await Get.find<CallUseCase>().addCall(call);
+
+    final useCase = Get.find<CallUseCase>();
+
+    if (call == null) {
+      await useCase.addCall(entity);
+    } else {
+      await useCase.updateCall(entity);
+    }
 
     update();
   }

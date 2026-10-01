@@ -9,6 +9,7 @@ import 'package:get/get.dart';
 // import 'package:url_launcher/url_launcher.dart';
 
 import '../../domain/entity/call_list_entity.dart';
+import '../call_details/call_details_view.dart';
 import '../schedule_call/schedule_call_view.dart';
 
 class HomeView extends StatelessWidget {
@@ -146,89 +147,94 @@ class CallRecordTile extends StatelessWidget {
         ? call.contactName[0].toUpperCase()
         : '?';
 
-    return Container(
-      padding: EdgeInsets.symmetric(horizontal: 16.w, vertical: 12.h),
-      decoration: BoxDecoration(
-        borderRadius: BorderRadius.circular(12.r),
-        color: AppColors.white,
-      ),
-      child: Row(
-        children: [
-          CircleAvatar(
-            backgroundColor: AppColors.primary,
-            child: Text(
-              initial,
-              style: AppFont.style.copyWith(
-                fontSize: 20.sp,
-                color: AppColors.white,
+    return GestureDetector(
+      onTap: () {
+        Get.to(() => CallDetailsView(call: call));
+      },
+      child: Container(
+        padding: EdgeInsets.symmetric(horizontal: 16.w, vertical: 12.h),
+        decoration: BoxDecoration(
+          borderRadius: BorderRadius.circular(12.r),
+          color: AppColors.white,
+        ),
+        child: Row(
+          children: [
+            CircleAvatar(
+              backgroundColor: AppColors.primary,
+              child: Text(
+                initial,
+                style: AppFont.style.copyWith(
+                  fontSize: 20.sp,
+                  color: AppColors.white,
+                ),
               ),
             ),
-          ),
 
-          SizedBox(width: 16.w),
+            SizedBox(width: 16.w),
 
-          Expanded(
-            child: Column(
-              crossAxisAlignment: CrossAxisAlignment.start,
-              children: [
-                Text(
-                  call.contactName,
-                  overflow: TextOverflow.ellipsis,
-                  maxLines: 1,
-                  style: AppFont.style.copyWith(
-                    fontWeight: FontWeight.w500,
-                    fontSize: 16.sp,
-                  ),
-                ),
-
-                SizedBox(height: 4.h),
-
-                Text(
-                  call.phoneNumber,
-                  style: AppFont.style.copyWith(
-                    color: AppColors.textTertiary,
-                    fontWeight: FontWeight.w500,
-                    fontSize: 12.sp,
-                  ),
-                ),
-
-                SizedBox(height: 8.h),
-
-                Row(
-                  children: [
-                    Icon(
-                      Icons.access_time,
-                      size: 16.sp,
-                      color: AppColors.iconBlue,
+            Expanded(
+              child: Column(
+                crossAxisAlignment: CrossAxisAlignment.start,
+                children: [
+                  Text(
+                    call.contactName,
+                    overflow: TextOverflow.ellipsis,
+                    maxLines: 1,
+                    style: AppFont.style.copyWith(
+                      fontWeight: FontWeight.w500,
+                      fontSize: 16.sp,
                     ),
+                  ),
 
-                    SizedBox(width: 8.w),
+                  SizedBox(height: 4.h),
 
-                    Text(
-                      _formattedDateTime(call.scheduledAt),
-                      style: AppFont.style.copyWith(
-                        fontSize: 12.sp,
-                        fontWeight: FontWeight.w600,
-                        color: AppColors.textTertiary,
+                  Text(
+                    call.phoneNumber,
+                    style: AppFont.style.copyWith(
+                      color: AppColors.textTertiary,
+                      fontWeight: FontWeight.w500,
+                      fontSize: 12.sp,
+                    ),
+                  ),
+
+                  SizedBox(height: 8.h),
+
+                  Row(
+                    children: [
+                      Icon(
+                        Icons.access_time,
+                        size: 16.sp,
+                        color: AppColors.iconBlue,
                       ),
-                    ),
-                  ],
-                ),
-              ],
-            ),
-          ),
 
-          SizedBox(width: 12.w),
+                      SizedBox(width: 8.w),
 
-          InkWell(
-            borderRadius: BorderRadius.circular(50.r),
-            onTap: () => _makeCall(call.phoneNumber),
-            child: CircleAvatar(
-              backgroundColor: AppColors.iconBlueBackground,
-              child: Icon(Icons.call, size: 20.sp, color: AppColors.iconBlue),
+                      Text(
+                        _formattedDateTime(call.scheduledAt),
+                        style: AppFont.style.copyWith(
+                          fontSize: 12.sp,
+                          fontWeight: FontWeight.w600,
+                          color: AppColors.textTertiary,
+                        ),
+                      ),
+                    ],
+                  ),
+                ],
+              ),
             ),
-          ),
-        ],
+
+            SizedBox(width: 12.w),
+
+            InkWell(
+              borderRadius: BorderRadius.circular(50.r),
+              onTap: () => _makeCall(call.phoneNumber),
+              child: CircleAvatar(
+                backgroundColor: AppColors.iconBlueBackground,
+                child: Icon(Icons.call, size: 20.sp, color: AppColors.iconBlue),
+              ),
+            ),
+          ],
+        ),
       ),
     );
   }

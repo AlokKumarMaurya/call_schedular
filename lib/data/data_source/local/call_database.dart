@@ -7,7 +7,7 @@ class CallDatabase {
   static final CallDatabase instance = CallDatabase._();
 
   static const String _databaseName = 'call_scheduler.db';
-  static const int _databaseVersion = 1;
+  static const int _databaseVersion = 2;
   static const String tableName = 'scheduled_calls';
 
   Database? _database;
@@ -34,9 +34,18 @@ class CallDatabase {
             phone_number TEXT NOT NULL,
             scheduled_at INTEGER NOT NULL,
             status TEXT NOT NULL,
-            notes TEXT
+            notes TEXT,
+            repeat TEXT NOT NULL DEFAULT 'Does not repeat'
           )
         ''');
+      },
+      onUpgrade: (db, oldVersion, newVersion) async {
+        if (oldVersion < 2) {
+          await db.execute('''
+            ALTER TABLE $tableName
+            ADD COLUMN repeat TEXT NOT NULL DEFAULT 'Does not repeat'
+          ''');
+        }
       },
     );
   }

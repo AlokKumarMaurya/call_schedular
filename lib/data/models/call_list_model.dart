@@ -9,6 +9,7 @@ class CallListModel {
   final DateTime scheduledAt;
   final CallStatus status;
   final String? notes;
+  final String repeat;
 
   const CallListModel({
     required this.id,
@@ -17,6 +18,7 @@ class CallListModel {
     required this.scheduledAt,
     this.status = CallStatus.upcoming,
     this.notes,
+    this.repeat = 'Does not repeat',
   });
 
   /// Convert domain entity to data model
@@ -31,6 +33,7 @@ class CallListModel {
         orElse: () => CallStatus.upcoming,
       ),
       notes: entity.notes,
+      repeat: entity.repeat,
     );
   }
 
@@ -48,6 +51,7 @@ class CallListModel {
         orElse: () => CallStatus.upcoming,
       ),
       notes: map['notes'] as String?,
+      repeat: map['repeat'] as String,
     );
   }
 
@@ -60,6 +64,7 @@ class CallListModel {
       'scheduled_at': scheduledAt.millisecondsSinceEpoch,
       'status': status.name,
       'notes': notes,
+      'repeat': repeat,
     };
   }
 
@@ -71,5 +76,6 @@ class CallListModel {
     scheduledAt: scheduledAt,
     status: CallStatusEntity.fromString(status.name),
     notes: notes,
+    repeat: repeat,
   );
 }

@@ -1,4 +1,4 @@
- import 'package:call_schedular/presentation/schedule_call/schedule_call_controller.dart';
+import 'package:call_schedular/presentation/schedule_call/schedule_call_controller.dart';
 import 'package:call_schedular/presentation/schedule_call/widget/schedule_input_field.dart';
 import 'package:call_schedular/presentation/schedule_call/widget/schedule_option_tile.dart';
 import 'package:call_schedular/presentation/schedule_call/widget/schedule_primary_button.dart';
@@ -8,13 +8,16 @@ import 'package:flutter/material.dart';
 import 'package:flutter_screenutil_plus/flutter_screenutil_plus.dart';
 import 'package:get/get.dart';
 
+import '../../domain/entity/call_list_entity.dart';
+
 class ScheduleCallView extends StatelessWidget {
-  const ScheduleCallView({super.key});
+  final CallListEntity? call;
+  const ScheduleCallView({super.key, this.call});
 
   @override
   Widget build(BuildContext context) {
     return GetBuilder<ScheduleCallController>(
-      init: ScheduleCallController(),
+      init: ScheduleCallController(call: call),
       builder: (controller) {
         return Scaffold(
           backgroundColor: AppColors.background,
@@ -31,7 +34,7 @@ class ScheduleCallView extends StatelessWidget {
             ),
             titleSpacing: 4.w,
             title: Text(
-              'Schedule Call',
+              call == null ? 'Save Call' : 'Update Call',
               style: AppFont.style.copyWith(
                 fontSize: 18.sp,
                 fontWeight: FontWeight.w600,

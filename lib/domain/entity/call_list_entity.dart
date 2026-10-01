@@ -15,6 +15,7 @@ class CallListEntity {
   final DateTime scheduledAt;
   final CallStatusEntity status;
   final String? notes;
+  final String repeat;
 
   const CallListEntity({
     required this.id,
@@ -23,6 +24,7 @@ class CallListEntity {
     required this.scheduledAt,
     this.status = CallStatusEntity.upcoming,
     this.notes,
+    this.repeat = 'Does not repeat',
   });
 
   /// First character for avatar
@@ -81,6 +83,7 @@ class CallListEntity {
     DateTime? scheduledAt,
     CallStatusEntity? status,
     String? notes,
+    String? repeat,
   }) {
     return CallListEntity(
       id: id ?? this.id,
@@ -89,6 +92,7 @@ class CallListEntity {
       scheduledAt: scheduledAt ?? this.scheduledAt,
       status: status ?? this.status,
       notes: notes ?? this.notes,
+      repeat: repeat ?? this.repeat,
     );
   }
 }
