@@ -28,6 +28,7 @@ dev_dependencies:
     sdk: flutter
   flutter_lints: ^6.0.0
   flutter_launcher_icons: ^0.14.4
+  flutter_native_splash: ^2.4.8
 
 flutter:
   uses-material-design: true
@@ -39,3 +40,15 @@ flutter_launcher_icons:
   image_path: "assets/icon/icon.png"
   android: true
   ios: false
+
+flutter_native_splash:
+  color: "#ffffff"               # Background color (Light mode)
+  image: assets/icon/splash.png  # Path to your splash icon
+  color_dark: "#121212"          # Dark mode background (Optional)
+  image_dark: assets/icon/splash.png # Dark mode icon (Optional)
+
+  # Android 12+ specific settings (Required for Android 12 compliance)
+  android_12:
+    image: assets/icon/splash.png
+    color: "#ffffff"
+    icon_background_color: "#ffffff"
