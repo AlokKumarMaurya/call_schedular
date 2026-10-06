@@ -12,17 +12,41 @@ class AppFilterChip extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    return Container(
-      padding: EdgeInsets.symmetric(vertical: 8.sp, horizontal: 16.sp),
+    return AnimatedContainer(
+      duration: const Duration(milliseconds: 200),
+      padding: EdgeInsets.symmetric(
+        vertical: 9.h,
+        horizontal: 16.w,
+      ),
       decoration: BoxDecoration(
-        borderRadius: BorderRadius.circular(12.sp),
-        color: isSelected ? AppColors.primary : AppColors.primaryLight,
+        borderRadius: BorderRadius.circular(14.r),
+        color: isSelected
+            ? AppColors.primary
+            : AppColors.surface,
+        border: Border.all(
+          color: isSelected
+              ? AppColors.primary
+              : AppColors.border,
+        ),
+        boxShadow: isSelected
+            ? [
+          BoxShadow(
+            color: AppColors.primary.withValues(alpha: 0.15),
+            blurRadius: 8,
+            offset: const Offset(0, 3),
+          ),
+        ]
+            : null,
       ),
       alignment: Alignment.center,
       child: Text(
         title,
         style: AppFont.style.copyWith(
-          color: isSelected ? AppColors.white : AppColors.textTertiary,
+          fontSize: 13.sp,
+          fontWeight: FontWeight.w600,
+          color: isSelected
+              ? AppColors.white
+              : AppColors.textSecondary,
         ),
       ),
     );

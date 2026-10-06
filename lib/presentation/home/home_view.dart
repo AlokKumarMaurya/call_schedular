@@ -1,4 +1,3 @@
-import 'package:call_schedular/constants/app_const.dart';
 import 'package:call_schedular/presentation/home/home_controller.dart';
 import 'package:call_schedular/presentation/home/widget/filter_chip.dart';
 import 'package:call_schedular/theme/app_colors.dart';
@@ -21,112 +20,59 @@ class HomeView extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     return Scaffold(
-      appBar: AppBar(
-        title: Text(
-          AppConst.appName,
-          style: AppFont.style.copyWith(
-            fontSize: 24.sp,
-            fontWeight: FontWeight.w500,
-          ),
+      body: SafeArea(
+        child: GetBuilder<HomeController>(
+          init: HomeController(),
+          builder: (controller) {
+            return Padding(
+              padding: EdgeInsets.symmetric(horizontal: 16.w)
+                  .copyWith(top: 2.h),
+              child: Column(
+                children: [
+                  SizedBox(height: 12.h),
+
+                  _buildHomeHeader(controller),
+
+                  SizedBox(height: 20.h),
+
+                  _buildSearchField(controller),
+
+                  SizedBox(height: 18.h),
+
+                  _buildStatusTabs(controller),
+
+                  SizedBox(height: 20.h),
+
+                  Expanded(
+                    child: controller.isLoading
+                        ? const Center(child: CircularProgressIndicator())
+                        : TabBarView(
+                            controller: controller.tabController,
+                            children: [
+                              _buildCallList(
+                                controller.todayCalls,
+                                emptyMessage: 'No calls scheduled for today',
+                              ),
+                              _buildCallList(
+                                controller.upcomingCalls,
+                                emptyMessage: 'No upcoming calls',
+                              ),
+                              _buildCallList(
+                                controller.completedCalls,
+                                emptyMessage: 'No completed calls yet',
+                              ),
+                              _buildCallList(
+                                controller.missedCalls,
+                                emptyMessage: 'No missed calls',
+                              ),
+                            ],
+                          ),
+                  ),
+                ],
+              ),
+            );
+          },
         ),
-        actions: [
-          IconButton(
-            onPressed: () {
-              Get.to(() => const SettingsView());
-            },
-            icon: Icon(
-              Icons.settings_outlined,
-              color: AppColors.black,
-              size: 24.sp,
-            ),
-          ),
-        ],
-        actionsPadding: EdgeInsets.only(right: 16.w),
-      ),
-      body: GetBuilder<HomeController>(
-        init: HomeController(),
-        builder: (controller) {
-          return Padding(
-            padding: EdgeInsets.symmetric(horizontal: 16.w),
-            child: Column(
-              children: [
-                SizedBox(height: 12.h),
-
-                _buildSearchField(controller),
-                SizedBox(height: 16.h),
-                TabBar(
-                  onTap: (_) => controller.update(),
-                  labelPadding: EdgeInsets.zero,
-                  isScrollable: true,
-                  tabAlignment: TabAlignment.start,
-                  splashFactory: NoSplash.splashFactory,
-                  overlayColor: WidgetStateProperty.all(Colors.transparent),
-                  padding: EdgeInsets.zero,
-                  dividerColor: Colors.transparent,
-                  indicator: const BoxDecoration(),
-                  controller: controller.tabController,
-                  tabs: [
-                    AppFilterChip(
-                      isSelected: controller.tabController.index == 0,
-                      title: 'Today (${controller.todayCalls.length})',
-                    ),
-
-                    Padding(
-                      padding: EdgeInsets.symmetric(horizontal: 20.w),
-                      child: AppFilterChip(
-                        isSelected: controller.tabController.index == 1,
-                        title: 'Upcoming (${controller.upcomingCalls.length})',
-                      ),
-                    ),
-
-                    AppFilterChip(
-                      isSelected: controller.tabController.index == 2,
-                      title: 'Completed (${controller.completedCalls.length})',
-                    ),
-
-                    Padding(
-                      padding: EdgeInsets.only(left: 20.w),
-                      child: AppFilterChip(
-                        isSelected: controller.tabController.index == 3,
-                        title: 'Missed (${controller.missedCalls.length})',
-                      ),
-                    ),
-                  ],
-                ),
-
-                SizedBox(height: 24.h),
-                Expanded(
-                  child: controller.isLoading
-                      ? const Center(child: CircularProgressIndicator())
-                      : TabBarView(
-                          controller: controller.tabController,
-                          children: [
-                            _buildCallList(
-                              controller.todayCalls,
-                              emptyMessage: 'No calls scheduled for today',
-                            ),
-
-                            _buildCallList(
-                              controller.upcomingCalls,
-                              emptyMessage: 'No upcoming calls',
-                            ),
-
-                            _buildCallList(
-                              controller.completedCalls,
-                              emptyMessage: 'No completed calls yet',
-                            ),
-
-                            _buildCallList(
-                              controller.missedCalls,
-                              emptyMessage: 'No missed calls',
-                            ),
-                          ],
-                        ),
-                ),
-              ],
-            ),
-          );
-        },
       ),
       floatingActionButton: FloatingActionButton(
         onPressed: () async {
@@ -135,6 +81,137 @@ class HomeView extends StatelessWidget {
         },
         backgroundColor: AppColors.primary,
         child: Icon(Icons.add, color: AppColors.white, size: 28.sp),
+      ),
+    );
+  }
+
+  Widget _buildHomeHeader(HomeController controller) {
+    final hour = DateTime.now().hour;
+
+    final greeting = hour < 12
+        ? 'Good morning'
+        : hour < 17
+        ? 'Good afternoon'
+        : 'Good evening';
+
+    final todayCount = controller.todayCalls.length;
+
+    return Row(
+      crossAxisAlignment: CrossAxisAlignment.start,
+      children: [
+        Expanded(
+          child: Column(
+            crossAxisAlignment: CrossAxisAlignment.start,
+            children: [
+              Text(
+                '$greeting 👋',
+                style: AppFont.style.copyWith(
+                  fontSize: 14.sp,
+                  fontWeight: FontWeight.w500,
+                  color: AppColors.textSecondary,
+                ),
+              ),
+
+              SizedBox(height: 4.h),
+
+              Text(
+                'Your calls',
+                style: AppFont.style.copyWith(
+                  fontSize: 28.sp,
+                  fontWeight: FontWeight.w700,
+                  color: AppColors.textPrimary,
+                ),
+              ),
+
+              SizedBox(height: 6.h),
+
+              Text(
+                todayCount == 0
+                    ? 'No calls scheduled for today'
+                    : '$todayCount ${todayCount == 1 ? 'call' : 'calls'} scheduled for today',
+                style: AppFont.style.copyWith(
+                  fontSize: 13.sp,
+                  fontWeight: FontWeight.w500,
+                  color: AppColors.textTertiary,
+                ),
+              ),
+            ],
+          ),
+        ),
+
+        SizedBox(width: 12.w),
+
+        Material(
+          color: AppColors.surface,
+          borderRadius: BorderRadius.circular(14.r),
+          child: InkWell(
+            borderRadius: BorderRadius.circular(14.r),
+            onTap: () {
+              Get.to(() => const SettingsView());
+            },
+            child: Container(
+              width: 46.w,
+              height: 46.w,
+              decoration: BoxDecoration(
+                borderRadius: BorderRadius.circular(14.r),
+                border: Border.all(color: AppColors.border),
+              ),
+              child: Icon(
+                Icons.settings_outlined,
+                color: AppColors.textPrimary,
+                size: 22.sp,
+              ),
+            ),
+          ),
+        ),
+      ],
+    );
+  }
+
+  Widget _buildStatusTabs(HomeController controller) {
+    return SizedBox(
+      height: 42.h,
+      child: TabBar(
+        onTap: (_) => controller.update(),
+        labelPadding: EdgeInsets.zero,
+        isScrollable: true,
+        tabAlignment: TabAlignment.start,
+        splashFactory: NoSplash.splashFactory,
+        overlayColor: WidgetStateProperty.all(Colors.transparent),
+        padding: EdgeInsets.zero,
+        dividerColor: Colors.transparent,
+        indicator: const BoxDecoration(),
+        controller: controller.tabController,
+        tabs: [
+          AppFilterChip(
+            isSelected: controller.tabController.index == 0,
+            title: 'Today ${controller.todayCalls.length}',
+          ),
+
+          Padding(
+            padding: EdgeInsets.only(left: 8.w),
+            child: AppFilterChip(
+              isSelected: controller.tabController.index == 1,
+              title: 'Upcoming ${controller.upcomingCalls.length}',
+            ),
+          ),
+
+          Padding(
+            padding: EdgeInsets.only(left: 8.w),
+            child: AppFilterChip(
+              isSelected: controller.tabController.index == 2,
+              title: 'Completed ${controller.completedCalls.length}',
+            ),
+          ),
+
+          Padding(
+            padding: EdgeInsets.only(left: 8.w),
+            child: AppFilterChip(
+              isSelected: controller.tabController.index == 3,
+              title: 'Missed ${controller.missedCalls.length}',
+            ),
+          ),
+        ],
       ),
     );
   }
@@ -173,7 +250,7 @@ class HomeView extends StatelessWidget {
       onChanged: controller.setSearchQuery,
       textInputAction: TextInputAction.search,
       decoration: InputDecoration(
-        hintText: 'Search calls...',
+        hintText: 'Search contacts or calls...',
         prefixIcon: Icon(
           Icons.search,
           color: AppColors.textTertiary,
@@ -191,17 +268,17 @@ class HomeView extends StatelessWidget {
             : null,
         filled: true,
         fillColor: AppColors.white,
-        contentPadding: EdgeInsets.symmetric(horizontal: 16.w, vertical: 12.h),
+        contentPadding: EdgeInsets.symmetric(horizontal: 16.w, vertical: 13.h),
         border: OutlineInputBorder(
-          borderRadius: BorderRadius.circular(12.r),
+          borderRadius: BorderRadius.circular(14.r),
           borderSide: BorderSide.none,
         ),
         enabledBorder: OutlineInputBorder(
-          borderRadius: BorderRadius.circular(12.r),
+          borderRadius: BorderRadius.circular(14.r),
           borderSide: BorderSide.none,
         ),
         focusedBorder: OutlineInputBorder(
-          borderRadius: BorderRadius.circular(12.r),
+          borderRadius: BorderRadius.circular(14.r),
           borderSide: BorderSide(color: AppColors.primary),
         ),
       ),
