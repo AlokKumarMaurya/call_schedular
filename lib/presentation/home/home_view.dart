@@ -1,5 +1,4 @@
 import 'package:call_schedular/presentation/home/home_controller.dart';
-import 'package:call_schedular/presentation/home/widget/filter_chip.dart';
 import 'package:call_schedular/theme/app_colors.dart';
 import 'package:call_schedular/theme/app_font.dart';
 import 'package:flutter/material.dart';
@@ -169,49 +168,118 @@ class HomeView extends StatelessWidget {
   }
 
   Widget _buildStatusTabs(HomeController controller) {
-    return SizedBox(
-      height: 42.h,
-      child: TabBar(
-        onTap: (_) => controller.update(),
-        labelPadding: EdgeInsets.zero,
-        isScrollable: true,
-        tabAlignment: TabAlignment.start,
-        splashFactory: NoSplash.splashFactory,
-        overlayColor: WidgetStateProperty.all(Colors.transparent),
-        padding: EdgeInsets.zero,
-        dividerColor: Colors.transparent,
-        indicator: const BoxDecoration(),
-        controller: controller.tabController,
-        tabs: [
-          AppFilterChip(
-            isSelected: controller.tabController.index == 0,
-            title: 'Today ${controller.todayCalls.length}',
-          ),
+    final selectedIndex = controller.tabController.index;
 
-          Padding(
-            padding: EdgeInsets.only(left: 8.w),
-            child: AppFilterChip(
-              isSelected: controller.tabController.index == 1,
-              title: 'Upcoming ${controller.upcomingCalls.length}',
+    return Container(
+      height: 64.h,
+      padding: EdgeInsets.all(4.w),
+      decoration: BoxDecoration(
+        color: AppColors.surface,
+        borderRadius: BorderRadius.circular(16.r),
+        border: Border.all(color: AppColors.border),
+      ),
+      child: Row(
+        children: [
+          Expanded(
+            child: _buildTab(
+              label: 'Today',
+              count: controller.todayCalls.length,
+              isSelected: selectedIndex == 0,
+              onTap: () {
+                controller.tabController.animateTo(0);
+              },
             ),
           ),
 
-          Padding(
-            padding: EdgeInsets.only(left: 8.w),
-            child: AppFilterChip(
-              isSelected: controller.tabController.index == 2,
-              title: 'Completed ${controller.completedCalls.length}',
+          Expanded(
+            child: _buildTab(
+              label: 'Upcoming',
+              count: controller.upcomingCalls.length,
+              isSelected: selectedIndex == 1,
+              onTap: () {
+                controller.tabController.animateTo(1);
+              },
             ),
           ),
 
-          Padding(
-            padding: EdgeInsets.only(left: 8.w),
-            child: AppFilterChip(
-              isSelected: controller.tabController.index == 3,
-              title: 'Missed ${controller.missedCalls.length}',
+          Expanded(
+            child: _buildTab(
+              label: 'Completed',
+              count: controller.completedCalls.length,
+              isSelected: selectedIndex == 2,
+              onTap: () {
+                controller.tabController.animateTo(2);
+              },
+            ),
+          ),
+
+          Expanded(
+            child: _buildTab(
+              label: 'Missed',
+              count: controller.missedCalls.length,
+              isSelected: selectedIndex == 3,
+              onTap: () {
+                controller.tabController.animateTo(3);
+              },
             ),
           ),
         ],
+      ),
+    );
+  }
+
+  Widget _buildTab({
+    required String label,
+    required int count,
+    required bool isSelected,
+    required VoidCallback onTap,
+  }) {
+    return Material(
+      color: Colors.transparent,
+      borderRadius: BorderRadius.circular(12.r),
+      child: InkWell(
+        onTap: onTap,
+        borderRadius: BorderRadius.circular(12.r),
+        child: AnimatedContainer(
+          duration: const Duration(milliseconds: 180),
+          curve: Curves.easeOut,
+          margin: EdgeInsets.symmetric(horizontal: 2.w, vertical: 1.h),
+          padding: EdgeInsets.symmetric(horizontal: 2.w, vertical: 5.h),
+          decoration: BoxDecoration(
+            color: isSelected ? AppColors.primaryLight : Colors.transparent,
+            borderRadius: BorderRadius.circular(12.r),
+          ),
+          child: Column(
+            mainAxisAlignment: MainAxisAlignment.center,
+            children: [
+              Text(
+                label,
+                maxLines: 1,
+                overflow: TextOverflow.ellipsis,
+                style: AppFont.style.copyWith(
+                  fontSize: 12.sp,
+                  fontWeight: FontWeight.w600,
+                  color: isSelected
+                      ? AppColors.primary
+                      : AppColors.textSecondary,
+                ),
+              ),
+
+              SizedBox(height: 2.h),
+
+              Text(
+                '$count',
+                style: AppFont.style.copyWith(
+                  fontSize: 11.sp,
+                  fontWeight: FontWeight.w700,
+                  color: isSelected
+                      ? AppColors.primary
+                      : AppColors.textTertiary,
+                ),
+              ),
+            ],
+          ),
+        ),
       ),
     );
   }
@@ -221,15 +289,7 @@ class HomeView extends StatelessWidget {
     required String emptyMessage,
   }) {
     if (calls.isEmpty) {
-      return Center(
-        child: Text(
-          emptyMessage,
-          style: AppFont.style.copyWith(
-            fontSize: 14.sp,
-            color: AppColors.textTertiary,
-          ),
-        ),
-      );
+      return _buildEmptyState(emptyMessage);
     }
 
     return ListView.separated(
@@ -241,6 +301,94 @@ class HomeView extends StatelessWidget {
 
         return CallRecordTile(call: call);
       },
+    );
+  }
+
+  Widget _buildEmptyState(String message) {
+    final isToday = message == 'No calls scheduled for today';
+    final isUpcoming = message == 'No upcoming calls';
+    final isCompleted = message == 'No completed calls yet';
+
+    final IconData icon;
+    final String title;
+    final String subtitle;
+
+    if (isToday) {
+      icon = Icons.event_available_rounded;
+      title = 'Your day is clear';
+      subtitle = 'No calls scheduled for today.';
+    } else if (isUpcoming) {
+      icon = Icons.calendar_month_outlined;
+      title = 'Nothing coming up';
+      subtitle =
+          'Schedule a call so you never forget an important conversation.';
+    } else if (isCompleted) {
+      icon = Icons.check_circle_outline_rounded;
+      title = 'No completed calls';
+      subtitle = 'Calls you complete will appear here.';
+    } else {
+      icon = Icons.sentiment_satisfied_alt_rounded;
+      title = 'No missed calls';
+      subtitle = 'Great! You haven’t missed any calls.';
+    }
+
+    return Center(
+      child: Padding(
+        padding: EdgeInsets.symmetric(horizontal: 32.w),
+        child: Column(
+          mainAxisAlignment: MainAxisAlignment.center,
+          children: [
+            Container(
+              width: 76.w,
+              height: 76.w,
+              decoration: BoxDecoration(
+                color: AppColors.primaryLight,
+                shape: BoxShape.circle,
+              ),
+              child: Icon(icon, size: 34.sp, color: AppColors.primary),
+            ),
+
+            SizedBox(height: 18.h),
+
+            Text(
+              title,
+              textAlign: TextAlign.center,
+              style: AppFont.style.copyWith(
+                fontSize: 18.sp,
+                fontWeight: FontWeight.w700,
+                color: AppColors.textPrimary,
+              ),
+            ),
+
+            SizedBox(height: 8.h),
+
+            Text(
+              subtitle,
+              textAlign: TextAlign.center,
+              style: AppFont.style.copyWith(
+                fontSize: 13.sp,
+                height: 1.4,
+                color: AppColors.textTertiary,
+              ),
+            ),
+
+            if (isToday || isUpcoming) ...[
+              SizedBox(height: 20.h),
+
+              OutlinedButton.icon(
+                onPressed: () async {
+                  await Get.to(() => ScheduleCallView());
+
+                  await Get.find<HomeController>().getCallList();
+                },
+                icon: Icon(Icons.add, size: 18.sp),
+                label: const Text('Schedule Call'),
+                style: OutlinedButton.styleFrom(minimumSize: Size(150.w, 44.h)),
+              ),
+            ],
+          ],
+        ),
+      ),
     );
   }
 
