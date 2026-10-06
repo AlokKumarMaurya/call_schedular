@@ -373,13 +373,14 @@ class _CallDetailsViewState extends State<CallDetailsView> {
       }
 
       // The phone app was successfully opened.
-      // Mark the scheduled call as completed.
+      // Complete the current occurrence and,
+      // if recurring, create the next occurrence.
       if (_call.status != CallStatusEntity.completed) {
-        final updatedCall = _call.copyWith(
-          status: CallStatusEntity.completed,
-        );
+        final useCase = Get.find<CallUseCase>();
 
-        await Get.find<CallUseCase>().updateCall(updatedCall);
+        final updatedCall = await useCase.completeCall(
+          _call,
+        );
 
         if (!mounted) {
           return;
@@ -392,7 +393,9 @@ class _CallDetailsViewState extends State<CallDetailsView> {
         await Get.find<HomeController>().getCallList();
       }
     } catch (e) {
-      debugPrint('Error launching phone app: $e');
+      debugPrint(
+        'Error launching phone app: $e',
+      );
 
       Get.snackbar(
         'Unable to call',
@@ -457,11 +460,11 @@ class _CallDetailsViewState extends State<CallDetailsView> {
     }
 
     try {
-      final updatedCall = _call.copyWith(
-        status: CallStatusEntity.completed,
-      );
+      final useCase = Get.find<CallUseCase>();
 
-      await Get.find<CallUseCase>().updateCall(updatedCall);
+      final updatedCall = await useCase.completeCall(
+        _call,
+      );
 
       if (!mounted) {
         return;
@@ -475,11 +478,15 @@ class _CallDetailsViewState extends State<CallDetailsView> {
 
       Get.snackbar(
         'Completed',
-        'Call marked as completed.',
+        _call.repeat == 'Does not repeat'
+            ? 'Call marked as completed.'
+            : 'Call completed. Next occurrence scheduled.',
         snackPosition: SnackPosition.BOTTOM,
       );
     } catch (e) {
-      debugPrint('Error marking call as completed: $e');
+      debugPrint(
+        'Error marking call as completed: $e',
+      );
 
       Get.snackbar(
         'Error',

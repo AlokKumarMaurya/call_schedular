@@ -1,13 +1,3 @@
-enum CallStatusEntity {
-  upcoming,
-  completed,
-  missed;
-
-  static CallStatusEntity fromString(String s) {
-    return CallStatusEntity.values.firstWhere((element) => element.name == s);
-  }
-}
-
 class CallListEntity {
   final String id;
   final String contactName;
@@ -27,11 +17,9 @@ class CallListEntity {
     this.repeat = 'Does not repeat',
   });
 
-  /// First character for avatar
   String get initial =>
       contactName.isNotEmpty ? contactName[0].toUpperCase() : '?';
 
-  /// Check whether call is scheduled for today
   bool get isToday {
     final now = DateTime.now();
 
@@ -40,12 +28,14 @@ class CallListEntity {
         scheduledAt.day == now.day;
   }
 
-  /// Check whether call is scheduled for future
   bool get isUpcoming {
     return scheduledAt.isAfter(DateTime.now()) && !isToday;
   }
 
-  /// Formatted time
+  bool get isRecurring {
+    return repeat != 'Does not repeat';
+  }
+
   String get formattedTime {
     final hour = scheduledAt.hour;
     final minute = scheduledAt.minute;
@@ -56,7 +46,6 @@ class CallListEntity {
     return '$formattedHour:${minute.toString().padLeft(2, '0')} $period';
   }
 
-  /// Formatted date
   String get formattedDate {
     const months = [
       'Jan',
@@ -76,6 +65,104 @@ class CallListEntity {
     return '${scheduledAt.day} ${months[scheduledAt.month - 1]}';
   }
 
+  /// Returns the date/time for the next occurrence.
+  DateTime get nextOccurrenceDate {
+    switch (repeat) {
+      case 'Every day':
+        return scheduledAt.add(
+          const Duration(days: 1),
+        );
+
+      case 'Every week':
+        return scheduledAt.add(
+          const Duration(days: 7),
+        );
+
+      case 'Every month':
+        return _addMonths(scheduledAt, 1);
+
+      case 'Every year':
+        return _addYears(scheduledAt, 1);
+
+      case 'Does not repeat':
+      default:
+        return scheduledAt;
+    }
+  }
+
+  DateTime _addMonths(
+      DateTime date,
+      int months,
+      ) {
+    final totalMonths =
+        date.year * 12 + (date.month - 1) + months;
+
+    final year = totalMonths ~/ 12;
+    final month = totalMonths % 12 + 1;
+
+    final lastDayOfMonth = DateTime(
+      year,
+      month + 1,
+      0,
+    ).day;
+
+    final day = date.day > lastDayOfMonth
+        ? lastDayOfMonth
+        : date.day;
+
+    return DateTime(
+      year,
+      month,
+      day,
+      date.hour,
+      date.minute,
+      date.second,
+      date.millisecond,
+      date.microsecond,
+    );
+  }
+
+  DateTime _addYears(
+      DateTime date,
+      int years,
+      ) {
+    final year = date.year + years;
+
+    final lastDayOfMonth = DateTime(
+      year,
+      date.month + 1,
+      0,
+    ).day;
+
+    final day = date.day > lastDayOfMonth
+        ? lastDayOfMonth
+        : date.day;
+
+    return DateTime(
+      year,
+      date.month,
+      day,
+      date.hour,
+      date.minute,
+      date.second,
+      date.millisecond,
+      date.microsecond,
+    );
+  }
+
+  /// Creates the next occurrence as a new call.
+  CallListEntity createNextOccurrence() {
+    return CallListEntity(
+      id: '${id}_${nextOccurrenceDate.microsecondsSinceEpoch}',
+      contactName: contactName,
+      phoneNumber: phoneNumber,
+      scheduledAt: nextOccurrenceDate,
+      status: CallStatusEntity.upcoming,
+      notes: notes,
+      repeat: repeat,
+    );
+  }
+
   CallListEntity copyWith({
     String? id,
     String? contactName,
@@ -93,6 +180,18 @@ class CallListEntity {
       status: status ?? this.status,
       notes: notes ?? this.notes,
       repeat: repeat ?? this.repeat,
+    );
+  }
+}
+
+enum CallStatusEntity {
+  upcoming,
+  completed,
+  missed;
+
+  static CallStatusEntity fromString(String s) {
+    return CallStatusEntity.values.firstWhere(
+          (element) => element.name == s,
     );
   }
 }

@@ -39,45 +39,18 @@ class HomeController extends GetxController
       isLoading = true;
       update();
 
-      final res = await Get.find<CallUseCase>().getCallList();
+      final useCase = Get.find<CallUseCase>();
 
-      await _markExpiredCallsAsMissed(res);
+      final calls = await useCase.getCallList();
 
-      callListModel = res;
+      callListModel = await useCase.processOverdueCalls(
+        calls,
+      );
     } catch (e) {
       debugPrint('Error fetching calls: $e');
     } finally {
       isLoading = false;
       update();
-    }
-  }
-
-  Future<void> _markExpiredCallsAsMissed(
-      List<CallListEntity> calls,
-      ) async {
-    final now = DateTime.now();
-    final useCase = Get.find<CallUseCase>();
-
-    for (var i = 0; i < calls.length; i++) {
-      final call = calls[i];
-
-      // Only upcoming calls can become missed.
-      //
-      // Completed calls should never become missed,
-      // even if their scheduled time is in the past.
-      if (call.status == CallStatusEntity.upcoming &&
-          call.scheduledAt.isBefore(now)) {
-        final updatedCall = call.copyWith(
-          status: CallStatusEntity.missed,
-        );
-
-        await useCase.updateCall(updatedCall);
-
-        // Update the same list that will be assigned to
-        // callListModel so the UI immediately gets the
-        // correct status.
-        calls[i] = updatedCall;
-      }
     }
   }
 
