@@ -8,6 +8,8 @@ import 'package:flutter_screenutil_plus/flutter_screenutil_plus.dart';
 import 'package:get/get.dart';
 import 'package:package_info_plus/package_info_plus.dart';
 
+import '../../core/widgets/app_glass_icon_button.dart';
+
 class SettingsView extends StatefulWidget {
   const SettingsView({super.key});
 
@@ -91,20 +93,25 @@ class _SettingsViewState extends State<SettingsView>
         backgroundColor: colors.background,
         elevation: 0,
         scrolledUnderElevation: 0,
+        leadingWidth: 62.w,
+        leading: Padding(
+          padding: EdgeInsets.only(
+            left: 12.w,
+            top: 4.h,
+            bottom: 2.h,
+          ),
+          child: AppGlassIconButton(
+            icon: Icons.arrow_back_ios_new_rounded,
+            tooltip: 'Back',
+            onPressed: Get.back,
+          ),
+        ),
         title: Text(
           'Settings',
           style: AppFont.style.copyWith(
             fontSize: 22.sp,
             fontWeight: FontWeight.w700,
             color: colors.textPrimary,
-          ),
-        ),
-        leading: IconButton(
-          onPressed: Get.back,
-          icon: Icon(
-            Icons.arrow_back_ios_new_rounded,
-            color: colors.textPrimary,
-            size: 20.sp,
           ),
         ),
       ),
@@ -282,7 +289,9 @@ class _SettingsViewState extends State<SettingsView>
                           color: colors.textPrimary,
                         ),
                       ),
+
                       SizedBox(height: 4.h),
+
                       Text(
                         subtitle,
                         maxLines: 1,
@@ -499,7 +508,9 @@ class _SettingsViewState extends State<SettingsView>
                         color: colors.textPrimary,
                       ),
                     ),
+
                     SizedBox(height: 3.h),
+
                     Text(
                       subtitle,
                       style: AppFont.style.copyWith(
