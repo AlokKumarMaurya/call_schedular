@@ -12,16 +12,14 @@ import '../../domain/entity/call_list_entity.dart';
 
 class ScheduleCallView extends StatelessWidget {
   final CallListEntity? call;
+  final bool isReschedule;
 
-  const ScheduleCallView({
-    super.key,
-    this.call,
-  });
+  const ScheduleCallView({super.key, this.call, this.isReschedule = false});
 
   @override
   Widget build(BuildContext context) {
     return GetBuilder<ScheduleCallController>(
-      init: ScheduleCallController(call: call),
+      init: ScheduleCallController(call: call, isReschedule: isReschedule),
       builder: (controller) {
         return Scaffold(
           backgroundColor: AppColors.background,
@@ -38,7 +36,11 @@ class ScheduleCallView extends StatelessWidget {
             ),
             titleSpacing: 4.w,
             title: Text(
-              call == null ? 'Save Call' : 'Update Call',
+              call == null
+                  ? 'Save Call'
+                  : isReschedule
+                  ? 'Reschedule Call'
+                  : 'Update Call',
               style: AppFont.style.copyWith(
                 fontSize: 18.sp,
                 fontWeight: FontWeight.w600,
@@ -63,17 +65,11 @@ class ScheduleCallView extends StatelessWidget {
 
                           SizedBox(height: 16.h),
 
-                          _buildDateTimeSection(
-                            context,
-                            controller,
-                          ),
+                          _buildDateTimeSection(context, controller),
 
                           SizedBox(height: 12.h),
 
-                          _buildRepeatSection(
-                            context,
-                            controller,
-                          ),
+                          _buildRepeatSection(context, controller),
 
                           SizedBox(height: 12.h),
 
@@ -86,15 +82,12 @@ class ScheduleCallView extends StatelessWidget {
                   ),
 
                   Padding(
-                    padding: EdgeInsets.fromLTRB(
-                      16.w,
-                      8.h,
-                      16.w,
-                      12.h,
-                    ),
+                    padding: EdgeInsets.fromLTRB(16.w, 8.h, 16.w, 12.h),
                     child: SchedulePrimaryButton(
                       title: call == null
                           ? 'Save Call'
+                          : isReschedule
+                          ? 'Reschedule Call'
                           : 'Update Call',
                       isLoading: controller.isSaving,
                       onPressed: () => _saveCall(controller),
@@ -109,9 +102,7 @@ class ScheduleCallView extends StatelessWidget {
     );
   }
 
-  Widget _buildContactSection(
-      ScheduleCallController controller,
-      ) {
+  Widget _buildContactSection(ScheduleCallController controller) {
     return _sectionCard(
       child: Column(
         children: [
@@ -137,18 +128,18 @@ class ScheduleCallView extends StatelessWidget {
                   : controller.pickContact,
               icon: controller.isPickingContact
                   ? SizedBox(
-                height: 18.sp,
-                width: 18.sp,
-                child: CircularProgressIndicator(
-                  strokeWidth: 2,
-                  color: AppColors.iconBlue,
-                ),
-              )
+                      height: 18.sp,
+                      width: 18.sp,
+                      child: CircularProgressIndicator(
+                        strokeWidth: 2,
+                        color: AppColors.iconBlue,
+                      ),
+                    )
                   : Icon(
-                Icons.person_outline,
-                size: 21.sp,
-                color: AppColors.iconBlue,
-              ),
+                      Icons.person_outline,
+                      size: 21.sp,
+                      color: AppColors.iconBlue,
+                    ),
             ),
           ),
         ],
@@ -157,9 +148,9 @@ class ScheduleCallView extends StatelessWidget {
   }
 
   Widget _buildDateTimeSection(
-      BuildContext context,
-      ScheduleCallController controller,
-      ) {
+    BuildContext context,
+    ScheduleCallController controller,
+  ) {
     return _sectionCard(
       padding: EdgeInsets.symmetric(horizontal: 4.w),
       child: Column(
@@ -183,9 +174,9 @@ class ScheduleCallView extends StatelessWidget {
   }
 
   Widget _buildRepeatSection(
-      BuildContext context,
-      ScheduleCallController controller,
-      ) {
+    BuildContext context,
+    ScheduleCallController controller,
+  ) {
     return _sectionCard(
       padding: EdgeInsets.symmetric(horizontal: 4.w),
       child: ScheduleOptionTile(
@@ -197,9 +188,7 @@ class ScheduleCallView extends StatelessWidget {
     );
   }
 
-  Widget _buildNotesSection(
-      ScheduleCallController controller,
-      ) {
+  Widget _buildNotesSection(ScheduleCallController controller) {
     return _sectionCard(
       child: ScheduleInputField(
         label: 'Notes (Optional)',
@@ -211,10 +200,7 @@ class ScheduleCallView extends StatelessWidget {
     );
   }
 
-  Widget _sectionCard({
-    required Widget child,
-    EdgeInsetsGeometry? padding,
-  }) {
+  Widget _sectionCard({required Widget child, EdgeInsetsGeometry? padding}) {
     return Container(
       width: double.infinity,
       padding: padding ?? EdgeInsets.all(12.sp),
@@ -226,9 +212,7 @@ class ScheduleCallView extends StatelessWidget {
     );
   }
 
-  Future<void> _saveCall(
-      ScheduleCallController controller,
-      ) async {
+  Future<void> _saveCall(ScheduleCallController controller) async {
     if (controller.isSaving || !controller.validate()) {
       return;
     }
@@ -251,6 +235,8 @@ class ScheduleCallView extends StatelessWidget {
         'Success',
         call == null
             ? 'Call scheduled successfully'
+            : isReschedule
+            ? 'Call rescheduled successfully'
             : 'Call updated successfully',
         snackPosition: SnackPosition.BOTTOM,
       );

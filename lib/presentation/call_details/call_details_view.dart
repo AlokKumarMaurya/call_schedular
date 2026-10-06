@@ -37,6 +37,10 @@ class _CallDetailsViewState extends State<CallDetailsView> {
         ? _call.contactName[0].toUpperCase()
         : '?';
 
+    final isHistorical =
+        _call.status == CallStatusEntity.completed ||
+            _call.status == CallStatusEntity.missed;
+
     return Scaffold(
       backgroundColor: AppColors.background,
       appBar: AppBar(
@@ -60,9 +64,14 @@ class _CallDetailsViewState extends State<CallDetailsView> {
         ),
         actions: [
           IconButton(
-            onPressed: _editCall,
+            onPressed: isHistorical
+                ? _rescheduleCall
+                : _editCall,
+            tooltip: isHistorical ? 'Reschedule' : 'Edit',
             icon: Icon(
-              Icons.edit_outlined,
+              isHistorical
+                  ? Icons.event_repeat_outlined
+                  : Icons.edit_outlined,
               color: AppColors.textPrimary,
               size: 22.sp,
             ),
@@ -241,6 +250,27 @@ class _CallDetailsViewState extends State<CallDetailsView> {
     // Refresh HomeController so the Home list also contains
     // the updated call.
     await Get.find<HomeController>().getCallList();
+  }
+
+  Future<void> _rescheduleCall() async {
+    final rescheduledCall = await Get.to<CallListEntity>(
+          () => ScheduleCallView(
+        call: _call,
+        isReschedule: true,
+      ),
+    );
+
+    if (rescheduledCall == null) {
+      return;
+    }
+
+    await Get.find<HomeController>().getCallList();
+
+    if (!mounted) {
+      return;
+    }
+
+    Get.back();
   }
 
   Widget _detailRow({

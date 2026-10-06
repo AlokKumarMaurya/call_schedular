@@ -7,8 +7,9 @@ import 'package:call_schedular/services/notification_service.dart';
 
 class ScheduleCallController extends GetxController {
   final CallListEntity? call;
+  final bool isReschedule;
 
-  ScheduleCallController({this.call});
+  ScheduleCallController({this.call, this.isReschedule = false});
 
   final formKey = GlobalKey<FormState>();
 
@@ -197,11 +198,15 @@ class ScheduleCallController extends GetxController {
 
   CallListEntity createCallEntity() {
     return CallListEntity(
-      id: call?.id ?? DateTime.now().microsecondsSinceEpoch.toString(),
+      id: isReschedule
+          ? DateTime.now().microsecondsSinceEpoch.toString()
+          : call?.id ?? DateTime.now().microsecondsSinceEpoch.toString(),
       contactName: contactNameController.text.trim(),
       phoneNumber: phoneNumberController.text.trim(),
       scheduledAt: scheduledAt,
-      status: call?.status ?? CallStatusEntity.upcoming,
+      status: isReschedule
+          ? CallStatusEntity.upcoming
+          : call?.status ?? CallStatusEntity.upcoming,
       notes: notesController.text.trim().isEmpty
           ? null
           : notesController.text.trim(),
@@ -258,10 +263,20 @@ class ScheduleCallController extends GetxController {
     final useCase = Get.find<CallUseCase>();
 
     try {
-      if (call == null) {
+      if (call == null || isReschedule) {
+        if (isReschedule && call != null) {
+          // The old call is historical, but cancel any stale
+          // reminder that might still exist for it.
+          try {
+            await NotificationService.instance.cancelCallReminder(call!);
+          } catch (e) {
+            debugPrint('Error cancelling old call reminder: $e');
+          }
+        }
+
         await useCase.addCall(entity);
       } else {
-        // Cancel the existing reminder before scheduling the updated one.
+        // Normal edit of an upcoming call.
         await NotificationService.instance.cancelCallReminder(call!);
 
         await useCase.updateCall(entity);
@@ -271,22 +286,16 @@ class ScheduleCallController extends GetxController {
       if (entity.status == CallStatusEntity.upcoming &&
           entity.scheduledAt.isAfter(DateTime.now())) {
         try {
-          final permissionGranted =
-          await NotificationService.instance
+          final permissionGranted = await NotificationService.instance
               .requestNotificationPermission();
 
           if (permissionGranted) {
-            await NotificationService.instance
-                .scheduleCallReminder(entity);
+            await NotificationService.instance.scheduleCallReminder(entity);
           } else {
-            debugPrint(
-              'Notification permission was not granted.',
-            );
+            debugPrint('Notification permission was not granted.');
           }
         } catch (e) {
-          debugPrint(
-            'Error scheduling call reminder: $e',
-          );
+          debugPrint('Error scheduling call reminder: $e');
         }
       }
 
