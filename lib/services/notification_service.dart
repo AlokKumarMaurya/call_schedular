@@ -4,6 +4,8 @@ import 'package:flutter_timezone/flutter_timezone.dart';
 import 'package:timezone/data/latest.dart' as tz;
 import 'package:timezone/timezone.dart' as tz;
 
+import 'dart:async';
+
 class NotificationService {
   NotificationService._();
 
@@ -11,6 +13,14 @@ class NotificationService {
 
   final FlutterLocalNotificationsPlugin _notifications =
       FlutterLocalNotificationsPlugin();
+
+  final StreamController<String> _callNotificationTapController =
+      StreamController<String>.broadcast();
+
+  Stream<String> get callNotificationTapStream =>
+      _callNotificationTapController.stream;
+
+  String? _initialCallId;
 
   Future<void> initialize() async {
     tz.initializeTimeZones();
@@ -29,7 +39,39 @@ class NotificationService {
       android: androidSettings,
     );
 
-    await _notifications.initialize(settings: initializationSettings);
+    await _notifications.initialize(
+      settings: initializationSettings,
+      onDidReceiveNotificationResponse: _onNotificationResponse,
+    );
+
+    final launchDetails = await _notifications
+        .getNotificationAppLaunchDetails();
+
+    if (launchDetails?.didNotificationLaunchApp ?? false) {
+      final payload = launchDetails?.notificationResponse?.payload;
+
+      if (payload != null && payload.isNotEmpty) {
+        _initialCallId = payload;
+      }
+    }
+  }
+
+  void _onNotificationResponse(NotificationResponse response) {
+    final callId = response.payload;
+
+    if (callId == null || callId.isEmpty) {
+      return;
+    }
+
+    _callNotificationTapController.add(callId);
+  }
+
+  String? consumeInitialCallId() {
+    final callId = _initialCallId;
+
+    _initialCallId = null;
+
+    return callId;
   }
 
   Future<bool> requestNotificationPermission() async {
@@ -134,12 +176,11 @@ class NotificationService {
       scheduledDate: scheduledDate,
       notificationDetails: notificationDetails,
       androidScheduleMode: AndroidScheduleMode.inexactAllowWhileIdle,
+      payload: call.id,
     );
   }
 
-  Future<void> scheduleNextCallReminder(
-      CallListEntity call,
-      ) async {
+  Future<void> scheduleNextCallReminder(CallListEntity call) async {
     if (!call.isRecurring) {
       return;
     }
@@ -152,9 +193,7 @@ class NotificationService {
   Future<void> cancelCallReminder(CallListEntity call) async {
     final notificationId = _notificationId(call.id);
 
-    await _notifications.cancel(
-      id: notificationId,
-    );
+    await _notifications.cancel(id: notificationId);
   }
 
   int _notificationId(String callId) {
@@ -167,9 +206,7 @@ class NotificationService {
     return hash;
   }
 
-  Future<void> syncUpcomingCallReminders(
-      List<CallListEntity> calls,
-      ) async {
+  Future<void> syncUpcomingCallReminders(List<CallListEntity> calls) async {
     for (final call in calls) {
       if (call.status != CallStatusEntity.upcoming) {
         continue;
@@ -182,9 +219,7 @@ class NotificationService {
       try {
         await scheduleCallReminder(call);
       } catch (e) {
-        print(
-          'Error syncing reminder for ${call.id}: $e',
-        );
+        print('Error syncing reminder for ${call.id}: $e');
       }
     }
   }
