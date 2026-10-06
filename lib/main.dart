@@ -43,7 +43,7 @@ class _MyAppState extends State<MyApp> {
   @override
   void initState() {
     super.initState();
-
+    initialization();
     WidgetsBinding.instance.addPostFrameCallback((_) {
       _handleInitialNotification();
     });
@@ -52,6 +52,15 @@ class _MyAppState extends State<MyApp> {
         .instance
         .callNotificationTapStream
         .listen(_openCallFromNotification);
+  }
+
+  void initialization() async {
+    // 4. Simulate initialization tasks (e.g., loading databases, shared preferences, or APIs)
+    // You can replace this delay with your actual async setup logic
+    await Future.delayed(const Duration(seconds: 3));
+
+    // 5. Remove the splash screen and reveal the home screen
+    FlutterNativeSplash.remove();
   }
 
   Future<void> _handleInitialNotification() async {

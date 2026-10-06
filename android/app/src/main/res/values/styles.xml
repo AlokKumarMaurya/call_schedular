@@ -3,33 +3,63 @@
 
     <!-- Flutter launch theme -->
     <style name="LaunchTheme" parent="@android:style/Theme.Light.NoTitleBar">
-        <item name="android:windowBackground">@drawable/launch_background</item>
-        <item name="android:forceDarkAllowed">false</item>
-        <item name="android:windowFullscreen">true</item>
-        <item name="android:windowDrawsSystemBarBackgrounds">true</item>
-        <item name="android:windowLayoutInDisplayCutoutMode">shortEdges</item>
+
+        <item name="android:windowBackground">
+            @drawable/launch_background
+        </item>
+
+        <item name="android:forceDarkAllowed">
+            false
+        </item>
+
+        <item name="android:windowFullscreen">
+            true
+        </item>
+
+        <item name="android:windowDrawsSystemBarBackgrounds">
+            true
+        </item>
+
+        <item name="android:windowLayoutInDisplayCutoutMode">
+            shortEdges
+        </item>
+
     </style>
+
 
     <!-- Flutter normal theme -->
     <style name="NormalTheme" parent="@android:style/Theme.Light.NoTitleBar">
-        <item name="android:windowBackground">?android:colorBackground</item>
+
+        <item name="android:windowBackground">
+            #061226
+        </item>
+
     </style>
 
-    <!-- Custom native splash -->
+
+    <!-- Custom native full-screen splash -->
     <style name="SplashTheme"
            parent="android:style/Theme.Material.Light.NoActionBar">
 
-        <!-- Background shown while SplashActivity starts -->
-        <item name="android:windowBackground">#061226</item>
+        <!-- Background while SplashActivity starts -->
+        <item name="android:windowBackground">
+            #061226
+        </item>
 
         <!-- Full screen -->
-        <item name="android:windowFullscreen">true</item>
+        <item name="android:windowFullscreen">
+            true
+        </item>
 
         <!-- No action bar -->
-        <item name="android:windowActionModeOverlay">true</item>
+        <item name="android:windowActionModeOverlay">
+            true
+        </item>
 
-        <!-- Prevent default activity preview animation -->
-        <item name="android:windowDisablePreview">true</item>
+        <!-- Prevent default preview animation -->
+        <item name="android:windowDisablePreview">
+            true
+        </item>
 
     </style>
 
