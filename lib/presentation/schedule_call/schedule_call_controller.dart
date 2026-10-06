@@ -267,6 +267,12 @@ class ScheduleCallController extends GetxController {
       }
     } else {
       await useCase.updateCall(entity);
+
+      try {
+        await NotificationService.instance.scheduleCallReminder(entity);
+      } catch (e) {
+        debugPrint('Error updating call reminder: $e');
+      }
     }
 
     update();
