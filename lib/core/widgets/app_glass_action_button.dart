@@ -7,25 +7,32 @@ class AppGlassActionButton extends StatelessWidget {
   final String label;
   final IconData icon;
   final VoidCallback onPressed;
+  final bool isLoading;
+  final bool expand;
 
   const AppGlassActionButton({
     super.key,
     required this.label,
     required this.icon,
     required this.onPressed,
+    this.isLoading = false,
+    this.expand = false,
   });
 
   @override
   Widget build(BuildContext context) {
     final colorScheme = Theme.of(context).colorScheme;
 
-    return Material(
+    final button = Material(
       color: Colors.transparent,
       child: InkWell(
-        onTap: onPressed,
+        onTap: isLoading ? null : onPressed,
         borderRadius: BorderRadius.circular(20.r),
         child: AppGlassContainer(
-          padding: EdgeInsets.symmetric(horizontal: 18.w, vertical: 14.h),
+          padding: EdgeInsets.symmetric(
+            horizontal: 18.w,
+            vertical: 14.h,
+          ),
           borderRadius: BorderRadius.circular(20.r),
           blurSigma: 18,
           opacity: 0.82,
@@ -41,13 +48,26 @@ class AppGlassActionButton extends StatelessWidget {
               offset: const Offset(0, 8),
             ),
           ],
-          child: Row(
-            mainAxisSize: MainAxisSize.min,
+          child: isLoading
+              ? SizedBox(
+            height: 22.sp,
+            width: 22.sp,
+            child: CircularProgressIndicator(
+              strokeWidth: 2,
+              color: colorScheme.onPrimary,
+            ),
+          )
+              : Row(
+            mainAxisSize:
+            expand ? MainAxisSize.max : MainAxisSize.min,
+            mainAxisAlignment: MainAxisAlignment.center,
             children: [
-              Icon(icon, size: 23.sp, color: colorScheme.onPrimary),
-
+              Icon(
+                icon,
+                size: 23.sp,
+                color: colorScheme.onPrimary,
+              ),
               SizedBox(width: 10.w),
-
               Text(
                 label,
                 style: AppFont.style.copyWith(
@@ -61,5 +81,15 @@ class AppGlassActionButton extends StatelessWidget {
         ),
       ),
     );
+
+    if (expand) {
+      return SizedBox(
+        width: double.infinity,
+        height: 52.h,
+        child: button,
+      );
+    }
+
+    return button;
   }
 }
