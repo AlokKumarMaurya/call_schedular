@@ -43,12 +43,13 @@ flutter_launcher_icons:
 
 flutter_native_splash:
   color: "#ffffff"               # Background color (Light mode)
-  image: assets/icon/splash.png  # Path to your splash icon
+  image: assets/icon/splash_screen.png  # Path to your splash icon
   color_dark: "#121212"          # Dark mode background (Optional)
-  image_dark: assets/icon/splash.png # Dark mode icon (Optional)
+  image_dark: assets/icon/splash_screen.png # Dark mode icon (Optional)
+  fullscreen: true
 
   # Android 12+ specific settings (Required for Android 12 compliance)
   android_12:
-    image: assets/icon/splash.png
+    image: assets/icon/splash_screen.png
     color: "#ffffff"
     icon_background_color: "#ffffff"
