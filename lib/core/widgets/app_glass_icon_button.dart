@@ -20,48 +20,65 @@ class AppGlassIconButton extends StatelessWidget {
     this.iconColor,
     this.tintColor,
     this.tooltip,
-    this.size = 46,
-    this.iconSize = 22,
+    this.size = 44,
+    this.iconSize = 21,
   });
 
   @override
   Widget build(BuildContext context) {
-    final colors = Theme.of(context).extension<AppThemeColors>()!;
+    final colors = context.themeColors;
+    final isDark = Theme.of(context).brightness == Brightness.dark;
 
     final effectiveIconColor = iconColor ?? colors.textPrimary;
+    final effectiveTintColor = tintColor ?? colors.glassTint;
 
-    final effectiveTintColor = tintColor ?? colors.glass;
+    final borderColor = tintColor != null
+        ? effectiveTintColor.withValues(
+      alpha: isDark ? 0.28 : 0.35,
+    )
+        : isDark
+        ? colors.primary.withValues(alpha: 0.20)
+        : Colors.white.withValues(alpha: 0.72);
 
-    final button = Material(
-      color: Colors.transparent,
-      child: InkWell(
-        onTap: onPressed,
-        borderRadius: BorderRadius.circular(15.r),
-        child: AppGlassContainer(
-          padding: EdgeInsets.zero,
-          borderRadius: BorderRadius.circular(15.r),
-          blurSigma: 16,
-          opacity: 0.68,
-          tintColor: effectiveTintColor,
-          border: Border.all(
-            color: Colors.white.withValues(
-              alpha: Theme.of(context).brightness == Brightness.dark
-                  ? 0.18
-                  : 0.75,
+    final button = Semantics(
+      button: true,
+      enabled: true,
+      label: tooltip,
+      child: Material(
+        color: Colors.transparent,
+        child: InkWell(
+          onTap: onPressed,
+          borderRadius: BorderRadius.circular(14.r),
+          splashColor: effectiveIconColor.withValues(alpha: 0.12),
+          highlightColor: effectiveIconColor.withValues(alpha: 0.08),
+          child: AppGlassContainer(
+            padding: EdgeInsets.zero,
+            borderRadius: BorderRadius.circular(14.r),
+            blurSigma: 16,
+            opacity: isDark ? 0.50 : 0.60,
+            tintColor: effectiveTintColor,
+            border: Border.all(
+              color: borderColor,
+              width: 1,
             ),
-            width: 1,
-          ),
-          boxShadow: [
-            BoxShadow(
-              color: colors.shadow,
-              blurRadius: 12,
-              offset: const Offset(0, 4),
+            boxShadow: [
+              BoxShadow(
+                color: colors.shadow,
+                blurRadius: 10,
+                offset: const Offset(0, 3),
+              ),
+            ],
+            child: SizedBox(
+              width: size.w,
+              height: size.w,
+              child: Center(
+                child: Icon(
+                  icon,
+                  size: iconSize.sp,
+                  color: effectiveIconColor,
+                ),
+              ),
             ),
-          ],
-          child: SizedBox(
-            width: size.w,
-            height: size.w,
-            child: Icon(icon, size: iconSize.sp, color: effectiveIconColor),
           ),
         ),
       ),
@@ -71,6 +88,9 @@ class AppGlassIconButton extends StatelessWidget {
       return button;
     }
 
-    return Tooltip(message: tooltip!, child: button);
+    return Tooltip(
+      message: tooltip!,
+      child: button,
+    );
   }
 }
