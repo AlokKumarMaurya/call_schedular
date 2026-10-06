@@ -7,16 +7,15 @@ import 'package:flutter/material.dart';
 import 'package:flutter_screenutil_plus/flutter_screenutil_plus.dart';
 import 'package:get/get.dart';
 import 'package:url_launcher/url_launcher.dart';
+
 import '../../domain/usecase/call_use_case.dart';
+
 import 'package:call_schedular/services/notification_service.dart';
 
 class CallDetailsView extends StatefulWidget {
   final CallListEntity call;
 
-  const CallDetailsView({
-    super.key,
-    required this.call,
-  });
+  const CallDetailsView({super.key, required this.call});
 
   @override
   State<CallDetailsView> createState() => _CallDetailsViewState();
@@ -70,11 +69,7 @@ class _CallDetailsViewState extends State<CallDetailsView> {
           ),
           IconButton(
             onPressed: _deleteCall,
-            icon: Icon(
-              Icons.delete_outline,
-              color: Colors.red,
-              size: 22.sp,
-            ),
+            icon: Icon(Icons.delete_outline, color: Colors.red, size: 22.sp),
           ),
           SizedBox(width: 8.w),
         ],
@@ -84,10 +79,7 @@ class _CallDetailsViewState extends State<CallDetailsView> {
           children: [
             Expanded(
               child: SingleChildScrollView(
-                padding: EdgeInsets.symmetric(
-                  horizontal: 20.w,
-                  vertical: 16.h,
-                ),
+                padding: EdgeInsets.symmetric(horizontal: 20.w, vertical: 16.h),
                 child: Column(
                   crossAxisAlignment: CrossAxisAlignment.start,
                   children: [
@@ -107,8 +99,7 @@ class _CallDetailsViewState extends State<CallDetailsView> {
                         SizedBox(width: 14.w),
                         Expanded(
                           child: Column(
-                            crossAxisAlignment:
-                            CrossAxisAlignment.start,
+                            crossAxisAlignment: CrossAxisAlignment.start,
                             children: [
                               Text(
                                 _call.contactName.isEmpty
@@ -172,12 +163,7 @@ class _CallDetailsViewState extends State<CallDetailsView> {
             ),
 
             Padding(
-              padding: EdgeInsets.fromLTRB(
-                16.w,
-                8.h,
-                16.w,
-                16.h,
-              ),
+              padding: EdgeInsets.fromLTRB(16.w, 8.h, 16.w, 16.h),
               child: Column(
                 children: [
                   if (_call.status != CallStatusEntity.completed)
@@ -188,9 +174,7 @@ class _CallDetailsViewState extends State<CallDetailsView> {
                         onPressed: _markAsCompleted,
                         style: OutlinedButton.styleFrom(
                           foregroundColor: AppColors.primary,
-                          side: BorderSide(
-                            color: AppColors.primary,
-                          ),
+                          side: BorderSide(color: AppColors.primary),
                           shape: RoundedRectangleBorder(
                             borderRadius: BorderRadius.circular(12.r),
                           ),
@@ -243,9 +227,7 @@ class _CallDetailsViewState extends State<CallDetailsView> {
 
   Future<void> _editCall() async {
     final updatedCall = await Get.to<CallListEntity>(
-          () => ScheduleCallView(
-        call: _call,
-      ),
+      () => ScheduleCallView(call: _call),
     );
 
     if (updatedCall == null) {
@@ -273,17 +255,12 @@ class _CallDetailsViewState extends State<CallDetailsView> {
         children: [
           SizedBox(
             width: 28.w,
-            child: Icon(
-              icon,
-              size: 20.sp,
-              color: AppColors.textPrimary,
-            ),
+            child: Icon(icon, size: 20.sp, color: AppColors.textPrimary),
           ),
           SizedBox(width: 12.w),
           Expanded(
             child: Column(
-              crossAxisAlignment:
-              CrossAxisAlignment.start,
+              crossAxisAlignment: CrossAxisAlignment.start,
               children: [
                 Text(
                   title,
@@ -328,13 +305,9 @@ class _CallDetailsViewState extends State<CallDetailsView> {
   }
 
   String _formatTime(DateTime date) {
-    final hour = date.hour % 12 == 0
-        ? 12
-        : date.hour % 12;
+    final hour = date.hour % 12 == 0 ? 12 : date.hour % 12;
 
-    final minute = date.minute
-        .toString()
-        .padLeft(2, '0');
+    final minute = date.minute.toString().padLeft(2, '0');
 
     final period = date.hour >= 12 ? 'PM' : 'AM';
 
@@ -353,10 +326,7 @@ class _CallDetailsViewState extends State<CallDetailsView> {
       return;
     }
 
-    final uri = Uri(
-      scheme: 'tel',
-      path: cleanedPhoneNumber,
-    );
+    final uri = Uri(scheme: 'tel', path: cleanedPhoneNumber);
 
     try {
       final launched = await launchUrl(
@@ -375,13 +345,16 @@ class _CallDetailsViewState extends State<CallDetailsView> {
 
       // The phone app was successfully opened.
       // Complete the current occurrence and,
-      // if recurring, create the next occurrence.
       if (_call.status != CallStatusEntity.completed) {
         final useCase = Get.find<CallUseCase>();
 
-        final updatedCall = await useCase.completeCall(
-          _call,
-        );
+        try {
+          await NotificationService.instance.cancelCallReminder(_call);
+        } catch (e) {
+          debugPrint('Error cancelling call reminder: $e');
+        }
+
+        final updatedCall = await useCase.completeCall(_call);
 
         if (!mounted) {
           return;
@@ -394,9 +367,7 @@ class _CallDetailsViewState extends State<CallDetailsView> {
         await Get.find<HomeController>().getCallList();
       }
     } catch (e) {
-      debugPrint(
-        'Error launching phone app: $e',
-      );
+      debugPrint('Error launching phone app: $e');
 
       Get.snackbar(
         'Unable to call',
@@ -420,12 +391,7 @@ class _CallDetailsViewState extends State<CallDetailsView> {
           ),
           TextButton(
             onPressed: () => Get.back(result: true),
-            child: const Text(
-              'Delete',
-              style: TextStyle(
-                color: Colors.red,
-              ),
-            ),
+            child: const Text('Delete', style: TextStyle(color: Colors.red)),
           ),
         ],
       ),
@@ -439,22 +405,16 @@ class _CallDetailsViewState extends State<CallDetailsView> {
       await Get.find<CallUseCase>().deleteCall(_call.id);
 
       try {
-        await NotificationService.instance.cancelCallReminder(
-          _call,
-        );
+        await NotificationService.instance.cancelCallReminder(_call);
       } catch (e) {
-        debugPrint(
-          'Error cancelling call reminder: $e',
-        );
+        debugPrint('Error cancelling call reminder: $e');
       }
 
       await Get.find<HomeController>().getCallList();
 
       Get.back();
     } catch (e) {
-      debugPrint(
-        'Error deleting call: $e',
-      );
+      debugPrint('Error deleting call: $e');
 
       Get.snackbar(
         'Error',
@@ -485,9 +445,14 @@ class _CallDetailsViewState extends State<CallDetailsView> {
     try {
       final useCase = Get.find<CallUseCase>();
 
-      final updatedCall = await useCase.completeCall(
-        _call,
-      );
+      // Cancel the reminder for the current occurrence.
+      try {
+        await NotificationService.instance.cancelCallReminder(_call);
+      } catch (e) {
+        debugPrint('Error cancelling call reminder: $e');
+      }
+
+      final updatedCall = await useCase.completeCall(_call);
 
       if (!mounted) {
         return;
@@ -507,9 +472,7 @@ class _CallDetailsViewState extends State<CallDetailsView> {
         snackPosition: SnackPosition.BOTTOM,
       );
     } catch (e) {
-      debugPrint(
-        'Error marking call as completed: $e',
-      );
+      debugPrint('Error marking call as completed: $e');
 
       Get.snackbar(
         'Error',
