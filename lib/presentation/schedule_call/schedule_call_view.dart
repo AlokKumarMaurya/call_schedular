@@ -14,21 +14,14 @@ class ScheduleCallView extends StatelessWidget {
   final CallListEntity? call;
   final bool isReschedule;
 
-  const ScheduleCallView({
-    super.key,
-    this.call,
-    this.isReschedule = false,
-  });
+  const ScheduleCallView({super.key, this.call, this.isReschedule = false});
 
   @override
   Widget build(BuildContext context) {
     final colors = context.themeColors;
 
     return GetBuilder<ScheduleCallController>(
-      init: ScheduleCallController(
-        call: call,
-        isReschedule: isReschedule,
-      ),
+      init: ScheduleCallController(call: call, isReschedule: isReschedule),
       builder: (controller) {
         return Scaffold(
           backgroundColor: colors.background,
@@ -39,15 +32,13 @@ class ScheduleCallView extends StatelessWidget {
             scrolledUnderElevation: 0,
             leadingWidth: 62.w,
             leading: Padding(
-              padding: EdgeInsets.only(
-                left: 12.w,
-                top: 4.h,
-                bottom: 2.h,
-              ),
-              child: AppGlassIconButton(
-                icon: Icons.arrow_back_ios_new_rounded,
-                tooltip: 'Back',
-                onPressed: Get.back,
+              padding: EdgeInsets.only(left: 12.w, top: 0.h, bottom: 0.h),
+              child: UnconstrainedBox(
+                child: AppGlassIconButton(
+                  icon: Icons.arrow_back_ios_new_rounded,
+                  tooltip: 'Back',
+                  onPressed: Get.back,
+                ),
               ),
             ),
             titleSpacing: 4.w,
@@ -72,71 +63,42 @@ class ScheduleCallView extends StatelessWidget {
                   Expanded(
                     child: SingleChildScrollView(
                       keyboardDismissBehavior:
-                      ScrollViewKeyboardDismissBehavior.onDrag,
-                      padding: EdgeInsets.fromLTRB(
-                        16.w,
-                        0,
-                        16.w,
-                        112.h,
-                      ),
+                          ScrollViewKeyboardDismissBehavior.onDrag,
+                      padding: EdgeInsets.fromLTRB(16.w, 0, 16.w, 112.h),
                       child: Column(
                         crossAxisAlignment: CrossAxisAlignment.start,
                         children: [
                           SizedBox(height: 12.h),
 
-                          _buildSectionTitle(
-                            context,
-                            'Who are you calling?',
-                          ),
+                          _buildSectionTitle(context, 'Who are you calling?'),
 
                           SizedBox(height: 10.h),
 
-                          _buildContactSection(
-                            context,
-                            controller,
-                          ),
+                          _buildContactSection(context, controller),
 
                           SizedBox(height: 22.h),
 
-                          _buildSectionTitle(
-                            context,
-                            'When?',
-                          ),
+                          _buildSectionTitle(context, 'When?'),
 
                           SizedBox(height: 10.h),
 
-                          _buildDateTimeSection(
-                            context,
-                            controller,
-                          ),
+                          _buildDateTimeSection(context, controller),
 
                           SizedBox(height: 22.h),
 
-                          _buildSectionTitle(
-                            context,
-                            'Repeat',
-                          ),
+                          _buildSectionTitle(context, 'Repeat'),
 
                           SizedBox(height: 10.h),
 
-                          _buildRepeatSection(
-                            context,
-                            controller,
-                          ),
+                          _buildRepeatSection(context, controller),
 
                           SizedBox(height: 22.h),
 
-                          _buildSectionTitle(
-                            context,
-                            'Notes',
-                          ),
+                          _buildSectionTitle(context, 'Notes'),
 
                           SizedBox(height: 10.h),
 
-                          _buildNotesSection(
-                            context,
-                            controller,
-                          ),
+                          _buildNotesSection(context, controller),
 
                           SizedBox(height: 16.h),
                         ],
@@ -145,12 +107,7 @@ class ScheduleCallView extends StatelessWidget {
                   ),
 
                   Padding(
-                    padding: EdgeInsets.fromLTRB(
-                      16.w,
-                      8.h,
-                      16.w,
-                      12.h,
-                    ),
+                    padding: EdgeInsets.fromLTRB(16.w, 8.h, 16.w, 12.h),
                     child: SchedulePrimaryButton(
                       title: call == null
                           ? 'Schedule Call'
@@ -170,10 +127,7 @@ class ScheduleCallView extends StatelessWidget {
     );
   }
 
-  Widget _buildSectionTitle(
-      BuildContext context,
-      String title,
-      ) {
+  Widget _buildSectionTitle(BuildContext context, String title) {
     final colors = context.themeColors;
 
     return Text(
@@ -187,9 +141,9 @@ class ScheduleCallView extends StatelessWidget {
   }
 
   Widget _buildContactSection(
-      BuildContext context,
-      ScheduleCallController controller,
-      ) {
+    BuildContext context,
+    ScheduleCallController controller,
+  ) {
     final colorScheme = Theme.of(context).colorScheme;
 
     return _sectionCard(
@@ -215,24 +169,24 @@ class ScheduleCallView extends StatelessWidget {
             validator: controller.validatePhoneNumber,
             suffixIcon: controller.isPickingContact
                 ? Padding(
-              padding: EdgeInsets.all(12.w),
-              child: SizedBox(
-                width: 18.w,
-                height: 18.w,
-                child: CircularProgressIndicator(
-                  strokeWidth: 2,
-                  color: colorScheme.primary,
-                ),
-              ),
-            )
+                    padding: EdgeInsets.all(12.w),
+                    child: SizedBox(
+                      width: 18.w,
+                      height: 18.w,
+                      child: CircularProgressIndicator(
+                        strokeWidth: 2,
+                        color: colorScheme.primary,
+                      ),
+                    ),
+                  )
                 : IconButton(
-              onPressed: controller.pickContact,
-              icon: Icon(
-                Icons.contacts_outlined,
-                size: 21.sp,
-                color: colorScheme.primary,
-              ),
-            ),
+                    onPressed: controller.pickContact,
+                    icon: Icon(
+                      Icons.contacts_outlined,
+                      size: 21.sp,
+                      color: colorScheme.primary,
+                    ),
+                  ),
           ),
         ],
       ),
@@ -240,9 +194,9 @@ class ScheduleCallView extends StatelessWidget {
   }
 
   Widget _buildDateTimeSection(
-      BuildContext context,
-      ScheduleCallController controller,
-      ) {
+    BuildContext context,
+    ScheduleCallController controller,
+  ) {
     return Row(
       children: [
         Expanded(
@@ -290,9 +244,7 @@ class ScheduleCallView extends StatelessWidget {
           padding: EdgeInsets.all(14.w),
           decoration: BoxDecoration(
             borderRadius: BorderRadius.circular(16.r),
-            border: Border.all(
-              color: colors.border,
-            ),
+            border: Border.all(color: colors.border),
           ),
           child: Column(
             crossAxisAlignment: CrossAxisAlignment.start,
@@ -304,11 +256,7 @@ class ScheduleCallView extends StatelessWidget {
                   color: colors.primaryLight,
                   borderRadius: BorderRadius.circular(10.r),
                 ),
-                child: Icon(
-                  icon,
-                  size: 19.sp,
-                  color: colorScheme.primary,
-                ),
+                child: Icon(icon, size: 19.sp, color: colorScheme.primary),
               ),
 
               SizedBox(height: 12.h),
@@ -342,9 +290,9 @@ class ScheduleCallView extends StatelessWidget {
   }
 
   Widget _buildRepeatSection(
-      BuildContext context,
-      ScheduleCallController controller,
-      ) {
+    BuildContext context,
+    ScheduleCallController controller,
+  ) {
     final colors = context.themeColors;
     final colorScheme = Theme.of(context).colorScheme;
 
@@ -355,15 +303,10 @@ class ScheduleCallView extends StatelessWidget {
         onTap: () => controller.selectRepeat(context),
         borderRadius: BorderRadius.circular(16.r),
         child: Container(
-          padding: EdgeInsets.symmetric(
-            horizontal: 14.w,
-            vertical: 14.h,
-          ),
+          padding: EdgeInsets.symmetric(horizontal: 14.w, vertical: 14.h),
           decoration: BoxDecoration(
             borderRadius: BorderRadius.circular(16.r),
-            border: Border.all(
-              color: colors.border,
-            ),
+            border: Border.all(color: colors.border),
           ),
           child: Row(
             children: [
@@ -423,9 +366,9 @@ class ScheduleCallView extends StatelessWidget {
   }
 
   Widget _buildNotesSection(
-      BuildContext context,
-      ScheduleCallController controller,
-      ) {
+    BuildContext context,
+    ScheduleCallController controller,
+  ) {
     final colors = context.themeColors;
 
     return Container(
@@ -434,9 +377,7 @@ class ScheduleCallView extends StatelessWidget {
       decoration: BoxDecoration(
         color: colors.surface,
         borderRadius: BorderRadius.circular(16.r),
-        border: Border.all(
-          color: colors.border,
-        ),
+        border: Border.all(color: colors.border),
       ),
       child: ScheduleInputField(
         label: 'Note',
@@ -461,17 +402,13 @@ class ScheduleCallView extends StatelessWidget {
       decoration: BoxDecoration(
         color: colors.surface,
         borderRadius: BorderRadius.circular(16.r),
-        border: Border.all(
-          color: colors.border,
-        ),
+        border: Border.all(color: colors.border),
       ),
       child: child,
     );
   }
 
-  Future<void> _saveCall(
-      ScheduleCallController controller,
-      ) async {
+  Future<void> _saveCall(ScheduleCallController controller) async {
     if (controller.isSaving || !controller.validate()) {
       return;
     }
@@ -501,9 +438,7 @@ class ScheduleCallView extends StatelessWidget {
       controller.isSaving = false;
       controller.update();
 
-      debugPrint(
-        'Error saving call: $e',
-      );
+      debugPrint('Error saving call: $e');
 
       Get.snackbar(
         'Error',

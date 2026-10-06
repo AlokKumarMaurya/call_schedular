@@ -16,10 +16,7 @@ import '../../domain/usecase/call_use_case.dart';
 class CallDetailsView extends StatefulWidget {
   final CallListEntity call;
 
-  const CallDetailsView({
-    super.key,
-    required this.call,
-  });
+  const CallDetailsView({super.key, required this.call});
 
   @override
   State<CallDetailsView> createState() => _CallDetailsViewState();
@@ -47,7 +44,7 @@ class _CallDetailsViewState extends State<CallDetailsView> {
 
     final isHistorical =
         _call.status == CallStatusEntity.completed ||
-            _call.status == CallStatusEntity.missed;
+        _call.status == CallStatusEntity.missed;
 
     return Scaffold(
       backgroundColor: colors.background,
@@ -57,11 +54,7 @@ class _CallDetailsViewState extends State<CallDetailsView> {
         scrolledUnderElevation: 0,
         leadingWidth: 62.w,
         leading: Padding(
-          padding: EdgeInsets.only(
-            left: 12.w,
-            top: 4.h,
-            bottom: 2.h,
-          ),
+          padding: EdgeInsets.only(left: 12.w),
           child: AppGlassIconButton(
             icon: Icons.arrow_back_ios_new_rounded,
             tooltip: 'Back',
@@ -100,12 +93,7 @@ class _CallDetailsViewState extends State<CallDetailsView> {
           children: [
             Expanded(
               child: SingleChildScrollView(
-                padding: EdgeInsets.fromLTRB(
-                  16.w,
-                  8.h,
-                  16.w,
-                  24.h,
-                ),
+                padding: EdgeInsets.fromLTRB(16.w, 8.h, 16.w, 24.h),
                 child: Column(
                   crossAxisAlignment: CrossAxisAlignment.start,
                   children: [
@@ -117,10 +105,7 @@ class _CallDetailsViewState extends State<CallDetailsView> {
 
                     SizedBox(height: 24.h),
 
-                    _buildSectionTitle(
-                      context,
-                      'Call Schedule',
-                    ),
+                    _buildSectionTitle(context, 'Call Schedule'),
 
                     SizedBox(height: 10.h),
 
@@ -132,10 +117,7 @@ class _CallDetailsViewState extends State<CallDetailsView> {
 
                     SizedBox(height: 24.h),
 
-                    _buildSectionTitle(
-                      context,
-                      'Notes',
-                    ),
+                    _buildSectionTitle(context, 'Notes'),
 
                     SizedBox(height: 10.h),
 
@@ -153,29 +135,21 @@ class _CallDetailsViewState extends State<CallDetailsView> {
   }
 
   Widget _buildContactHero(
-      BuildContext context, {
-        required String contactName,
-        required String initial,
-      }) {
+    BuildContext context, {
+    required String contactName,
+    required String initial,
+  }) {
     final colors = context.themeColors;
 
-    final avatarColor = _avatarColor(
-      contactName,
-      context,
-    );
+    final avatarColor = _avatarColor(contactName, context);
 
     return Container(
       width: double.infinity,
-      padding: EdgeInsets.symmetric(
-        horizontal: 20.w,
-        vertical: 24.h,
-      ),
+      padding: EdgeInsets.symmetric(horizontal: 20.w, vertical: 24.h),
       decoration: BoxDecoration(
         color: colors.surface,
         borderRadius: BorderRadius.circular(22.r),
-        border: Border.all(
-          color: colors.border,
-        ),
+        border: Border.all(color: colors.border),
         boxShadow: [
           BoxShadow(
             color: colors.shadow,
@@ -269,10 +243,7 @@ class _CallDetailsViewState extends State<CallDetailsView> {
     }
 
     return Container(
-      padding: EdgeInsets.symmetric(
-        horizontal: 11.w,
-        vertical: 6.h,
-      ),
+      padding: EdgeInsets.symmetric(horizontal: 11.w, vertical: 6.h),
       decoration: BoxDecoration(
         color: backgroundColor,
         borderRadius: BorderRadius.circular(20.r),
@@ -280,11 +251,7 @@ class _CallDetailsViewState extends State<CallDetailsView> {
       child: Row(
         mainAxisSize: MainAxisSize.min,
         children: [
-          Icon(
-            icon,
-            size: 15.sp,
-            color: color,
-          ),
+          Icon(icon, size: 15.sp, color: color),
 
           SizedBox(width: 6.w),
 
@@ -328,11 +295,11 @@ class _CallDetailsViewState extends State<CallDetailsView> {
   }
 
   Widget _buildInfoCard(
-      BuildContext context, {
-        required IconData icon,
-        required String label,
-        required String value,
-      }) {
+    BuildContext context, {
+    required IconData icon,
+    required String label,
+    required String value,
+  }) {
     final colors = context.themeColors;
     final colorScheme = Theme.of(context).colorScheme;
 
@@ -341,9 +308,7 @@ class _CallDetailsViewState extends State<CallDetailsView> {
       decoration: BoxDecoration(
         color: colors.surface,
         borderRadius: BorderRadius.circular(16.r),
-        border: Border.all(
-          color: colors.border,
-        ),
+        border: Border.all(color: colors.border),
       ),
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.start,
@@ -355,11 +320,7 @@ class _CallDetailsViewState extends State<CallDetailsView> {
               color: colors.primaryLight,
               borderRadius: BorderRadius.circular(10.r),
             ),
-            child: Icon(
-              icon,
-              size: 19.sp,
-              color: colorScheme.primary,
-            ),
+            child: Icon(icon, size: 19.sp, color: colorScheme.primary),
           ),
 
           SizedBox(height: 12.h),
@@ -396,16 +357,11 @@ class _CallDetailsViewState extends State<CallDetailsView> {
 
     return Container(
       width: double.infinity,
-      padding: EdgeInsets.symmetric(
-        horizontal: 14.w,
-        vertical: 14.h,
-      ),
+      padding: EdgeInsets.symmetric(horizontal: 14.w, vertical: 14.h),
       decoration: BoxDecoration(
         color: colors.surface,
         borderRadius: BorderRadius.circular(16.r),
-        border: Border.all(
-          color: colors.border,
-        ),
+        border: Border.all(color: colors.border),
       ),
       child: Row(
         children: [
@@ -468,9 +424,7 @@ class _CallDetailsViewState extends State<CallDetailsView> {
       decoration: BoxDecoration(
         color: colors.surface,
         borderRadius: BorderRadius.circular(16.r),
-        border: Border.all(
-          color: colors.border,
-        ),
+        border: Border.all(color: colors.border),
       ),
       child: Row(
         crossAxisAlignment: CrossAxisAlignment.start,
@@ -493,16 +447,12 @@ class _CallDetailsViewState extends State<CallDetailsView> {
 
           Expanded(
             child: Text(
-              hasNotes
-                  ? _call.notes!.trim()
-                  : 'No notes added for this call.',
+              hasNotes ? _call.notes!.trim() : 'No notes added for this call.',
               style: AppFont.style.copyWith(
                 fontSize: 14.sp,
                 height: 1.4,
                 fontWeight: FontWeight.w500,
-                color: hasNotes
-                    ? colors.textPrimary
-                    : colors.textTertiary,
+                color: hasNotes ? colors.textPrimary : colors.textTertiary,
               ),
             ),
           ),
@@ -511,10 +461,7 @@ class _CallDetailsViewState extends State<CallDetailsView> {
     );
   }
 
-  Widget _buildSectionTitle(
-      BuildContext context,
-      String title,
-      ) {
+  Widget _buildSectionTitle(BuildContext context, String title) {
     final colors = context.themeColors;
 
     return Text(
@@ -535,19 +482,10 @@ class _CallDetailsViewState extends State<CallDetailsView> {
     final isMissed = _call.status == CallStatusEntity.missed;
 
     return Container(
-      padding: EdgeInsets.fromLTRB(
-        16.w,
-        10.h,
-        16.w,
-        16.h,
-      ),
+      padding: EdgeInsets.fromLTRB(16.w, 10.h, 16.w, 16.h),
       decoration: BoxDecoration(
         color: colors.background,
-        border: Border(
-          top: BorderSide(
-            color: colors.divider,
-          ),
-        ),
+        border: Border(top: BorderSide(color: colors.divider)),
       ),
       child: SafeArea(
         top: false,
@@ -567,19 +505,13 @@ class _CallDetailsViewState extends State<CallDetailsView> {
                 width: double.infinity,
                 height: 48.h,
                 child: OutlinedButton.icon(
-                  onPressed: isMissed
-                      ? _rescheduleCall
-                      : _markAsCompleted,
+                  onPressed: isMissed ? _rescheduleCall : _markAsCompleted,
                   icon: Icon(
-                    isMissed
-                        ? Icons.event_repeat_rounded
-                        : Icons.check_rounded,
+                    isMissed ? Icons.event_repeat_rounded : Icons.check_rounded,
                     size: 18.sp,
                   ),
                   label: Text(
-                    isMissed
-                        ? 'Reschedule Call'
-                        : 'Mark as Completed',
+                    isMissed ? 'Reschedule Call' : 'Mark as Completed',
                     style: AppFont.style.copyWith(
                       fontSize: 14.sp,
                       fontWeight: FontWeight.w700,
@@ -588,9 +520,7 @@ class _CallDetailsViewState extends State<CallDetailsView> {
                   ),
                   style: OutlinedButton.styleFrom(
                     foregroundColor: colorScheme.primary,
-                    side: BorderSide(
-                      color: colorScheme.primary,
-                    ),
+                    side: BorderSide(color: colorScheme.primary),
                     shape: RoundedRectangleBorder(
                       borderRadius: BorderRadius.circular(16.r),
                     ),
@@ -604,10 +534,7 @@ class _CallDetailsViewState extends State<CallDetailsView> {
     );
   }
 
-  Color _avatarColor(
-      String name,
-      BuildContext context,
-      ) {
+  Color _avatarColor(String name, BuildContext context) {
     final colors = context.themeColors;
     final colorScheme = Theme.of(context).colorScheme;
 
@@ -631,9 +558,7 @@ class _CallDetailsViewState extends State<CallDetailsView> {
 
   Future<void> _editCall() async {
     final updatedCall = await Get.to<CallListEntity>(
-          () => ScheduleCallView(
-        call: _call,
-      ),
+      () => ScheduleCallView(call: _call),
     );
 
     if (updatedCall == null) {
@@ -649,10 +574,7 @@ class _CallDetailsViewState extends State<CallDetailsView> {
 
   Future<void> _rescheduleCall() async {
     final rescheduledCall = await Get.to<CallListEntity>(
-          () => ScheduleCallView(
-        call: _call,
-        isReschedule: true,
-      ),
+      () => ScheduleCallView(call: _call, isReschedule: true),
     );
 
     if (rescheduledCall == null) {
@@ -688,9 +610,7 @@ class _CallDetailsViewState extends State<CallDetailsView> {
   }
 
   String _formatTime(DateTime date) {
-    final hour = date.hour % 12 == 0
-        ? 12
-        : date.hour % 12;
+    final hour = date.hour % 12 == 0 ? 12 : date.hour % 12;
 
     final minute = date.minute.toString().padLeft(2, '0');
 
@@ -711,10 +631,7 @@ class _CallDetailsViewState extends State<CallDetailsView> {
       return;
     }
 
-    final uri = Uri(
-      scheme: 'tel',
-      path: cleanedPhoneNumber,
-    );
+    final uri = Uri(scheme: 'tel', path: cleanedPhoneNumber);
 
     try {
       final launched = await launchUrl(
@@ -735,18 +652,12 @@ class _CallDetailsViewState extends State<CallDetailsView> {
         final useCase = Get.find<CallUseCase>();
 
         try {
-          await NotificationService.instance.cancelCallReminder(
-            _call,
-          );
+          await NotificationService.instance.cancelCallReminder(_call);
         } catch (e) {
-          debugPrint(
-            'Error cancelling call reminder: $e',
-          );
+          debugPrint('Error cancelling call reminder: $e');
         }
 
-        final updatedCall = await useCase.completeCall(
-          _call,
-        );
+        final updatedCall = await useCase.completeCall(_call);
 
         if (!mounted) {
           return;
@@ -759,9 +670,7 @@ class _CallDetailsViewState extends State<CallDetailsView> {
         await Get.find<HomeController>().getCallList();
       }
     } catch (e) {
-      debugPrint(
-        'Error launching phone app: $e',
-      );
+      debugPrint('Error launching phone app: $e');
 
       Get.snackbar(
         'Unable to call',
@@ -824,27 +733,19 @@ class _CallDetailsViewState extends State<CallDetailsView> {
     }
 
     try {
-      await Get.find<CallUseCase>().deleteCall(
-        _call.id,
-      );
+      await Get.find<CallUseCase>().deleteCall(_call.id);
 
       try {
-        await NotificationService.instance.cancelCallReminder(
-          _call,
-        );
+        await NotificationService.instance.cancelCallReminder(_call);
       } catch (e) {
-        debugPrint(
-          'Error cancelling call reminder: $e',
-        );
+        debugPrint('Error cancelling call reminder: $e');
       }
 
       await Get.find<HomeController>().getCallList();
 
       Get.back();
     } catch (e) {
-      debugPrint(
-        'Error deleting call: $e',
-      );
+      debugPrint('Error deleting call: $e');
 
       Get.snackbar(
         'Error',
@@ -863,18 +764,12 @@ class _CallDetailsViewState extends State<CallDetailsView> {
       final useCase = Get.find<CallUseCase>();
 
       try {
-        await NotificationService.instance.cancelCallReminder(
-          _call,
-        );
+        await NotificationService.instance.cancelCallReminder(_call);
       } catch (e) {
-        debugPrint(
-          'Error cancelling call reminder: $e',
-        );
+        debugPrint('Error cancelling call reminder: $e');
       }
 
-      final updatedCall = await useCase.completeCall(
-        _call,
-      );
+      final updatedCall = await useCase.completeCall(_call);
 
       if (!mounted) {
         return;
@@ -894,9 +789,7 @@ class _CallDetailsViewState extends State<CallDetailsView> {
         snackPosition: SnackPosition.BOTTOM,
       );
     } catch (e) {
-      debugPrint(
-        'Error marking call as completed: $e',
-      );
+      debugPrint('Error marking call as completed: $e');
 
       Get.snackbar(
         'Error',
