@@ -125,7 +125,7 @@ class HomeView extends StatelessWidget {
                 ),
               ),
 
-              SizedBox(height: 2.h),
+              SizedBox(height: 8.h),
 
               Text(
                 'Your calls',
@@ -136,7 +136,7 @@ class HomeView extends StatelessWidget {
                 ),
               ),
 
-              SizedBox(height: 3.h),
+              SizedBox(height: 4.h),
 
               Text(
                 todayCount == 0
