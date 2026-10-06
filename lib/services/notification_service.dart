@@ -78,8 +78,8 @@ class NotificationService {
   Future<bool> requestNotificationPermission() async {
     final androidPlugin = _notifications
         .resolvePlatformSpecificImplementation<
-        AndroidFlutterLocalNotificationsPlugin
-    >();
+          AndroidFlutterLocalNotificationsPlugin
+        >();
 
     if (androidPlugin == null) {
       return false;
@@ -174,5 +174,30 @@ class NotificationService {
         debugPrint('Error syncing reminder for ${call.id}: $e');
       }
     }
+  }
+
+  Future<bool> areNotificationsEnabled() async {
+    final androidPlugin = _notifications
+        .resolvePlatformSpecificImplementation<
+          AndroidFlutterLocalNotificationsPlugin
+        >();
+
+    if (androidPlugin == null) {
+      return false;
+    }
+
+    return await androidPlugin.areNotificationsEnabled() ?? false;
+  }
+
+  Future<void> openNotificationSettings() async {
+    final androidPlugin = _notifications
+        .resolvePlatformSpecificImplementation<
+        AndroidFlutterLocalNotificationsPlugin>();
+
+    if (androidPlugin == null) {
+      return;
+    }
+
+    await androidPlugin.openAppNotificationSettings();
   }
 }

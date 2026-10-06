@@ -5,8 +5,55 @@ import 'package:flutter/material.dart';
 import 'package:flutter_screenutil_plus/flutter_screenutil_plus.dart';
 import 'package:get/get.dart';
 
-class SettingsView extends StatelessWidget {
+import '../../services/notification_service.dart';
+
+class SettingsView extends StatefulWidget {
   const SettingsView({super.key});
+
+  @override
+  State<SettingsView> createState() => _SettingsViewState();
+}
+
+class _SettingsViewState extends State<SettingsView>
+    with WidgetsBindingObserver {
+  bool _notificationsEnabled = false;
+  bool _isLoadingNotifications = true;
+
+  @override
+  void initState() {
+    super.initState();
+    WidgetsBinding.instance.addObserver(this);
+    _loadNotificationStatus();
+  }
+
+  @override
+  void dispose() {
+    WidgetsBinding.instance.removeObserver(this);
+    super.dispose();
+  }
+
+  @override
+  void didChangeAppLifecycleState(AppLifecycleState state) {
+    if (state == AppLifecycleState.resumed) {
+      _loadNotificationStatus();
+    }
+  }
+
+  Future<void> _loadNotificationStatus() async {
+    final enabled = await NotificationService.instance
+        .areNotificationsEnabled();
+
+    if (!mounted) return;
+
+    setState(() {
+      _notificationsEnabled = enabled;
+      _isLoadingNotifications = false;
+    });
+  }
+
+  Future<void> _openNotificationSettings() async {
+    await NotificationService.instance.openNotificationSettings();
+  }
 
   @override
   Widget build(BuildContext context) {
@@ -21,11 +68,7 @@ class SettingsView extends StatelessWidget {
         ),
         leading: IconButton(
           onPressed: Get.back,
-          icon: Icon(
-            Icons.arrow_back,
-            color: AppColors.black,
-            size: 24.sp,
-          ),
+          icon: Icon(Icons.arrow_back, color: AppColors.black, size: 24.sp),
         ),
       ),
       body: ListView(
@@ -38,8 +81,12 @@ class SettingsView extends StatelessWidget {
             iconBackground: AppColors.iconBlueBackground,
             iconColor: AppColors.iconBlue,
             title: 'Notifications',
-            subtitle: 'Manage call reminder notifications',
-            onTap: () {},
+            subtitle: _isLoadingNotifications
+                ? 'Checking notification status...'
+                : _notificationsEnabled
+                ? 'Enabled'
+                : 'Disabled',
+            onTap: _openNotificationSettings,
           ),
 
           SizedBox(height: 24.h),
@@ -111,11 +158,7 @@ class SettingsView extends StatelessWidget {
                   color: iconBackground,
                   borderRadius: BorderRadius.circular(12.r),
                 ),
-                child: Icon(
-                  icon,
-                  color: iconColor,
-                  size: 22.sp,
-                ),
+                child: Icon(icon, color: iconColor, size: 22.sp),
               ),
 
               SizedBox(width: 14.w),
