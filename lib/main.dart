@@ -7,6 +7,7 @@ import 'package:call_schedular/presentation/call_details/call_details_view.dart'
 import 'package:call_schedular/presentation/home/home_view.dart';
 import 'package:call_schedular/presentation/intro/intro_view.dart';
 import 'package:call_schedular/theme/app_theme.dart';
+import 'package:call_schedular/theme/app_theme_controller.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_screenutil_plus/flutter_screenutil_plus.dart';
 import 'package:get/get.dart';
@@ -20,6 +21,7 @@ void main() async {
   WidgetsFlutterBinding.ensureInitialized();
 
   await GetStorage.init();
+  Get.put(AppThemeController(), permanent: true);
 
   await NotificationService.instance.initialize();
 
@@ -46,15 +48,14 @@ class _MyAppState extends State<MyApp> {
       _handleInitialNotification();
     });
 
-    _notificationSubscription =
-        NotificationService.instance.callNotificationTapStream.listen(
-          _openCallFromNotification,
-        );
+    _notificationSubscription = NotificationService
+        .instance
+        .callNotificationTapStream
+        .listen(_openCallFromNotification);
   }
 
   Future<void> _handleInitialNotification() async {
-    final callId =
-    NotificationService.instance.consumeInitialCallId();
+    final callId = NotificationService.instance.consumeInitialCallId();
 
     if (callId == null || callId.isEmpty) {
       return;
@@ -78,9 +79,7 @@ class _MyAppState extends State<MyApp> {
     }
 
     if (call == null) {
-      debugPrint(
-        'Call not found for notification: $callId',
-      );
+      debugPrint('Call not found for notification: $callId');
       return;
     }
 
@@ -90,9 +89,7 @@ class _MyAppState extends State<MyApp> {
 
     Get.until((route) => route.isFirst);
 
-    Get.to(
-          () => CallDetailsView(call: call!),
-    );
+    Get.to(() => CallDetailsView(call: call!));
   }
 
   @override
@@ -108,11 +105,17 @@ class _MyAppState extends State<MyApp> {
       minTextAdapt: true,
       splitScreenMode: true,
       builder: (context, child) {
-        return GetMaterialApp(
-          theme: appTheme,
-          title: AppConst.appName,
-          home: child,
-          debugShowCheckedModeBanner: false,
+        final themeController = Get.find<AppThemeController>();
+
+        return Obx(
+          () => GetMaterialApp(
+            theme: appTheme,
+            darkTheme: appDarkTheme,
+            themeMode: themeController.themeMode.value,
+            title: AppConst.appName,
+            home: child,
+            debugShowCheckedModeBanner: false,
+          ),
         );
       },
       child: AppLocalStorage.isIntroViewed
