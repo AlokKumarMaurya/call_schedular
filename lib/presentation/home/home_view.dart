@@ -52,6 +52,8 @@ class HomeView extends StatelessWidget {
               children: [
                 SizedBox(height: 12.h),
 
+                _buildSearchField(controller),
+                SizedBox(height: 16.h),
                 TabBar(
                   onTap: (_) => controller.update(),
                   labelPadding: EdgeInsets.zero,
@@ -162,6 +164,47 @@ class HomeView extends StatelessWidget {
 
         return CallRecordTile(call: call);
       },
+    );
+  }
+
+  Widget _buildSearchField(HomeController controller) {
+    return TextField(
+      controller: controller.searchController,
+      onChanged: controller.setSearchQuery,
+      textInputAction: TextInputAction.search,
+      decoration: InputDecoration(
+        hintText: 'Search calls...',
+        prefixIcon: Icon(
+          Icons.search,
+          color: AppColors.textTertiary,
+          size: 22.sp,
+        ),
+        suffixIcon: controller.searchQuery.isNotEmpty
+            ? IconButton(
+                onPressed: controller.clearSearch,
+                icon: Icon(
+                  Icons.clear,
+                  color: AppColors.textTertiary,
+                  size: 20.sp,
+                ),
+              )
+            : null,
+        filled: true,
+        fillColor: AppColors.white,
+        contentPadding: EdgeInsets.symmetric(horizontal: 16.w, vertical: 12.h),
+        border: OutlineInputBorder(
+          borderRadius: BorderRadius.circular(12.r),
+          borderSide: BorderSide.none,
+        ),
+        enabledBorder: OutlineInputBorder(
+          borderRadius: BorderRadius.circular(12.r),
+          borderSide: BorderSide.none,
+        ),
+        focusedBorder: OutlineInputBorder(
+          borderRadius: BorderRadius.circular(12.r),
+          borderSide: BorderSide(color: AppColors.primary),
+        ),
+      ),
     );
   }
 }

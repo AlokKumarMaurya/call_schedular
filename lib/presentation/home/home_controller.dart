@@ -13,6 +13,10 @@ class HomeController extends GetxController
 
   bool isLoading = false;
 
+  final searchController = TextEditingController();
+
+  String searchQuery = '';
+
   @override
   void onInit() {
     super.onInit();
@@ -22,10 +26,7 @@ class HomeController extends GetxController
     // 1 = Upcoming
     // 2 = Completed
     // 3 = Missed
-    tabController = TabController(
-      length: 4,
-      vsync: this,
-    );
+    tabController = TabController(length: 4, vsync: this);
 
     tabController.addListener(() {
       if (!tabController.indexIsChanging) {
@@ -45,9 +46,7 @@ class HomeController extends GetxController
 
       final calls = await useCase.getCallList();
 
-      callListModel = await useCase.processOverdueCalls(
-        calls,
-      );
+      callListModel = await useCase.processOverdueCalls(calls);
 
       await NotificationService.instance.syncUpcomingCallReminders(
         callListModel,
@@ -63,61 +62,90 @@ class HomeController extends GetxController
   List<CallListEntity> get todayCalls {
     final now = DateTime.now();
 
-    return callListModel.where((call) {
-      final date = call.scheduledAt;
+    return _filterCalls(
+      callListModel.where((call) {
+        final date = call.scheduledAt;
 
-      return date.year == now.year &&
-          date.month == now.month &&
-          date.day == now.day &&
-          call.status == CallStatusEntity.upcoming;
-    }).toList()
-      ..sort(
-            (a, b) => a.scheduledAt.compareTo(b.scheduledAt),
-      );
+        return date.year == now.year &&
+            date.month == now.month &&
+            date.day == now.day &&
+            call.status == CallStatusEntity.upcoming;
+      }).toList(),
+    )..sort(
+          (a, b) => a.scheduledAt.compareTo(b.scheduledAt),
+    );
   }
 
   List<CallListEntity> get upcomingCalls {
     final now = DateTime.now();
 
-    return callListModel.where((call) {
-      return call.scheduledAt.isAfter(now) &&
-          !_isSameDay(call.scheduledAt, now) &&
-          call.status == CallStatusEntity.upcoming;
-    }).toList()
-      ..sort(
-            (a, b) => a.scheduledAt.compareTo(b.scheduledAt),
-      );
+    return _filterCalls(
+      callListModel.where((call) {
+        return call.scheduledAt.isAfter(now) &&
+            !_isSameDay(call.scheduledAt, now) &&
+            call.status == CallStatusEntity.upcoming;
+      }).toList(),
+    )..sort(
+          (a, b) => a.scheduledAt.compareTo(b.scheduledAt),
+    );
   }
 
   List<CallListEntity> get completedCalls {
-    return callListModel.where((call) {
-      return call.status == CallStatusEntity.completed;
-    }).toList()
-      ..sort(
-            (a, b) => b.scheduledAt.compareTo(a.scheduledAt),
-      );
+    return _filterCalls(
+      callListModel.where((call) {
+        return call.status == CallStatusEntity.completed;
+      }).toList(),
+    )..sort(
+          (a, b) => b.scheduledAt.compareTo(a.scheduledAt),
+    );
   }
 
   List<CallListEntity> get missedCalls {
-    return callListModel.where((call) {
-      return call.status == CallStatusEntity.missed;
-    }).toList()
-      ..sort(
-            (a, b) => b.scheduledAt.compareTo(a.scheduledAt),
-      );
+    return _filterCalls(
+      callListModel.where((call) {
+        return call.status == CallStatusEntity.missed;
+      }).toList(),
+    )..sort(
+          (a, b) => b.scheduledAt.compareTo(a.scheduledAt),
+    );
   }
 
-  bool _isSameDay(
-      DateTime first,
-      DateTime second,
-      ) {
+  bool _isSameDay(DateTime first, DateTime second) {
     return first.year == second.year &&
         first.month == second.month &&
         first.day == second.day;
   }
 
+  void setSearchQuery(String value) {
+    searchQuery = value.trim().toLowerCase();
+    update();
+  }
+
+  void clearSearch() {
+    searchController.clear();
+    searchQuery = '';
+    update();
+  }
+
+  List<CallListEntity> _filterCalls(List<CallListEntity> calls) {
+    if (searchQuery.isEmpty) {
+      return calls;
+    }
+
+    return calls.where((call) {
+      final contactName = call.contactName.toLowerCase();
+      final phoneNumber = call.phoneNumber.toLowerCase();
+      final notes = call.notes?.toLowerCase() ?? '';
+
+      return contactName.contains(searchQuery) ||
+          phoneNumber.contains(searchQuery) ||
+          notes.contains(searchQuery);
+    }).toList();
+  }
+
   @override
   void onClose() {
+    searchController.dispose();
     tabController.dispose();
     super.onClose();
   }
