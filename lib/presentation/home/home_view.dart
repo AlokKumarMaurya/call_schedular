@@ -8,6 +8,7 @@ import 'package:url_launcher/url_launcher.dart';
 
 import '../../core/widgets/app_glass_action_button.dart';
 import '../../core/widgets/app_glass_container.dart';
+import '../../core/widgets/app_glass_icon_button.dart';
 import '../../domain/entity/call_list_entity.dart';
 import '../../domain/usecase/call_use_case.dart';
 import '../../services/notification_service.dart';
@@ -142,28 +143,12 @@ class HomeView extends StatelessWidget {
 
         SizedBox(width: 12.w),
 
-        Material(
-          color: AppColors.surface,
-          borderRadius: BorderRadius.circular(14.r),
-          child: InkWell(
-            borderRadius: BorderRadius.circular(14.r),
-            onTap: () {
-              Get.to(() => const SettingsView());
-            },
-            child: Container(
-              width: 46.w,
-              height: 46.w,
-              decoration: BoxDecoration(
-                borderRadius: BorderRadius.circular(14.r),
-                border: Border.all(color: AppColors.border),
-              ),
-              child: Icon(
-                Icons.settings_outlined,
-                color: AppColors.textPrimary,
-                size: 22.sp,
-              ),
-            ),
-          ),
+        AppGlassIconButton(
+          icon: Icons.settings_outlined,
+          tooltip: 'Settings',
+          onPressed: () {
+            Get.to(() => const SettingsView());
+          },
         ),
       ],
     );

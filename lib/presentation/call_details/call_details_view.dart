@@ -8,6 +8,7 @@ import 'package:flutter_screenutil_plus/flutter_screenutil_plus.dart';
 import 'package:get/get.dart';
 import 'package:url_launcher/url_launcher.dart';
 
+import '../../core/widgets/app_glass_icon_button.dart';
 import '../../domain/usecase/call_use_case.dart';
 
 import 'package:call_schedular/services/notification_service.dart';
@@ -48,12 +49,13 @@ class _CallDetailsViewState extends State<CallDetailsView> {
       appBar: AppBar(
         backgroundColor: AppColors.background,
         elevation: 0,
-        leading: IconButton(
-          onPressed: Get.back,
-          icon: Icon(
-            Icons.arrow_back_ios_new_rounded,
-            size: 20.sp,
-            color: AppColors.textPrimary,
+        leading: Padding(
+          padding: EdgeInsets.only(left: 4.w),
+          child: AppGlassIconButton(
+            icon: Icons.arrow_back_ios_new_rounded,
+            iconSize: 19,
+            tooltip: 'Back',
+            onPressed: Get.back,
           ),
         ),
         title: Text(
@@ -65,24 +67,24 @@ class _CallDetailsViewState extends State<CallDetailsView> {
           ),
         ),
         actions: [
-          IconButton(
-            onPressed: isHistorical ? _rescheduleCall : _editCall,
+          AppGlassIconButton(
+            icon: isHistorical
+                ? Icons.event_repeat_outlined
+                : Icons.edit_outlined,
             tooltip: isHistorical ? 'Reschedule' : 'Edit',
-            icon: Icon(
-              isHistorical ? Icons.event_repeat_outlined : Icons.edit_outlined,
-              color: AppColors.textPrimary,
-              size: 22.sp,
-            ),
+            onPressed: isHistorical ? _rescheduleCall : _editCall,
           ),
-          IconButton(
-            onPressed: _deleteCall,
+
+          SizedBox(width: 8.w),
+
+          AppGlassIconButton(
+            icon: Icons.delete_outline_rounded,
             tooltip: 'Delete',
-            icon: Icon(
-              Icons.delete_outline_rounded,
-              color: AppColors.dangerDark,
-              size: 22.sp,
-            ),
+            iconColor: AppColors.dangerDark,
+            tintColor: AppColors.dangerLight,
+            onPressed: _deleteCall,
           ),
+
           SizedBox(width: 8.w),
         ],
       ),
