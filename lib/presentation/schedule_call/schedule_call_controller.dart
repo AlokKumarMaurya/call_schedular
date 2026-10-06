@@ -3,10 +3,13 @@ import 'package:call_schedular/domain/usecase/call_use_case.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_native_contact_picker/flutter_native_contact_picker.dart';
 import 'package:get/get.dart';
+import 'package:call_schedular/services/notification_service.dart';
 
 class ScheduleCallController extends GetxController {
   final CallListEntity? call;
+
   ScheduleCallController({this.call});
+
   final formKey = GlobalKey<FormState>();
 
   final contactNameController = TextEditingController();
@@ -256,6 +259,12 @@ class ScheduleCallController extends GetxController {
 
     if (call == null) {
       await useCase.addCall(entity);
+
+      try {
+        await NotificationService.instance.scheduleCallReminder(entity);
+      } catch (e) {
+        debugPrint('Error scheduling call reminder: $e');
+      }
     } else {
       await useCase.updateCall(entity);
     }
