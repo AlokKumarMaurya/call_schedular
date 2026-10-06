@@ -1,9 +1,10 @@
 import 'package:call_schedular/domain/entity/call_list_entity.dart';
 import 'package:call_schedular/domain/usecase/call_use_case.dart';
+import 'package:call_schedular/services/notification_service.dart';
+import 'package:call_schedular/theme/app_theme_colors.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_native_contact_picker/flutter_native_contact_picker.dart';
 import 'package:get/get.dart';
-import 'package:call_schedular/services/notification_service.dart';
 
 class ScheduleCallController extends GetxController {
   final CallListEntity? call;
@@ -18,6 +19,7 @@ class ScheduleCallController extends GetxController {
   final notesController = TextEditingController();
 
   DateTime selectedDate = DateUtils.dateOnly(DateTime.now());
+
   TimeOfDay selectedTime = TimeOfDay.now();
 
   String selectedRepeat = 'Does not repeat';
@@ -47,7 +49,9 @@ class ScheduleCallController extends GetxController {
       notesController.text = call!.notes ?? '';
 
       selectedDate = DateUtils.dateOnly(call!.scheduledAt);
+
       selectedTime = TimeOfDay.fromDateTime(call!.scheduledAt);
+
       selectedRepeat = call!.repeat;
     }
   }
@@ -61,7 +65,9 @@ class ScheduleCallController extends GetxController {
   );
 
   String get formattedDate {
-    return '${selectedDate.day} ${_monthName(selectedDate.month)} ${selectedDate.year}';
+    return '${selectedDate.day} '
+        '${_monthName(selectedDate.month)} '
+        '${selectedDate.year}';
   }
 
   String get formattedTime {
@@ -71,7 +77,8 @@ class ScheduleCallController extends GetxController {
 
     final minute = selectedTime.minute.toString().padLeft(2, '0');
 
-    return '$hour:$minute ${selectedTime.period.name.toUpperCase()}';
+    return '$hour:$minute '
+        '${selectedTime.period.name.toUpperCase()}';
   }
 
   String _monthName(int month) {
@@ -120,38 +127,108 @@ class ScheduleCallController extends GetxController {
   }
 
   Future<void> selectRepeat(BuildContext context) async {
+    final colors = context.themeColors;
+    final colorScheme = Theme.of(context).colorScheme;
+
     final result = await showModalBottomSheet<String>(
       context: context,
-      backgroundColor: Colors.white,
+      backgroundColor: colors.surface,
+      barrierColor: Colors.black.withValues(alpha: 0.45),
       shape: const RoundedRectangleBorder(
-        borderRadius: BorderRadius.vertical(top: Radius.circular(20)),
+        borderRadius: BorderRadius.vertical(top: Radius.circular(24)),
       ),
       builder: (context) {
+        final sheetColors = context.themeColors;
+        final sheetColorScheme = Theme.of(context).colorScheme;
+
         return SafeArea(
           child: Padding(
-            padding: const EdgeInsets.all(20),
+            padding: const EdgeInsets.fromLTRB(20, 20, 20, 12),
             child: Column(
               mainAxisSize: MainAxisSize.min,
               crossAxisAlignment: CrossAxisAlignment.start,
               children: [
-                const Text(
-                  'Repeat Call',
-                  style: TextStyle(fontSize: 18, fontWeight: FontWeight.w600),
+                Row(
+                  children: [
+                    Expanded(
+                      child: Text(
+                        'Repeat Call',
+                        style: TextStyle(
+                          fontSize: 20,
+                          fontWeight: FontWeight.w700,
+                          color: sheetColors.textPrimary,
+                        ),
+                      ),
+                    ),
+                    IconButton(
+                      onPressed: () {
+                        Navigator.pop(context);
+                      },
+                      icon: Icon(
+                        Icons.close_rounded,
+                        color: sheetColors.textSecondary,
+                      ),
+                    ),
+                  ],
                 ),
-                const SizedBox(height: 12),
-                ...repeatOptions.map(
-                  (option) => ListTile(
-                    contentPadding: EdgeInsets.zero,
-                    title: Text(option),
-                    trailing: selectedRepeat == option
-                        ? const Icon(
-                            Icons.check_circle,
-                            color: Color(0xFF2260F5),
-                          )
-                        : null,
-                    onTap: () => Navigator.pop(context, option),
+
+                const SizedBox(height: 8),
+
+                Text(
+                  'Choose how often you want to repeat this call.',
+                  style: TextStyle(
+                    fontSize: 13,
+                    color: sheetColors.textTertiary,
                   ),
                 ),
+
+                const SizedBox(height: 12),
+
+                ...repeatOptions.map((option) {
+                  final isSelected = selectedRepeat == option;
+
+                  return Container(
+                    margin: const EdgeInsets.only(bottom: 6),
+                    decoration: BoxDecoration(
+                      color: isSelected
+                          ? sheetColors.primaryLight
+                          : Colors.transparent,
+                      borderRadius: BorderRadius.circular(14),
+                      border: Border.all(
+                        color: isSelected
+                            ? sheetColorScheme.primary.withValues(alpha: 0.18)
+                            : sheetColors.border,
+                      ),
+                    ),
+                    child: ListTile(
+                      contentPadding: const EdgeInsets.symmetric(
+                        horizontal: 14,
+                      ),
+                      title: Text(
+                        option,
+                        style: TextStyle(
+                          fontSize: 14,
+                          fontWeight: isSelected
+                              ? FontWeight.w600
+                              : FontWeight.w500,
+                          color: sheetColors.textPrimary,
+                        ),
+                      ),
+                      trailing: isSelected
+                          ? Icon(
+                              Icons.check_circle_rounded,
+                              color: sheetColorScheme.primary,
+                            )
+                          : Icon(
+                              Icons.circle_outlined,
+                              color: sheetColors.textDisabled,
+                            ),
+                      onTap: () {
+                        Navigator.pop(context, option);
+                      },
+                    ),
+                  );
+                }),
               ],
             ),
           ),
@@ -190,6 +267,7 @@ class ScheduleCallController extends GetxController {
         'Please select a future date and time.',
         snackPosition: SnackPosition.BOTTOM,
       );
+
       return false;
     }
 
@@ -214,16 +292,10 @@ class ScheduleCallController extends GetxController {
     );
   }
 
-  @override
-  void onClose() {
-    contactNameController.dispose();
-    phoneNumberController.dispose();
-    notesController.dispose();
-    super.onClose();
-  }
-
   Future<void> pickContact() async {
-    if (isPickingContact) return;
+    if (isPickingContact) {
+      return;
+    }
 
     try {
       isPickingContact = true;
@@ -231,9 +303,12 @@ class ScheduleCallController extends GetxController {
 
       final contact = await _contactPicker.selectPhoneNumber();
 
-      if (contact == null) return;
+      if (contact == null) {
+        return;
+      }
 
       final name = contact.fullName?.trim();
+
       final phone = contact.selectedPhoneNumber?.trim();
 
       if (name != null && name.isNotEmpty) {
@@ -265,8 +340,6 @@ class ScheduleCallController extends GetxController {
     try {
       if (call == null || isReschedule) {
         if (isReschedule && call != null) {
-          // The old call is historical, but cancel any stale
-          // reminder that might still exist for it.
           try {
             await NotificationService.instance.cancelCallReminder(call!);
           } catch (e) {
@@ -276,13 +349,11 @@ class ScheduleCallController extends GetxController {
 
         await useCase.addCall(entity);
       } else {
-        // Normal edit of an upcoming call.
         await NotificationService.instance.cancelCallReminder(call!);
 
         await useCase.updateCall(entity);
       }
 
-      // Only upcoming calls should have notifications.
       if (entity.status == CallStatusEntity.upcoming &&
           entity.scheduledAt.isAfter(DateTime.now())) {
         try {
@@ -303,5 +374,14 @@ class ScheduleCallController extends GetxController {
     } finally {
       isSaving = false;
     }
+  }
+
+  @override
+  void onClose() {
+    contactNameController.dispose();
+    phoneNumberController.dispose();
+    notesController.dispose();
+
+    super.onClose();
   }
 }

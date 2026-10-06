@@ -1,8 +1,8 @@
 import 'package:call_schedular/presentation/schedule_call/schedule_call_controller.dart';
 import 'package:call_schedular/presentation/schedule_call/widget/schedule_input_field.dart';
 import 'package:call_schedular/presentation/schedule_call/widget/schedule_primary_button.dart';
-import 'package:call_schedular/theme/app_colors.dart';
 import 'package:call_schedular/theme/app_font.dart';
+import 'package:call_schedular/theme/app_theme_colors.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_screenutil_plus/flutter_screenutil_plus.dart';
 import 'package:get/get.dart';
@@ -17,20 +17,24 @@ class ScheduleCallView extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
+    final colors = context.themeColors;
+
     return GetBuilder<ScheduleCallController>(
       init: ScheduleCallController(call: call, isReschedule: isReschedule),
       builder: (controller) {
         return Scaffold(
-          backgroundColor: AppColors.background,
+          backgroundColor: colors.background,
           appBar: AppBar(
-            backgroundColor: AppColors.background,
+            backgroundColor: colors.background,
+            foregroundColor: colors.textPrimary,
             elevation: 0,
+            scrolledUnderElevation: 0,
             leading: IconButton(
               onPressed: Get.back,
               icon: Icon(
                 Icons.arrow_back_ios_new,
                 size: 20.sp,
-                color: AppColors.textPrimary,
+                color: colors.textPrimary,
               ),
             ),
             titleSpacing: 4.w,
@@ -43,7 +47,7 @@ class ScheduleCallView extends StatelessWidget {
               style: AppFont.style.copyWith(
                 fontSize: 20.sp,
                 fontWeight: FontWeight.w700,
-                color: AppColors.textPrimary,
+                color: colors.textPrimary,
               ),
             ),
           ),
@@ -60,15 +64,15 @@ class ScheduleCallView extends StatelessWidget {
                         children: [
                           SizedBox(height: 12.h),
 
-                          _buildSectionTitle('Who are you calling?'),
+                          _buildSectionTitle(context, 'Who are you calling?'),
 
                           SizedBox(height: 10.h),
 
-                          _buildContactSection(controller),
+                          _buildContactSection(context, controller),
 
                           SizedBox(height: 22.h),
 
-                          _buildSectionTitle('When?'),
+                          _buildSectionTitle(context, 'When?'),
 
                           SizedBox(height: 10.h),
 
@@ -76,7 +80,7 @@ class ScheduleCallView extends StatelessWidget {
 
                           SizedBox(height: 22.h),
 
-                          _buildSectionTitle('Repeat'),
+                          _buildSectionTitle(context, 'Repeat'),
 
                           SizedBox(height: 10.h),
 
@@ -84,11 +88,11 @@ class ScheduleCallView extends StatelessWidget {
 
                           SizedBox(height: 22.h),
 
-                          _buildSectionTitle('Notes'),
+                          _buildSectionTitle(context, 'Notes'),
 
                           SizedBox(height: 10.h),
 
-                          _buildNotesSection(controller),
+                          _buildNotesSection(context, controller),
 
                           SizedBox(height: 16.h),
                         ],
@@ -117,19 +121,27 @@ class ScheduleCallView extends StatelessWidget {
     );
   }
 
-  Widget _buildSectionTitle(String title) {
+  Widget _buildSectionTitle(BuildContext context, String title) {
+    final colors = context.themeColors;
+
     return Text(
       title,
       style: AppFont.style.copyWith(
         fontSize: 16.sp,
         fontWeight: FontWeight.w700,
-        color: AppColors.textPrimary,
+        color: colors.textPrimary,
       ),
     );
   }
 
-  Widget _buildContactSection(ScheduleCallController controller) {
+  Widget _buildContactSection(
+    BuildContext context,
+    ScheduleCallController controller,
+  ) {
+    final colorScheme = Theme.of(context).colorScheme;
+
     return _sectionCard(
+      context: context,
       padding: EdgeInsets.all(14.w),
       child: Column(
         children: [
@@ -157,7 +169,7 @@ class ScheduleCallView extends StatelessWidget {
                       height: 18.w,
                       child: CircularProgressIndicator(
                         strokeWidth: 2,
-                        color: AppColors.primary,
+                        color: colorScheme.primary,
                       ),
                     ),
                   )
@@ -166,7 +178,7 @@ class ScheduleCallView extends StatelessWidget {
                     icon: Icon(
                       Icons.contacts_outlined,
                       size: 21.sp,
-                      color: AppColors.primary,
+                      color: colorScheme.primary,
                     ),
                   ),
           ),
@@ -183,6 +195,7 @@ class ScheduleCallView extends StatelessWidget {
       children: [
         Expanded(
           child: _buildDateTimeCard(
+            context: context,
             icon: Icons.calendar_month_rounded,
             label: 'Date',
             value: controller.formattedDate,
@@ -194,6 +207,7 @@ class ScheduleCallView extends StatelessWidget {
 
         Expanded(
           child: _buildDateTimeCard(
+            context: context,
             icon: Icons.access_time_rounded,
             label: 'Time',
             value: controller.formattedTime,
@@ -205,13 +219,17 @@ class ScheduleCallView extends StatelessWidget {
   }
 
   Widget _buildDateTimeCard({
+    required BuildContext context,
     required IconData icon,
     required String label,
     required String value,
     required VoidCallback onTap,
   }) {
+    final colors = context.themeColors;
+    final colorScheme = Theme.of(context).colorScheme;
+
     return Material(
-      color: AppColors.surface,
+      color: colors.surface,
       borderRadius: BorderRadius.circular(16.r),
       child: InkWell(
         onTap: onTap,
@@ -220,7 +238,7 @@ class ScheduleCallView extends StatelessWidget {
           padding: EdgeInsets.all(14.w),
           decoration: BoxDecoration(
             borderRadius: BorderRadius.circular(16.r),
-            border: Border.all(color: AppColors.border),
+            border: Border.all(color: colors.border),
           ),
           child: Column(
             crossAxisAlignment: CrossAxisAlignment.start,
@@ -229,10 +247,10 @@ class ScheduleCallView extends StatelessWidget {
                 width: 36.w,
                 height: 36.w,
                 decoration: BoxDecoration(
-                  color: AppColors.primaryLight,
+                  color: colors.primaryLight,
                   borderRadius: BorderRadius.circular(10.r),
                 ),
-                child: Icon(icon, size: 19.sp, color: AppColors.primary),
+                child: Icon(icon, size: 19.sp, color: colorScheme.primary),
               ),
 
               SizedBox(height: 12.h),
@@ -242,7 +260,7 @@ class ScheduleCallView extends StatelessWidget {
                 style: AppFont.style.copyWith(
                   fontSize: 12.sp,
                   fontWeight: FontWeight.w500,
-                  color: AppColors.textTertiary,
+                  color: colors.textTertiary,
                 ),
               ),
 
@@ -255,7 +273,7 @@ class ScheduleCallView extends StatelessWidget {
                 style: AppFont.style.copyWith(
                   fontSize: 14.sp,
                   fontWeight: FontWeight.w700,
-                  color: AppColors.textPrimary,
+                  color: colors.textPrimary,
                 ),
               ),
             ],
@@ -269,8 +287,11 @@ class ScheduleCallView extends StatelessWidget {
     BuildContext context,
     ScheduleCallController controller,
   ) {
+    final colors = context.themeColors;
+    final colorScheme = Theme.of(context).colorScheme;
+
     return Material(
-      color: AppColors.surface,
+      color: colors.surface,
       borderRadius: BorderRadius.circular(16.r),
       child: InkWell(
         onTap: () => controller.selectRepeat(context),
@@ -279,7 +300,7 @@ class ScheduleCallView extends StatelessWidget {
           padding: EdgeInsets.symmetric(horizontal: 14.w, vertical: 14.h),
           decoration: BoxDecoration(
             borderRadius: BorderRadius.circular(16.r),
-            border: Border.all(color: AppColors.border),
+            border: Border.all(color: colors.border),
           ),
           child: Row(
             children: [
@@ -287,13 +308,13 @@ class ScheduleCallView extends StatelessWidget {
                 width: 38.w,
                 height: 38.w,
                 decoration: BoxDecoration(
-                  color: AppColors.primaryLight,
+                  color: colors.primaryLight,
                   borderRadius: BorderRadius.circular(11.r),
                 ),
                 child: Icon(
                   Icons.repeat_rounded,
                   size: 20.sp,
-                  color: AppColors.primary,
+                  color: colorScheme.primary,
                 ),
               ),
 
@@ -308,7 +329,7 @@ class ScheduleCallView extends StatelessWidget {
                       style: AppFont.style.copyWith(
                         fontSize: 13.sp,
                         fontWeight: FontWeight.w500,
-                        color: AppColors.textTertiary,
+                        color: colors.textTertiary,
                       ),
                     ),
 
@@ -319,7 +340,7 @@ class ScheduleCallView extends StatelessWidget {
                       style: AppFont.style.copyWith(
                         fontSize: 14.sp,
                         fontWeight: FontWeight.w600,
-                        color: AppColors.textPrimary,
+                        color: colors.textPrimary,
                       ),
                     ),
                   ],
@@ -329,7 +350,7 @@ class ScheduleCallView extends StatelessWidget {
               Icon(
                 Icons.chevron_right_rounded,
                 size: 22.sp,
-                color: AppColors.textSecondary,
+                color: colors.textSecondary,
               ),
             ],
           ),
@@ -338,14 +359,19 @@ class ScheduleCallView extends StatelessWidget {
     );
   }
 
-  Widget _buildNotesSection(ScheduleCallController controller) {
+  Widget _buildNotesSection(
+    BuildContext context,
+    ScheduleCallController controller,
+  ) {
+    final colors = context.themeColors;
+
     return Container(
       width: double.infinity,
       padding: EdgeInsets.all(14.w),
       decoration: BoxDecoration(
-        color: AppColors.surface,
+        color: colors.surface,
         borderRadius: BorderRadius.circular(16.r),
-        border: Border.all(color: AppColors.border),
+        border: Border.all(color: colors.border),
       ),
       child: ScheduleInputField(
         label: 'Note',
@@ -357,14 +383,20 @@ class ScheduleCallView extends StatelessWidget {
     );
   }
 
-  Widget _sectionCard({required Widget child, EdgeInsetsGeometry? padding}) {
+  Widget _sectionCard({
+    required BuildContext context,
+    required Widget child,
+    EdgeInsetsGeometry? padding,
+  }) {
+    final colors = context.themeColors;
+
     return Container(
       width: double.infinity,
       padding: padding ?? EdgeInsets.all(14.w),
       decoration: BoxDecoration(
-        color: AppColors.surface,
+        color: colors.surface,
         borderRadius: BorderRadius.circular(16.r),
-        border: Border.all(color: AppColors.border),
+        border: Border.all(color: colors.border),
       ),
       child: child,
     );
@@ -383,10 +415,8 @@ class ScheduleCallView extends StatelessWidget {
 
       await controller.saveContact(entity);
 
-      // Reset loading state before leaving this screen.
       controller.isSaving = false;
 
-      // Return the updated entity to CallDetailsView.
       Get.back(result: entity);
 
       Get.snackbar(
