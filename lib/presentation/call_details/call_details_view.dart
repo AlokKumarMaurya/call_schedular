@@ -33,13 +33,15 @@ class _CallDetailsViewState extends State<CallDetailsView> {
 
   @override
   Widget build(BuildContext context) {
-    final initial = _call.contactName.isNotEmpty
-        ? _call.contactName[0].toUpperCase()
-        : '?';
+    final contactName = _call.contactName.trim().isEmpty
+        ? 'Unknown Contact'
+        : _call.contactName.trim();
+
+    final initial = contactName[0].toUpperCase();
 
     final isHistorical =
         _call.status == CallStatusEntity.completed ||
-            _call.status == CallStatusEntity.missed;
+        _call.status == CallStatusEntity.missed;
 
     return Scaffold(
       backgroundColor: AppColors.background,
@@ -49,7 +51,7 @@ class _CallDetailsViewState extends State<CallDetailsView> {
         leading: IconButton(
           onPressed: Get.back,
           icon: Icon(
-            Icons.arrow_back_ios_new,
+            Icons.arrow_back_ios_new_rounded,
             size: 20.sp,
             color: AppColors.textPrimary,
           ),
@@ -57,28 +59,29 @@ class _CallDetailsViewState extends State<CallDetailsView> {
         title: Text(
           'Call Details',
           style: AppFont.style.copyWith(
-            fontSize: 18.sp,
-            fontWeight: FontWeight.w600,
+            fontSize: 20.sp,
+            fontWeight: FontWeight.w700,
             color: AppColors.textPrimary,
           ),
         ),
         actions: [
           IconButton(
-            onPressed: isHistorical
-                ? _rescheduleCall
-                : _editCall,
+            onPressed: isHistorical ? _rescheduleCall : _editCall,
             tooltip: isHistorical ? 'Reschedule' : 'Edit',
             icon: Icon(
-              isHistorical
-                  ? Icons.event_repeat_outlined
-                  : Icons.edit_outlined,
+              isHistorical ? Icons.event_repeat_outlined : Icons.edit_outlined,
               color: AppColors.textPrimary,
               size: 22.sp,
             ),
           ),
           IconButton(
             onPressed: _deleteCall,
-            icon: Icon(Icons.delete_outline, color: Colors.red, size: 22.sp),
+            tooltip: 'Delete',
+            icon: Icon(
+              Icons.delete_outline_rounded,
+              color: AppColors.dangerDark,
+              size: 22.sp,
+            ),
           ),
           SizedBox(width: 8.w),
         ],
@@ -88,150 +91,460 @@ class _CallDetailsViewState extends State<CallDetailsView> {
           children: [
             Expanded(
               child: SingleChildScrollView(
-                padding: EdgeInsets.symmetric(horizontal: 20.w, vertical: 16.h),
+                padding: EdgeInsets.fromLTRB(16.w, 8.h, 16.w, 24.h),
                 child: Column(
                   crossAxisAlignment: CrossAxisAlignment.start,
                   children: [
-                    Row(
-                      children: [
-                        CircleAvatar(
-                          radius: 22.r,
-                          backgroundColor: AppColors.primary,
-                          child: Text(
-                            initial,
-                            style: AppFont.style.copyWith(
-                              fontSize: 20.sp,
-                              color: AppColors.white,
-                            ),
-                          ),
-                        ),
-                        SizedBox(width: 14.w),
-                        Expanded(
-                          child: Column(
-                            crossAxisAlignment: CrossAxisAlignment.start,
-                            children: [
-                              Text(
-                                _call.contactName.isEmpty
-                                    ? 'Unknown Contact'
-                                    : _call.contactName,
-                                style: AppFont.style.copyWith(
-                                  fontSize: 16.sp,
-                                  fontWeight: FontWeight.w600,
-                                  color: AppColors.textPrimary,
-                                ),
-                              ),
-                              SizedBox(height: 4.h),
-                              Text(
-                                _call.phoneNumber,
-                                style: AppFont.style.copyWith(
-                                  fontSize: 13.sp,
-                                  color: AppColors.textTertiary,
-                                ),
-                              ),
-                            ],
-                          ),
-                        ),
-                      ],
+                    _buildContactHero(
+                      contactName: contactName,
+                      initial: initial,
                     ),
 
-                    SizedBox(height: 28.h),
+                    SizedBox(height: 24.h),
 
-                    _detailRow(
-                      icon: Icons.calendar_today_outlined,
-                      title: 'Date',
-                      value: _formatDate(_call.scheduledAt),
-                    ),
+                    _buildSectionTitle('Call Schedule'),
 
-                    _detailRow(
-                      icon: Icons.access_time,
-                      title: 'Time',
-                      value: _formatTime(_call.scheduledAt),
-                    ),
+                    SizedBox(height: 10.h),
 
-                    _detailRow(
-                      icon: Icons.autorenew,
-                      title: 'Repeat',
-                      value: _call.repeat,
-                    ),
-                    _detailRow(
-                      icon: Icons.info_outline,
-                      title: 'Status',
-                      value: _statusLabel(_call.status),
-                    ),
+                    _buildScheduleInfo(),
 
-                    _detailRow(
-                      icon: Icons.notes_outlined,
-                      title: 'Notes',
-                      value: _call.notes?.isNotEmpty == true
-                          ? _call.notes!
-                          : 'No notes',
-                    ),
+                    SizedBox(height: 12.h),
+
+                    _buildRepeatCard(),
+
+                    SizedBox(height: 24.h),
+
+                    _buildSectionTitle('Notes'),
+
+                    SizedBox(height: 10.h),
+
+                    _buildNotesCard(),
                   ],
                 ),
               ),
             ),
 
-            Padding(
-              padding: EdgeInsets.fromLTRB(16.w, 8.h, 16.w, 16.h),
-              child: Column(
-                children: [
-                  if (_call.status != CallStatusEntity.completed)
-                    SizedBox(
-                      width: double.infinity,
-                      height: 48.h,
-                      child: OutlinedButton(
-                        onPressed: _markAsCompleted,
-                        style: OutlinedButton.styleFrom(
-                          foregroundColor: AppColors.primary,
-                          side: BorderSide(color: AppColors.primary),
-                          shape: RoundedRectangleBorder(
-                            borderRadius: BorderRadius.circular(12.r),
-                          ),
-                        ),
-                        child: Text(
-                          'Mark as Completed',
-                          style: AppFont.style.copyWith(
-                            fontSize: 15.sp,
-                            fontWeight: FontWeight.w600,
-                            color: AppColors.primary,
-                          ),
-                        ),
-                      ),
-                    ),
-
-                  if (_call.status != CallStatusEntity.completed)
-                    SizedBox(height: 10.h),
-
-                  SizedBox(
-                    width: double.infinity,
-                    height: 48.h,
-                    child: ElevatedButton(
-                      onPressed: () => _makeCall(_call.phoneNumber),
-                      style: ElevatedButton.styleFrom(
-                        backgroundColor: AppColors.primary,
-                        foregroundColor: AppColors.white,
-                        shape: RoundedRectangleBorder(
-                          borderRadius: BorderRadius.circular(12.r),
-                        ),
-                        elevation: 0,
-                      ),
-                      child: Text(
-                        'Call Now',
-                        style: AppFont.style.copyWith(
-                          fontSize: 15.sp,
-                          fontWeight: FontWeight.w600,
-                          color: AppColors.white,
-                        ),
-                      ),
-                    ),
-                  ),
-                ],
-              ),
-            ),
+            _buildBottomActions(),
           ],
         ),
       ),
     );
+  }
+
+  Widget _buildContactHero({
+    required String contactName,
+    required String initial,
+  }) {
+    final avatarColor = _avatarColor(contactName);
+
+    return Container(
+      width: double.infinity,
+      padding: EdgeInsets.symmetric(horizontal: 20.w, vertical: 24.h),
+      decoration: BoxDecoration(
+        color: AppColors.surface,
+        borderRadius: BorderRadius.circular(22.r),
+        border: Border.all(color: AppColors.border),
+        boxShadow: [
+          BoxShadow(
+            color: AppColors.shadow,
+            blurRadius: 14,
+            offset: const Offset(0, 5),
+          ),
+        ],
+      ),
+      child: Column(
+        children: [
+          Container(
+            width: 76.w,
+            height: 76.w,
+            decoration: BoxDecoration(
+              shape: BoxShape.circle,
+              color: avatarColor.withValues(alpha: 0.12),
+            ),
+            alignment: Alignment.center,
+            child: Text(
+              initial,
+              style: AppFont.style.copyWith(
+                fontSize: 32.sp,
+                fontWeight: FontWeight.w700,
+                color: avatarColor,
+              ),
+            ),
+          ),
+
+          SizedBox(height: 14.h),
+
+          Text(
+            contactName,
+            textAlign: TextAlign.center,
+            maxLines: 2,
+            overflow: TextOverflow.ellipsis,
+            style: AppFont.style.copyWith(
+              fontSize: 21.sp,
+              fontWeight: FontWeight.w700,
+              color: AppColors.textPrimary,
+            ),
+          ),
+
+          SizedBox(height: 5.h),
+
+          Text(
+            _call.phoneNumber,
+            style: AppFont.style.copyWith(
+              fontSize: 14.sp,
+              fontWeight: FontWeight.w500,
+              color: AppColors.textTertiary,
+            ),
+          ),
+
+          SizedBox(height: 14.h),
+
+          _buildStatusChip(),
+        ],
+      ),
+    );
+  }
+
+  Widget _buildStatusChip() {
+    late final String label;
+    late final IconData icon;
+    late final Color color;
+    late final Color backgroundColor;
+
+    switch (_call.status) {
+      case CallStatusEntity.upcoming:
+        label = 'Upcoming';
+        icon = Icons.schedule_rounded;
+        color = AppColors.primary;
+        backgroundColor = AppColors.primaryLight;
+        break;
+
+      case CallStatusEntity.completed:
+        label = 'Completed';
+        icon = Icons.check_circle_outline_rounded;
+        color = AppColors.successDark;
+        backgroundColor = AppColors.successLight;
+        break;
+
+      case CallStatusEntity.missed:
+        label = 'Missed';
+        icon = Icons.error_outline_rounded;
+        color = AppColors.dangerDark;
+        backgroundColor = AppColors.dangerLight;
+        break;
+    }
+
+    return Container(
+      padding: EdgeInsets.symmetric(horizontal: 11.w, vertical: 6.h),
+      decoration: BoxDecoration(
+        color: backgroundColor,
+        borderRadius: BorderRadius.circular(20.r),
+      ),
+      child: Row(
+        mainAxisSize: MainAxisSize.min,
+        children: [
+          Icon(icon, size: 15.sp, color: color),
+          SizedBox(width: 6.w),
+          Text(
+            label,
+            style: AppFont.style.copyWith(
+              fontSize: 12.sp,
+              fontWeight: FontWeight.w700,
+              color: color,
+            ),
+          ),
+        ],
+      ),
+    );
+  }
+
+  Widget _buildScheduleInfo() {
+    return Row(
+      children: [
+        Expanded(
+          child: _buildInfoCard(
+            icon: Icons.calendar_month_rounded,
+            label: 'Date',
+            value: _formatDate(_call.scheduledAt),
+          ),
+        ),
+
+        SizedBox(width: 12.w),
+
+        Expanded(
+          child: _buildInfoCard(
+            icon: Icons.access_time_rounded,
+            label: 'Time',
+            value: _formatTime(_call.scheduledAt),
+          ),
+        ),
+      ],
+    );
+  }
+
+  Widget _buildInfoCard({
+    required IconData icon,
+    required String label,
+    required String value,
+  }) {
+    return Container(
+      padding: EdgeInsets.all(14.w),
+      decoration: BoxDecoration(
+        color: AppColors.surface,
+        borderRadius: BorderRadius.circular(16.r),
+        border: Border.all(color: AppColors.border),
+      ),
+      child: Column(
+        crossAxisAlignment: CrossAxisAlignment.start,
+        children: [
+          Container(
+            width: 36.w,
+            height: 36.w,
+            decoration: BoxDecoration(
+              color: AppColors.primaryLight,
+              borderRadius: BorderRadius.circular(10.r),
+            ),
+            child: Icon(icon, size: 19.sp, color: AppColors.primary),
+          ),
+
+          SizedBox(height: 12.h),
+
+          Text(
+            label,
+            style: AppFont.style.copyWith(
+              fontSize: 12.sp,
+              fontWeight: FontWeight.w500,
+              color: AppColors.textTertiary,
+            ),
+          ),
+
+          SizedBox(height: 4.h),
+
+          Text(
+            value,
+            maxLines: 2,
+            overflow: TextOverflow.ellipsis,
+            style: AppFont.style.copyWith(
+              fontSize: 14.sp,
+              fontWeight: FontWeight.w700,
+              color: AppColors.textPrimary,
+            ),
+          ),
+        ],
+      ),
+    );
+  }
+
+  Widget _buildRepeatCard() {
+    return Container(
+      width: double.infinity,
+      padding: EdgeInsets.symmetric(horizontal: 14.w, vertical: 14.h),
+      decoration: BoxDecoration(
+        color: AppColors.surface,
+        borderRadius: BorderRadius.circular(16.r),
+        border: Border.all(color: AppColors.border),
+      ),
+      child: Row(
+        children: [
+          Container(
+            width: 38.w,
+            height: 38.w,
+            decoration: BoxDecoration(
+              color: AppColors.primaryLight,
+              borderRadius: BorderRadius.circular(11.r),
+            ),
+            child: Icon(
+              Icons.repeat_rounded,
+              size: 20.sp,
+              color: AppColors.primary,
+            ),
+          ),
+
+          SizedBox(width: 12.w),
+
+          Expanded(
+            child: Column(
+              crossAxisAlignment: CrossAxisAlignment.start,
+              children: [
+                Text(
+                  'Repeat',
+                  style: AppFont.style.copyWith(
+                    fontSize: 12.sp,
+                    fontWeight: FontWeight.w500,
+                    color: AppColors.textTertiary,
+                  ),
+                ),
+
+                SizedBox(height: 3.h),
+
+                Text(
+                  _call.repeat,
+                  style: AppFont.style.copyWith(
+                    fontSize: 14.sp,
+                    fontWeight: FontWeight.w600,
+                    color: AppColors.textPrimary,
+                  ),
+                ),
+              ],
+            ),
+          ),
+        ],
+      ),
+    );
+  }
+
+  Widget _buildNotesCard() {
+    final hasNotes = _call.notes?.trim().isNotEmpty == true;
+
+    return Container(
+      width: double.infinity,
+      padding: EdgeInsets.all(16.w),
+      decoration: BoxDecoration(
+        color: AppColors.surface,
+        borderRadius: BorderRadius.circular(16.r),
+        border: Border.all(color: AppColors.border),
+      ),
+      child: Row(
+        crossAxisAlignment: CrossAxisAlignment.start,
+        children: [
+          Container(
+            width: 36.w,
+            height: 36.w,
+            decoration: BoxDecoration(
+              color: AppColors.primaryLight,
+              borderRadius: BorderRadius.circular(10.r),
+            ),
+            child: Icon(
+              Icons.notes_rounded,
+              size: 19.sp,
+              color: AppColors.primary,
+            ),
+          ),
+
+          SizedBox(width: 12.w),
+
+          Expanded(
+            child: Text(
+              hasNotes ? _call.notes!.trim() : 'No notes added for this call.',
+              style: AppFont.style.copyWith(
+                fontSize: 14.sp,
+                height: 1.4,
+                fontWeight: FontWeight.w500,
+                color: hasNotes
+                    ? AppColors.textPrimary
+                    : AppColors.textTertiary,
+              ),
+            ),
+          ),
+        ],
+      ),
+    );
+  }
+
+  Widget _buildSectionTitle(String title) {
+    return Text(
+      title,
+      style: AppFont.style.copyWith(
+        fontSize: 16.sp,
+        fontWeight: FontWeight.w700,
+        color: AppColors.textPrimary,
+      ),
+    );
+  }
+
+  Widget _buildBottomActions() {
+    final isCompleted = _call.status == CallStatusEntity.completed;
+
+    final isMissed = _call.status == CallStatusEntity.missed;
+
+    return Container(
+      padding: EdgeInsets.fromLTRB(16.w, 10.h, 16.w, 16.h),
+      decoration: BoxDecoration(
+        color: AppColors.background,
+        border: Border(top: BorderSide(color: AppColors.divider)),
+      ),
+      child: SafeArea(
+        top: false,
+        child: Column(
+          children: [
+            SizedBox(
+              width: double.infinity,
+              height: 52.h,
+              child: ElevatedButton.icon(
+                onPressed: () => _makeCall(_call.phoneNumber),
+                icon: Icon(Icons.call_rounded, size: 19.sp),
+                label: Text(
+                  'Call Now',
+                  style: AppFont.style.copyWith(
+                    fontSize: 15.sp,
+                    fontWeight: FontWeight.w700,
+                    color: AppColors.white,
+                  ),
+                ),
+                style: ElevatedButton.styleFrom(
+                  backgroundColor: AppColors.primary,
+                  foregroundColor: AppColors.white,
+                  elevation: 0,
+                  shape: RoundedRectangleBorder(
+                    borderRadius: BorderRadius.circular(16.r),
+                  ),
+                ),
+              ),
+            ),
+
+            if (!isCompleted) ...[
+              SizedBox(height: 10.h),
+
+              SizedBox(
+                width: double.infinity,
+                height: 48.h,
+                child: OutlinedButton.icon(
+                  onPressed: isMissed ? _rescheduleCall : _markAsCompleted,
+                  icon: Icon(
+                    isMissed ? Icons.event_repeat_rounded : Icons.check_rounded,
+                    size: 18.sp,
+                  ),
+                  label: Text(
+                    isMissed ? 'Reschedule Call' : 'Mark as Completed',
+                    style: AppFont.style.copyWith(
+                      fontSize: 14.sp,
+                      fontWeight: FontWeight.w700,
+                      color: AppColors.primary,
+                    ),
+                  ),
+                  style: OutlinedButton.styleFrom(
+                    foregroundColor: AppColors.primary,
+                    side: BorderSide(color: AppColors.primary),
+                    shape: RoundedRectangleBorder(
+                      borderRadius: BorderRadius.circular(16.r),
+                    ),
+                  ),
+                ),
+              ),
+            ],
+          ],
+        ),
+      ),
+    );
+  }
+
+  Color _avatarColor(String name) {
+    final colors = [
+      AppColors.primary,
+      AppColors.purpleDark,
+      AppColors.successDark,
+      AppColors.orangeDark,
+      AppColors.dangerDark,
+      AppColors.pink,
+    ];
+
+    var hash = 0;
+
+    for (final unit in name.codeUnits) {
+      hash = (hash * 31 + unit) & 0x7fffffff;
+    }
+
+    return colors[hash % colors.length];
   }
 
   Future<void> _editCall() async {
@@ -254,10 +567,7 @@ class _CallDetailsViewState extends State<CallDetailsView> {
 
   Future<void> _rescheduleCall() async {
     final rescheduledCall = await Get.to<CallListEntity>(
-          () => ScheduleCallView(
-        call: _call,
-        isReschedule: true,
-      ),
+      () => ScheduleCallView(call: _call, isReschedule: true),
     );
 
     if (rescheduledCall == null) {
@@ -271,48 +581,6 @@ class _CallDetailsViewState extends State<CallDetailsView> {
     }
 
     Get.back();
-  }
-
-  Widget _detailRow({
-    required IconData icon,
-    required String title,
-    required String value,
-  }) {
-    return Padding(
-      padding: EdgeInsets.only(bottom: 18.h),
-      child: Row(
-        crossAxisAlignment: CrossAxisAlignment.start,
-        children: [
-          SizedBox(
-            width: 28.w,
-            child: Icon(icon, size: 20.sp, color: AppColors.textPrimary),
-          ),
-          SizedBox(width: 12.w),
-          Expanded(
-            child: Column(
-              crossAxisAlignment: CrossAxisAlignment.start,
-              children: [
-                Text(
-                  title,
-                  style: AppFont.style.copyWith(
-                    fontSize: 12.sp,
-                    color: AppColors.textTertiary,
-                  ),
-                ),
-                SizedBox(height: 2.h),
-                Text(
-                  value,
-                  style: AppFont.style.copyWith(
-                    fontSize: 14.sp,
-                    color: AppColors.textPrimary,
-                  ),
-                ),
-              ],
-            ),
-          ),
-        ],
-      ),
-    );
   }
 
   String _formatDate(DateTime date) {
@@ -451,19 +719,6 @@ class _CallDetailsViewState extends State<CallDetailsView> {
         'Unable to delete call. Please try again.',
         snackPosition: SnackPosition.BOTTOM,
       );
-    }
-  }
-
-  String _statusLabel(CallStatusEntity status) {
-    switch (status) {
-      case CallStatusEntity.upcoming:
-        return 'Upcoming';
-
-      case CallStatusEntity.completed:
-        return 'Completed';
-
-      case CallStatusEntity.missed:
-        return 'Missed';
     }
   }
 
