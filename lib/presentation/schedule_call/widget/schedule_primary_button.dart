@@ -1,4 +1,3 @@
-
 import 'package:call_schedular/theme/app_colors.dart';
 import 'package:call_schedular/theme/app_font.dart';
 import 'package:flutter/material.dart';
@@ -20,7 +19,7 @@ class SchedulePrimaryButton extends StatelessWidget {
   Widget build(BuildContext context) {
     return SizedBox(
       width: double.infinity,
-      height: 48.h,
+      height: 52.h,
       child: ElevatedButton(
         onPressed: isLoading ? null : onPressed,
         style: ElevatedButton.styleFrom(
@@ -28,26 +27,26 @@ class SchedulePrimaryButton extends StatelessWidget {
           foregroundColor: AppColors.white,
           elevation: 0,
           shape: RoundedRectangleBorder(
-            borderRadius: BorderRadius.circular(12.r),
+            borderRadius: BorderRadius.circular(16.r),
           ),
         ),
         child: isLoading
             ? SizedBox(
-          height: 20.sp,
-          width: 20.sp,
-          child: const CircularProgressIndicator(
-            strokeWidth: 2,
-            color: AppColors.white,
-          ),
-        )
+                height: 20.sp,
+                width: 20.sp,
+                child: const CircularProgressIndicator(
+                  strokeWidth: 2,
+                  color: AppColors.white,
+                ),
+              )
             : Text(
-          title,
-          style: AppFont.style.copyWith(
-            fontSize: 14.sp,
-            fontWeight: FontWeight.w600,
-            color: AppColors.white,
-          ),
-        ),
+                title,
+                style: AppFont.style.copyWith(
+                  fontSize: 15.sp,
+                  fontWeight: FontWeight.w700,
+                  color: AppColors.white,
+                ),
+              ),
       ),
     );
   }
