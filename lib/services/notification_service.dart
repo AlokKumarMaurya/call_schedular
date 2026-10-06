@@ -166,4 +166,26 @@ class NotificationService {
 
     return hash;
   }
+
+  Future<void> syncUpcomingCallReminders(
+      List<CallListEntity> calls,
+      ) async {
+    for (final call in calls) {
+      if (call.status != CallStatusEntity.upcoming) {
+        continue;
+      }
+
+      if (!call.scheduledAt.isAfter(DateTime.now())) {
+        continue;
+      }
+
+      try {
+        await scheduleCallReminder(call);
+      } catch (e) {
+        print(
+          'Error syncing reminder for ${call.id}: $e',
+        );
+      }
+    }
+  }
 }

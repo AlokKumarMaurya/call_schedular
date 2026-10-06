@@ -3,6 +3,8 @@ import 'package:call_schedular/domain/usecase/call_use_case.dart';
 import 'package:flutter/material.dart';
 import 'package:get/get.dart';
 
+import '../../services/notification_service.dart';
+
 class HomeController extends GetxController
     with GetSingleTickerProviderStateMixin {
   late TabController tabController;
@@ -45,6 +47,10 @@ class HomeController extends GetxController
 
       callListModel = await useCase.processOverdueCalls(
         calls,
+      );
+
+      await NotificationService.instance.syncUpcomingCallReminders(
+        callListModel,
       );
     } catch (e) {
       debugPrint('Error fetching calls: $e');
