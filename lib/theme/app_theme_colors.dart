@@ -2,12 +2,17 @@ import 'package:flutter/material.dart';
 
 class AppThemeColors extends ThemeExtension<AppThemeColors> {
   final Color background;
+
   final Color surface;
   final Color surfaceElevated;
   final Color surfaceBlue;
 
   final Color glass;
   final Color glassTint;
+
+  final Color primary;
+  final Color onPrimary;
+  final Color primaryLight;
 
   final Color textPrimary;
   final Color textSecondary;
@@ -16,8 +21,6 @@ class AppThemeColors extends ThemeExtension<AppThemeColors> {
 
   final Color border;
   final Color divider;
-
-  final Color primaryLight;
 
   final Color successLight;
   final Color successDark;
@@ -40,13 +43,15 @@ class AppThemeColors extends ThemeExtension<AppThemeColors> {
     required this.surfaceBlue,
     required this.glass,
     required this.glassTint,
+    required this.primary,
+    required this.onPrimary,
+    required this.primaryLight,
     required this.textPrimary,
     required this.textSecondary,
     required this.textTertiary,
     required this.textDisabled,
     required this.border,
     required this.divider,
-    required this.primaryLight,
     required this.successLight,
     required this.successDark,
     required this.dangerLight,
@@ -60,12 +65,17 @@ class AppThemeColors extends ThemeExtension<AppThemeColors> {
 
   static const light = AppThemeColors(
     background: Color(0xFFEEF3FA),
+
     surface: Color(0xFFFFFFFF),
     surfaceElevated: Color(0xFFF9FBFF),
     surfaceBlue: Color(0xFFF1F5FF),
 
     glass: Color(0xFFFFFFFF),
     glassTint: Color(0xFFEAF1FF),
+
+    primary: Color(0xFF2260F5),
+    onPrimary: Color(0xFFFFFFFF),
+    primaryLight: Color(0xFFEAF1FF),
 
     textPrimary: Color(0xFF0C141D),
     textSecondary: Color(0xFF5F6B7A),
@@ -74,8 +84,6 @@ class AppThemeColors extends ThemeExtension<AppThemeColors> {
 
     border: Color(0xFFDCE4EF),
     divider: Color(0xFFE7ECF3),
-
-    primaryLight: Color(0xFFEAF1FF),
 
     successLight: Color(0xFFE8F9EE),
     successDark: Color(0xFF18A844),
@@ -94,12 +102,21 @@ class AppThemeColors extends ThemeExtension<AppThemeColors> {
 
   static const dark = AppThemeColors(
     background: Color(0xFF0A111B),
+
     surface: Color(0xFF141E2B),
     surfaceElevated: Color(0xFF1A2635),
     surfaceBlue: Color(0xFF16233A),
 
-    glass: Color(0xFFFFFFFF),
+    // Slightly cool white instead of pure white.
+    // This keeps glass visible without looking harsh.
+    glass: Color(0xFFEAF1FF),
     glassTint: Color(0xFF315FAF),
+
+    // Dark-mode primary is intentionally lighter than light-mode
+    // so icons, selected states and primary actions remain visible.
+    primary: Color(0xFF7DA7FF),
+    onPrimary: Color(0xFF07111F),
+    primaryLight: Color(0xFF1D3768),
 
     textPrimary: Color(0xFFF7F9FC),
     textSecondary: Color(0xFFB8C1CE),
@@ -108,8 +125,6 @@ class AppThemeColors extends ThemeExtension<AppThemeColors> {
 
     border: Color(0xFF2A3748),
     divider: Color(0xFF222E3D),
-
-    primaryLight: Color(0xFF1D3768),
 
     successLight: Color(0xFF153A27),
     successDark: Color(0xFF4DDB7B),
@@ -134,13 +149,15 @@ class AppThemeColors extends ThemeExtension<AppThemeColors> {
     Color? surfaceBlue,
     Color? glass,
     Color? glassTint,
+    Color? primary,
+    Color? onPrimary,
+    Color? primaryLight,
     Color? textPrimary,
     Color? textSecondary,
     Color? textTertiary,
     Color? textDisabled,
     Color? border,
     Color? divider,
-    Color? primaryLight,
     Color? successLight,
     Color? successDark,
     Color? dangerLight,
@@ -158,13 +175,15 @@ class AppThemeColors extends ThemeExtension<AppThemeColors> {
       surfaceBlue: surfaceBlue ?? this.surfaceBlue,
       glass: glass ?? this.glass,
       glassTint: glassTint ?? this.glassTint,
+      primary: primary ?? this.primary,
+      onPrimary: onPrimary ?? this.onPrimary,
+      primaryLight: primaryLight ?? this.primaryLight,
       textPrimary: textPrimary ?? this.textPrimary,
       textSecondary: textSecondary ?? this.textSecondary,
       textTertiary: textTertiary ?? this.textTertiary,
       textDisabled: textDisabled ?? this.textDisabled,
       border: border ?? this.border,
       divider: divider ?? this.divider,
-      primaryLight: primaryLight ?? this.primaryLight,
       successLight: successLight ?? this.successLight,
       successDark: successDark ?? this.successDark,
       dangerLight: dangerLight ?? this.dangerLight,
@@ -187,29 +206,126 @@ class AppThemeColors extends ThemeExtension<AppThemeColors> {
     }
 
     return AppThemeColors(
-      background: Color.lerp(background, other.background, t)!,
-      surface: Color.lerp(surface, other.surface, t)!,
-      surfaceElevated:
-      Color.lerp(surfaceElevated, other.surfaceElevated, t)!,
-      surfaceBlue: Color.lerp(surfaceBlue, other.surfaceBlue, t)!,
-      glass: Color.lerp(glass, other.glass, t)!,
-      glassTint: Color.lerp(glassTint, other.glassTint, t)!,
-      textPrimary: Color.lerp(textPrimary, other.textPrimary, t)!,
-      textSecondary: Color.lerp(textSecondary, other.textSecondary, t)!,
-      textTertiary: Color.lerp(textTertiary, other.textTertiary, t)!,
-      textDisabled: Color.lerp(textDisabled, other.textDisabled, t)!,
-      border: Color.lerp(border, other.border, t)!,
-      divider: Color.lerp(divider, other.divider, t)!,
-      primaryLight: Color.lerp(primaryLight, other.primaryLight, t)!,
-      successLight: Color.lerp(successLight, other.successLight, t)!,
-      successDark: Color.lerp(successDark, other.successDark, t)!,
-      dangerLight: Color.lerp(dangerLight, other.dangerLight, t)!,
-      dangerDark: Color.lerp(dangerDark, other.dangerDark, t)!,
-      purpleLight: Color.lerp(purpleLight, other.purpleLight, t)!,
-      purpleDark: Color.lerp(purpleDark, other.purpleDark, t)!,
-      orangeLight: Color.lerp(orangeLight, other.orangeLight, t)!,
-      orangeDark: Color.lerp(orangeDark, other.orangeDark, t)!,
-      shadow: Color.lerp(shadow, other.shadow, t)!,
+      background: Color.lerp(
+        background,
+        other.background,
+        t,
+      )!,
+      surface: Color.lerp(
+        surface,
+        other.surface,
+        t,
+      )!,
+      surfaceElevated: Color.lerp(
+        surfaceElevated,
+        other.surfaceElevated,
+        t,
+      )!,
+      surfaceBlue: Color.lerp(
+        surfaceBlue,
+        other.surfaceBlue,
+        t,
+      )!,
+      glass: Color.lerp(
+        glass,
+        other.glass,
+        t,
+      )!,
+      glassTint: Color.lerp(
+        glassTint,
+        other.glassTint,
+        t,
+      )!,
+      primary: Color.lerp(
+        primary,
+        other.primary,
+        t,
+      )!,
+      onPrimary: Color.lerp(
+        onPrimary,
+        other.onPrimary,
+        t,
+      )!,
+      primaryLight: Color.lerp(
+        primaryLight,
+        other.primaryLight,
+        t,
+      )!,
+      textPrimary: Color.lerp(
+        textPrimary,
+        other.textPrimary,
+        t,
+      )!,
+      textSecondary: Color.lerp(
+        textSecondary,
+        other.textSecondary,
+        t,
+      )!,
+      textTertiary: Color.lerp(
+        textTertiary,
+        other.textTertiary,
+        t,
+      )!,
+      textDisabled: Color.lerp(
+        textDisabled,
+        other.textDisabled,
+        t,
+      )!,
+      border: Color.lerp(
+        border,
+        other.border,
+        t,
+      )!,
+      divider: Color.lerp(
+        divider,
+        other.divider,
+        t,
+      )!,
+      successLight: Color.lerp(
+        successLight,
+        other.successLight,
+        t,
+      )!,
+      successDark: Color.lerp(
+        successDark,
+        other.successDark,
+        t,
+      )!,
+      dangerLight: Color.lerp(
+        dangerLight,
+        other.dangerLight,
+        t,
+      )!,
+      dangerDark: Color.lerp(
+        dangerDark,
+        other.dangerDark,
+        t,
+      )!,
+      purpleLight: Color.lerp(
+        purpleLight,
+        other.purpleLight,
+        t,
+      )!,
+      purpleDark: Color.lerp(
+        purpleDark,
+        other.purpleDark,
+        t,
+      )!,
+      orangeLight: Color.lerp(
+        orangeLight,
+        other.orangeLight,
+        t,
+      )!,
+      orangeDark: Color.lerp(
+        orangeDark,
+        other.orangeDark,
+        t,
+      )!,
+      shadow: Color.lerp(
+        shadow,
+        other.shadow,
+        t,
+      )!,
     );
   }
 }
