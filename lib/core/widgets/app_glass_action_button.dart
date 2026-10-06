@@ -1,5 +1,4 @@
 import 'package:call_schedular/core/widgets/app_glass_container.dart';
-import 'package:call_schedular/theme/app_colors.dart';
 import 'package:call_schedular/theme/app_font.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_screenutil_plus/flutter_screenutil_plus.dart';
@@ -18,27 +17,26 @@ class AppGlassActionButton extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
+    final colorScheme = Theme.of(context).colorScheme;
+
     return Material(
       color: Colors.transparent,
       child: InkWell(
         onTap: onPressed,
         borderRadius: BorderRadius.circular(20.r),
         child: AppGlassContainer(
-          padding: EdgeInsets.symmetric(
-            horizontal: 18.w,
-            vertical: 14.h,
-          ),
+          padding: EdgeInsets.symmetric(horizontal: 18.w, vertical: 14.h),
           borderRadius: BorderRadius.circular(20.r),
           blurSigma: 18,
           opacity: 0.82,
-          tintColor: AppColors.primary,
+          tintColor: colorScheme.primary,
           border: Border.all(
-            color: AppColors.white.withValues(alpha: 0.35),
+            color: colorScheme.onPrimary.withValues(alpha: 0.35),
             width: 1,
           ),
           boxShadow: [
             BoxShadow(
-              color: AppColors.primary.withValues(alpha: 0.24),
+              color: colorScheme.primary.withValues(alpha: 0.24),
               blurRadius: 20,
               offset: const Offset(0, 8),
             ),
@@ -46,11 +44,7 @@ class AppGlassActionButton extends StatelessWidget {
           child: Row(
             mainAxisSize: MainAxisSize.min,
             children: [
-              Icon(
-                icon,
-                size: 23.sp,
-                color: AppColors.white,
-              ),
+              Icon(icon, size: 23.sp, color: colorScheme.onPrimary),
 
               SizedBox(width: 10.w),
 
@@ -59,7 +53,7 @@ class AppGlassActionButton extends StatelessWidget {
                 style: AppFont.style.copyWith(
                   fontSize: 14.sp,
                   fontWeight: FontWeight.w700,
-                  color: AppColors.white,
+                  color: colorScheme.onPrimary,
                 ),
               ),
             ],

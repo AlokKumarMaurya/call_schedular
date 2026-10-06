@@ -1,6 +1,6 @@
 import 'dart:ui';
 
-import 'package:call_schedular/theme/app_colors.dart';
+import 'package:call_schedular/theme/app_theme_colors.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_screenutil_plus/flutter_screenutil_plus.dart';
 
@@ -10,7 +10,7 @@ class AppGlassContainer extends StatelessWidget {
   final BorderRadiusGeometry borderRadius;
   final double blurSigma;
   final double opacity;
-  final Color tintColor;
+  final Color? tintColor;
   final Border? border;
   final List<BoxShadow>? boxShadow;
 
@@ -21,20 +21,21 @@ class AppGlassContainer extends StatelessWidget {
     this.borderRadius = const BorderRadius.all(Radius.circular(18)),
     this.blurSigma = 18,
     this.opacity = 0.72,
-    this.tintColor = AppColors.white,
+    this.tintColor,
     this.border,
     this.boxShadow,
   });
 
   @override
   Widget build(BuildContext context) {
+    final colors = context.themeColors;
+
+    final effectiveTintColor = tintColor ?? colors.glass;
+
     return ClipRRect(
       borderRadius: borderRadius,
       child: BackdropFilter(
-        filter: ImageFilter.blur(
-          sigmaX: blurSigma,
-          sigmaY: blurSigma,
-        ),
+        filter: ImageFilter.blur(sigmaX: blurSigma, sigmaY: blurSigma),
         child: Container(
           padding: padding,
           decoration: BoxDecoration(
@@ -43,19 +44,25 @@ class AppGlassContainer extends StatelessWidget {
               begin: Alignment.topLeft,
               end: Alignment.bottomRight,
               colors: [
-                tintColor.withValues(alpha: opacity),
-                tintColor.withValues(alpha: opacity * 0.62),
+                effectiveTintColor.withValues(alpha: opacity),
+                effectiveTintColor.withValues(alpha: opacity * 0.62),
               ],
             ),
-            border: border ??
+            border:
+                border ??
                 Border.all(
-                  color: AppColors.white.withValues(alpha: 0.55),
+                  color: Colors.white.withValues(
+                    alpha: Theme.of(context).brightness == Brightness.dark
+                        ? 0.18
+                        : 0.55,
+                  ),
                   width: 1,
                 ),
-            boxShadow: boxShadow ??
+            boxShadow:
+                boxShadow ??
                 [
                   BoxShadow(
-                    color: AppColors.shadow,
+                    color: colors.shadow,
                     blurRadius: 18.r,
                     offset: const Offset(0, 6),
                   ),
