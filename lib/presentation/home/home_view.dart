@@ -10,6 +10,7 @@ import 'package:url_launcher/url_launcher.dart';
 
 import '../../domain/entity/call_list_entity.dart';
 import '../../domain/usecase/call_use_case.dart';
+import '../../lib/presentation/settings/settings_view.dart';
 import '../../services/notification_service.dart';
 import '../call_details/call_details_view.dart';
 import '../schedule_call/schedule_call_view.dart';
@@ -28,7 +29,18 @@ class HomeView extends StatelessWidget {
             fontWeight: FontWeight.w500,
           ),
         ),
-        actions: [Icon(Icons.settings_outlined, color: AppColors.black)],
+        actions: [
+          IconButton(
+            onPressed: () {
+              Get.to(() => const SettingsView());
+            },
+            icon: Icon(
+              Icons.settings_outlined,
+              color: AppColors.black,
+              size: 24.sp,
+            ),
+          ),
+        ],
         actionsPadding: EdgeInsets.only(right: 16.w),
       ),
       body: GetBuilder<HomeController>(
@@ -297,10 +309,7 @@ class CallRecordTile extends StatelessWidget {
       return;
     }
 
-    final uri = Uri(
-      scheme: 'tel',
-      path: cleanedPhoneNumber,
-    );
+    final uri = Uri(scheme: 'tel', path: cleanedPhoneNumber);
 
     try {
       final launched = await launchUrl(
@@ -325,9 +334,7 @@ class CallRecordTile extends StatelessWidget {
         try {
           await NotificationService.instance.cancelCallReminder(call);
         } catch (e) {
-          debugPrint(
-            'Error cancelling call reminder: $e',
-          );
+          debugPrint('Error cancelling call reminder: $e');
         }
 
         await useCase.completeCall(call);
