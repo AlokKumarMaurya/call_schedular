@@ -9,7 +9,7 @@ import 'package:get/get.dart';
 
 import '../../domain/usecase/call_use_case.dart';
 
-class CallDetailsView extends StatelessWidget {
+class CallDetailsView extends StatefulWidget {
   final CallListEntity call;
 
   const CallDetailsView({
@@ -18,9 +18,23 @@ class CallDetailsView extends StatelessWidget {
   });
 
   @override
+  State<CallDetailsView> createState() => _CallDetailsViewState();
+}
+
+class _CallDetailsViewState extends State<CallDetailsView> {
+  late CallListEntity _call;
+
+  @override
+  void initState() {
+    super.initState();
+
+    _call = widget.call;
+  }
+
+  @override
   Widget build(BuildContext context) {
-    final initial = call.contactName.isNotEmpty
-        ? call.contactName[0].toUpperCase()
+    final initial = _call.contactName.isNotEmpty
+        ? _call.contactName[0].toUpperCase()
         : '?';
 
     return Scaffold(
@@ -46,11 +60,7 @@ class CallDetailsView extends StatelessWidget {
         ),
         actions: [
           IconButton(
-            onPressed: () async {
-              await Get.to(() => ScheduleCallView(call: call));
-              await Get.find<HomeController>().getCallList();
-              Get.back();
-            },
+            onPressed: _editCall,
             icon: Icon(
               Icons.edit_outlined,
               color: AppColors.textPrimary,
@@ -96,12 +106,13 @@ class CallDetailsView extends StatelessWidget {
                         SizedBox(width: 14.w),
                         Expanded(
                           child: Column(
-                            crossAxisAlignment: CrossAxisAlignment.start,
+                            crossAxisAlignment:
+                            CrossAxisAlignment.start,
                             children: [
                               Text(
-                                call.contactName.isEmpty
+                                _call.contactName.isEmpty
                                     ? 'Unknown Contact'
-                                    : call.contactName,
+                                    : _call.contactName,
                                 style: AppFont.style.copyWith(
                                   fontSize: 16.sp,
                                   fontWeight: FontWeight.w600,
@@ -110,7 +121,7 @@ class CallDetailsView extends StatelessWidget {
                               ),
                               SizedBox(height: 4.h),
                               Text(
-                                call.phoneNumber,
+                                _call.phoneNumber,
                                 style: AppFont.style.copyWith(
                                   fontSize: 13.sp,
                                   color: AppColors.textTertiary,
@@ -121,40 +132,51 @@ class CallDetailsView extends StatelessWidget {
                         ),
                       ],
                     ),
+
                     SizedBox(height: 28.h),
+
                     _detailRow(
                       icon: Icons.calendar_today_outlined,
                       title: 'Date',
-                      value: _formatDate(call.scheduledAt),
+                      value: _formatDate(_call.scheduledAt),
                     ),
+
                     _detailRow(
                       icon: Icons.access_time,
                       title: 'Time',
-                      value: _formatTime(call.scheduledAt),
+                      value: _formatTime(_call.scheduledAt),
                     ),
+
                     _detailRow(
                       icon: Icons.autorenew,
                       title: 'Repeat',
-                      value: call.repeat,
+                      value: _call.repeat,
                     ),
+
                     _detailRow(
                       icon: Icons.notes_outlined,
                       title: 'Notes',
-                      value: call.notes?.isNotEmpty == true
-                          ? call.notes!
+                      value: _call.notes?.isNotEmpty == true
+                          ? _call.notes!
                           : 'No notes',
                     ),
                   ],
                 ),
               ),
             ),
+
             Padding(
-              padding: EdgeInsets.fromLTRB(16.w, 8.h, 16.w, 16.h),
+              padding: EdgeInsets.fromLTRB(
+                16.w,
+                8.h,
+                16.w,
+                16.h,
+              ),
               child: SizedBox(
                 width: double.infinity,
                 height: 48.h,
                 child: ElevatedButton(
-                  onPressed: () => _makeCall(call.phoneNumber),
+                  onPressed: () => _makeCall(_call.phoneNumber),
                   style: ElevatedButton.styleFrom(
                     backgroundColor: AppColors.primary,
                     foregroundColor: AppColors.white,
@@ -180,6 +202,26 @@ class CallDetailsView extends StatelessWidget {
     );
   }
 
+  Future<void> _editCall() async {
+    final updatedCall = await Get.to<CallListEntity>(
+          () => ScheduleCallView(
+        call: _call,
+      ),
+    );
+
+    if (updatedCall == null) {
+      return;
+    }
+
+    setState(() {
+      _call = updatedCall;
+    });
+
+    // Refresh HomeController so the Home list also contains
+    // the updated call.
+    await Get.find<HomeController>().getCallList();
+  }
+
   Widget _detailRow({
     required IconData icon,
     required String title,
@@ -201,7 +243,8 @@ class CallDetailsView extends StatelessWidget {
           SizedBox(width: 12.w),
           Expanded(
             child: Column(
-              crossAxisAlignment: CrossAxisAlignment.start,
+              crossAxisAlignment:
+              CrossAxisAlignment.start,
               children: [
                 Text(
                   title,
@@ -246,15 +289,21 @@ class CallDetailsView extends StatelessWidget {
   }
 
   String _formatTime(DateTime date) {
-    final hour = date.hour % 12 == 0 ? 12 : date.hour % 12;
-    final minute = date.minute.toString().padLeft(2, '0');
+    final hour = date.hour % 12 == 0
+        ? 12
+        : date.hour % 12;
+
+    final minute = date.minute
+        .toString()
+        .padLeft(2, '0');
+
     final period = date.hour >= 12 ? 'PM' : 'AM';
 
     return '$hour:$minute $period';
   }
 
   Future<void> _makeCall(String phoneNumber) async {
-    // Add url_launcher handling here when enabled.
+    // We will implement this in a later step.
   }
 
   Future<void> _deleteCall() async {
@@ -273,17 +322,23 @@ class CallDetailsView extends StatelessWidget {
             onPressed: () => Get.back(result: true),
             child: const Text(
               'Delete',
-              style: TextStyle(color: Colors.red),
+              style: TextStyle(
+                color: Colors.red,
+              ),
             ),
           ),
         ],
       ),
     );
 
-    if (confirmed != true) return;
+    if (confirmed != true) {
+      return;
+    }
 
-    await Get.find<CallUseCase>().deleteCall(call.id);
+    await Get.find<CallUseCase>().deleteCall(_call.id);
+
     await Get.find<HomeController>().getCallList();
+
     Get.back();
   }
 }

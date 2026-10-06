@@ -13,7 +13,10 @@ import '../../domain/entity/call_list_entity.dart';
 class ScheduleCallView extends StatelessWidget {
   final CallListEntity? call;
 
-  const ScheduleCallView({super.key, this.call});
+  const ScheduleCallView({
+    super.key,
+    this.call,
+  });
 
   @override
   Widget build(BuildContext context) {
@@ -60,11 +63,17 @@ class ScheduleCallView extends StatelessWidget {
 
                           SizedBox(height: 16.h),
 
-                          _buildDateTimeSection(context, controller),
+                          _buildDateTimeSection(
+                            context,
+                            controller,
+                          ),
 
                           SizedBox(height: 12.h),
 
-                          _buildRepeatSection(context, controller),
+                          _buildRepeatSection(
+                            context,
+                            controller,
+                          ),
 
                           SizedBox(height: 12.h),
 
@@ -77,9 +86,16 @@ class ScheduleCallView extends StatelessWidget {
                   ),
 
                   Padding(
-                    padding: EdgeInsets.fromLTRB(16.w, 8.h, 16.w, 12.h),
+                    padding: EdgeInsets.fromLTRB(
+                      16.w,
+                      8.h,
+                      16.w,
+                      12.h,
+                    ),
                     child: SchedulePrimaryButton(
-                      title: call == null ? 'Save Call' : 'Update Call',
+                      title: call == null
+                          ? 'Save Call'
+                          : 'Update Call',
                       isLoading: controller.isSaving,
                       onPressed: () => _saveCall(controller),
                     ),
@@ -93,7 +109,9 @@ class ScheduleCallView extends StatelessWidget {
     );
   }
 
-  Widget _buildContactSection(ScheduleCallController controller) {
+  Widget _buildContactSection(
+      ScheduleCallController controller,
+      ) {
     return _sectionCard(
       child: Column(
         children: [
@@ -119,18 +137,18 @@ class ScheduleCallView extends StatelessWidget {
                   : controller.pickContact,
               icon: controller.isPickingContact
                   ? SizedBox(
-                      height: 18.sp,
-                      width: 18.sp,
-                      child: CircularProgressIndicator(
-                        strokeWidth: 2,
-                        color: AppColors.iconBlue,
-                      ),
-                    )
+                height: 18.sp,
+                width: 18.sp,
+                child: CircularProgressIndicator(
+                  strokeWidth: 2,
+                  color: AppColors.iconBlue,
+                ),
+              )
                   : Icon(
-                      Icons.person_outline,
-                      size: 21.sp,
-                      color: AppColors.iconBlue,
-                    ),
+                Icons.person_outline,
+                size: 21.sp,
+                color: AppColors.iconBlue,
+              ),
             ),
           ),
         ],
@@ -139,9 +157,9 @@ class ScheduleCallView extends StatelessWidget {
   }
 
   Widget _buildDateTimeSection(
-    BuildContext context,
-    ScheduleCallController controller,
-  ) {
+      BuildContext context,
+      ScheduleCallController controller,
+      ) {
     return _sectionCard(
       padding: EdgeInsets.symmetric(horizontal: 4.w),
       child: Column(
@@ -153,7 +171,6 @@ class ScheduleCallView extends StatelessWidget {
             showDivider: true,
             onTap: () => controller.selectDate(context),
           ),
-
           ScheduleOptionTile(
             icon: Icons.access_time,
             title: 'Time',
@@ -166,9 +183,9 @@ class ScheduleCallView extends StatelessWidget {
   }
 
   Widget _buildRepeatSection(
-    BuildContext context,
-    ScheduleCallController controller,
-  ) {
+      BuildContext context,
+      ScheduleCallController controller,
+      ) {
     return _sectionCard(
       padding: EdgeInsets.symmetric(horizontal: 4.w),
       child: ScheduleOptionTile(
@@ -180,7 +197,9 @@ class ScheduleCallView extends StatelessWidget {
     );
   }
 
-  Widget _buildNotesSection(ScheduleCallController controller) {
+  Widget _buildNotesSection(
+      ScheduleCallController controller,
+      ) {
     return _sectionCard(
       child: ScheduleInputField(
         label: 'Notes (Optional)',
@@ -192,7 +211,10 @@ class ScheduleCallView extends StatelessWidget {
     );
   }
 
-  Widget _sectionCard({required Widget child, EdgeInsetsGeometry? padding}) {
+  Widget _sectionCard({
+    required Widget child,
+    EdgeInsetsGeometry? padding,
+  }) {
     return Container(
       width: double.infinity,
       padding: padding ?? EdgeInsets.all(12.sp),
@@ -204,7 +226,9 @@ class ScheduleCallView extends StatelessWidget {
     );
   }
 
-  Future<void> _saveCall(ScheduleCallController controller) async {
+  Future<void> _saveCall(
+      ScheduleCallController controller,
+      ) async {
     if (controller.isSaving || !controller.validate()) {
       return;
     }
@@ -213,28 +237,36 @@ class ScheduleCallView extends StatelessWidget {
     controller.update();
 
     try {
-      final call = controller.createCallEntity();
+      final entity = controller.createCallEntity();
 
-      await controller.saveContact(call);
+      await controller.saveContact(entity);
 
-      Get.back();
+      // Reset loading state before leaving this screen.
+      controller.isSaving = false;
+
+      // Return the updated entity to CallDetailsView.
+      Get.back(result: entity);
 
       Get.snackbar(
         'Success',
-        'Call scheduled successfully',
+        call == null
+            ? 'Call scheduled successfully'
+            : 'Call updated successfully',
         snackPosition: SnackPosition.BOTTOM,
       );
     } catch (e) {
-      print(e);
-      print(e.toString());
-      Get.snackbar(
-        'Error',
-        'Unable to schedule call. Please try again.',
-        snackPosition: SnackPosition.BOTTOM,
-      );
-    } finally {
       controller.isSaving = false;
       controller.update();
+
+      debugPrint('Error saving call: $e');
+
+      Get.snackbar(
+        'Error',
+        call == null
+            ? 'Unable to schedule call. Please try again.'
+            : 'Unable to update call. Please try again.',
+        snackPosition: SnackPosition.BOTTOM,
+      );
     }
   }
 }
