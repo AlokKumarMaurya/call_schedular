@@ -6,6 +6,7 @@ import 'package:flutter_screenutil_plus/flutter_screenutil_plus.dart';
 import 'package:get/get.dart';
 import 'package:url_launcher/url_launcher.dart';
 
+import '../../core/widgets/app_glass_container.dart';
 import '../../domain/entity/call_list_entity.dart';
 import '../../domain/usecase/call_use_case.dart';
 import '../../services/notification_service.dart';
@@ -406,41 +407,70 @@ class HomeView extends StatelessWidget {
   }
 
   Widget _buildSearchField(HomeController controller) {
-    return TextField(
-      controller: controller.searchController,
-      onChanged: controller.setSearchQuery,
-      textInputAction: TextInputAction.search,
-      decoration: InputDecoration(
-        hintText: 'Search contacts or calls...',
-        prefixIcon: Icon(
-          Icons.search,
-          color: AppColors.textTertiary,
-          size: 22.sp,
+    return AppGlassContainer(
+      padding: EdgeInsets.zero,
+      borderRadius: BorderRadius.circular(18.r),
+      blurSigma: 14,
+      opacity: 0.48,
+      tintColor: AppColors.primaryLight,
+      border: Border.all(
+        color: AppColors.white.withValues(alpha: 0.85),
+        width: 1,
+      ),
+      boxShadow: [
+        BoxShadow(
+          color: AppColors.primary.withValues(alpha: 0.06),
+          blurRadius: 18,
+          offset: const Offset(0, 5),
         ),
-        suffixIcon: controller.searchQuery.isNotEmpty
-            ? IconButton(
-                onPressed: controller.clearSearch,
-                icon: Icon(
-                  Icons.clear,
-                  color: AppColors.textTertiary,
-                  size: 20.sp,
-                ),
-              )
-            : null,
-        filled: true,
-        fillColor: AppColors.white,
-        contentPadding: EdgeInsets.symmetric(horizontal: 16.w, vertical: 13.h),
-        border: OutlineInputBorder(
-          borderRadius: BorderRadius.circular(14.r),
-          borderSide: BorderSide.none,
+      ],
+      child: TextField(
+        controller: controller.searchController,
+        onChanged: controller.setSearchQuery,
+        textInputAction: TextInputAction.search,
+        decoration: InputDecoration(
+          hintText: 'Search contacts or calls...',
+          prefixIcon: Icon(
+            Icons.search_rounded,
+            color: AppColors.textSecondary,
+            size: 22.sp,
+          ),
+          suffixIcon: controller.searchQuery.isNotEmpty
+              ? IconButton(
+            onPressed: controller.clearSearch,
+            icon: Icon(
+              Icons.clear_rounded,
+              color: AppColors.textTertiary,
+              size: 20.sp,
+            ),
+          )
+              : null,
+          filled: false,
+          fillColor: Colors.transparent,
+          contentPadding: EdgeInsets.symmetric(
+            horizontal: 16.w,
+            vertical: 13.h,
+          ),
+          border: OutlineInputBorder(
+            borderRadius: BorderRadius.circular(18.r),
+            borderSide: BorderSide.none,
+          ),
+          enabledBorder: OutlineInputBorder(
+            borderRadius: BorderRadius.circular(18.r),
+            borderSide: BorderSide.none,
+          ),
+          focusedBorder: OutlineInputBorder(
+            borderRadius: BorderRadius.circular(18.r),
+            borderSide: BorderSide(
+              color: AppColors.primary.withValues(alpha: 0.30),
+              width: 1,
+            ),
+          ),
         ),
-        enabledBorder: OutlineInputBorder(
-          borderRadius: BorderRadius.circular(14.r),
-          borderSide: BorderSide.none,
-        ),
-        focusedBorder: OutlineInputBorder(
-          borderRadius: BorderRadius.circular(14.r),
-          borderSide: BorderSide(color: AppColors.primary),
+        style: AppFont.style.copyWith(
+          fontSize: 14.sp,
+          fontWeight: FontWeight.w500,
+          color: AppColors.textPrimary,
         ),
       ),
     );
