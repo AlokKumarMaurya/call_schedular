@@ -6,7 +6,7 @@ import 'package:call_schedular/theme/app_font.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_screenutil_plus/flutter_screenutil_plus.dart';
 import 'package:get/get.dart';
-
+import 'package:url_launcher/url_launcher.dart';
 import '../../domain/usecase/call_use_case.dart';
 
 class CallDetailsView extends StatefulWidget {
@@ -303,7 +303,44 @@ class _CallDetailsViewState extends State<CallDetailsView> {
   }
 
   Future<void> _makeCall(String phoneNumber) async {
-    // We will implement this in a later step.
+    final cleanedPhoneNumber = phoneNumber.trim();
+
+    if (cleanedPhoneNumber.isEmpty) {
+      Get.snackbar(
+        'Unable to call',
+        'Phone number is not available.',
+        snackPosition: SnackPosition.BOTTOM,
+      );
+      return;
+    }
+
+    final uri = Uri(
+      scheme: 'tel',
+      path: cleanedPhoneNumber,
+    );
+
+    try {
+      final launched = await launchUrl(
+        uri,
+        mode: LaunchMode.externalApplication,
+      );
+
+      if (!launched) {
+        Get.snackbar(
+          'Unable to call',
+          'Could not open the phone app.',
+          snackPosition: SnackPosition.BOTTOM,
+        );
+      }
+    } catch (e) {
+      debugPrint('Error launching phone app: $e');
+
+      Get.snackbar(
+        'Unable to call',
+        'Could not open the phone app.',
+        snackPosition: SnackPosition.BOTTOM,
+      );
+    }
   }
 
   Future<void> _deleteCall() async {
