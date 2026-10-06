@@ -4,6 +4,7 @@ import 'package:call_schedular/theme/app_font.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_screenutil_plus/flutter_screenutil_plus.dart';
 import 'package:get/get.dart';
+import 'package:package_info_plus/package_info_plus.dart';
 
 import '../../services/notification_service.dart';
 
@@ -18,12 +19,17 @@ class _SettingsViewState extends State<SettingsView>
     with WidgetsBindingObserver {
   bool _notificationsEnabled = false;
   bool _isLoadingNotifications = true;
+  String _appVersion = '';
+  String _buildNumber = '';
 
   @override
   void initState() {
     super.initState();
+
     WidgetsBinding.instance.addObserver(this);
+
     _loadNotificationStatus();
+    _loadAppInfo();
   }
 
   @override
@@ -37,6 +43,17 @@ class _SettingsViewState extends State<SettingsView>
     if (state == AppLifecycleState.resumed) {
       _loadNotificationStatus();
     }
+  }
+
+  Future<void> _loadAppInfo() async {
+    final packageInfo = await PackageInfo.fromPlatform();
+
+    if (!mounted) return;
+
+    setState(() {
+      _appVersion = packageInfo.version;
+      _buildNumber = packageInfo.buildNumber;
+    });
   }
 
   Future<void> _loadNotificationStatus() async {
@@ -99,7 +116,7 @@ class _SettingsViewState extends State<SettingsView>
             iconColor: AppColors.iconPurple,
             title: 'About',
             subtitle: AppConst.appName,
-            onTap: () {},
+            onTap: _showAboutDialog,
           ),
 
           SizedBox(height: 24.h),
@@ -111,8 +128,8 @@ class _SettingsViewState extends State<SettingsView>
             iconBackground: AppColors.iconGreenBackground,
             iconColor: AppColors.iconGreen,
             title: 'App Information',
-            subtitle: 'Version and application details',
-            onTap: () {},
+            subtitle: 'Version $_appVersion • Build $_buildNumber',
+            onTap: _showAppInformation,
           ),
         ],
       ),
@@ -196,6 +213,144 @@ class _SettingsViewState extends State<SettingsView>
           ),
         ),
       ),
+    );
+  }
+
+  void _showAboutDialog() {
+    Get.dialog(
+      AlertDialog(
+        title: Text(
+          AppConst.appName,
+          style: AppFont.style.copyWith(
+            fontSize: 20.sp,
+            fontWeight: FontWeight.w600,
+            color: AppColors.textPrimary,
+          ),
+        ),
+        content: Column(
+          mainAxisSize: MainAxisSize.min,
+          crossAxisAlignment: CrossAxisAlignment.start,
+          children: [
+            Text(
+              'A simple app to schedule and manage your calls.',
+              style: AppFont.style.copyWith(
+                fontSize: 14.sp,
+                color: AppColors.textSecondary,
+              ),
+            ),
+
+            SizedBox(height: 16.h),
+
+            Text(
+              'Version $_appVersion',
+              style: AppFont.style.copyWith(
+                fontSize: 13.sp,
+                color: AppColors.textTertiary,
+              ),
+            ),
+
+            SizedBox(height: 4.h),
+
+            Text(
+              'Build $_buildNumber',
+              style: AppFont.style.copyWith(
+                fontSize: 13.sp,
+                color: AppColors.textTertiary,
+              ),
+            ),
+          ],
+        ),
+        actions: [
+          TextButton(
+            onPressed: Get.back,
+            child: Text(
+              'OK',
+              style: AppFont.style.copyWith(
+                color: AppColors.primary,
+                fontWeight: FontWeight.w600,
+              ),
+            ),
+          ),
+        ],
+      ),
+    );
+  }
+
+  void _showAppInformation() {
+    Get.dialog(
+      AlertDialog(
+        title: Text(
+          'App Information',
+          style: AppFont.style.copyWith(
+            fontSize: 20.sp,
+            fontWeight: FontWeight.w600,
+            color: AppColors.textPrimary,
+          ),
+        ),
+        content: Column(
+          mainAxisSize: MainAxisSize.min,
+          crossAxisAlignment: CrossAxisAlignment.start,
+          children: [
+            _buildInfoRow(
+              'App Name',
+              AppConst.appName,
+            ),
+            SizedBox(height: 12.h),
+            _buildInfoRow(
+              'Version',
+              _appVersion,
+            ),
+            SizedBox(height: 12.h),
+            _buildInfoRow(
+              'Build',
+              _buildNumber,
+            ),
+          ],
+        ),
+        actions: [
+          TextButton(
+            onPressed: Get.back,
+            child: Text(
+              'OK',
+              style: AppFont.style.copyWith(
+                color: AppColors.primary,
+                fontWeight: FontWeight.w600,
+              ),
+            ),
+          ),
+        ],
+      ),
+    );
+  }
+
+  Widget _buildInfoRow(
+      String label,
+      String value,
+      ) {
+    return Row(
+      crossAxisAlignment: CrossAxisAlignment.start,
+      children: [
+        SizedBox(
+          width: 80.w,
+          child: Text(
+            label,
+            style: AppFont.style.copyWith(
+              fontSize: 13.sp,
+              fontWeight: FontWeight.w600,
+              color: AppColors.textSecondary,
+            ),
+          ),
+        ),
+        Expanded(
+          child: Text(
+            value.isEmpty ? 'Loading...' : value,
+            style: AppFont.style.copyWith(
+              fontSize: 13.sp,
+              color: AppColors.textPrimary,
+            ),
+          ),
+        ),
+      ],
     );
   }
 }
