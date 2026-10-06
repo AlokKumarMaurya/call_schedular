@@ -40,16 +40,43 @@ class CallUseCase {
     if (call.isRecurring) {
       final nextCall = call.createNextOccurrence();
 
-      await _repo.addCall(nextCall);
+      // Check whether the next occurrence already exists.
+      final existingCalls = await _repo.getCallList();
 
-      try {
-        await NotificationService.instance.scheduleCallReminder(
-          nextCall,
-        );
-      } catch (e) {
-        debugPrint(
-          'Error scheduling next call reminder: $e',
-        );
+      CallListEntity? existingNextCall;
+
+      for (final existingCall in existingCalls) {
+        if (existingCall.id == nextCall.id) {
+          existingNextCall = existingCall;
+          break;
+        }
+      }
+
+      if (existingNextCall == null) {
+        await _repo.addCall(nextCall);
+
+        try {
+          await NotificationService.instance.scheduleCallReminder(
+            nextCall,
+          );
+        } catch (e) {
+          debugPrint(
+            'Error scheduling next call reminder: $e',
+          );
+        }
+      } else if (existingNextCall.status ==
+          CallStatusEntity.upcoming) {
+        // Make sure an existing upcoming occurrence
+        // still has its notification scheduled.
+        try {
+          await NotificationService.instance.scheduleCallReminder(
+            existingNextCall,
+          );
+        } catch (e) {
+          debugPrint(
+            'Error scheduling existing next call reminder: $e',
+          );
+        }
       }
     }
 
