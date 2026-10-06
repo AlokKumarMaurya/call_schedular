@@ -8,8 +8,6 @@ import 'package:flutter_screenutil_plus/flutter_screenutil_plus.dart';
 import 'package:get/get.dart';
 import 'package:package_info_plus/package_info_plus.dart';
 
-import '../../core/widgets/app_glass_container.dart';
-
 class SettingsView extends StatefulWidget {
   const SettingsView({super.key});
 
@@ -66,8 +64,8 @@ class _SettingsViewState extends State<SettingsView>
   }
 
   Future<void> _loadNotificationStatus() async {
-    final enabled = await NotificationService.instance
-        .areNotificationsEnabled();
+    final enabled =
+    await NotificationService.instance.areNotificationsEnabled();
 
     if (!mounted) {
       return;
@@ -231,25 +229,24 @@ class _SettingsViewState extends State<SettingsView>
       }) {
     final colors = context.themeColors;
 
-    return AppGlassContainer(
-      padding: EdgeInsets.zero,
-      borderRadius: BorderRadius.circular(18.r),
-      tintColor: colors.glassTint,
-      opacity: Theme.of(context).brightness == Brightness.dark
-          ? 0.32
-          : 0.48,
-      border: Border.all(
-        color: colors.border.withValues(alpha: 0.85),
-      ),
-      boxShadow: [
-        BoxShadow(
-          color: colors.shadow,
-          blurRadius: 16.r,
-          offset: const Offset(0, 5),
+    return Container(
+      decoration: BoxDecoration(
+        color: colors.surface,
+        borderRadius: BorderRadius.circular(18.r),
+        border: Border.all(
+          color: colors.border,
         ),
-      ],
+        boxShadow: [
+          BoxShadow(
+            color: colors.shadow,
+            blurRadius: 12.r,
+            offset: const Offset(0, 4),
+          ),
+        ],
+      ),
       child: Material(
         color: Colors.transparent,
+        borderRadius: BorderRadius.circular(18.r),
         child: InkWell(
           onTap: onTap,
           borderRadius: BorderRadius.circular(18.r),
@@ -716,7 +713,6 @@ class _SettingsViewState extends State<SettingsView>
             ),
           ),
         ),
-
         Expanded(
           child: Text(
             value.isEmpty ? 'Loading...' : value,
