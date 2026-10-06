@@ -71,8 +71,13 @@ class ScheduleCallView extends StatelessWidget {
                 children: [
                   Expanded(
                     child: SingleChildScrollView(
-                      padding: EdgeInsets.symmetric(
-                        horizontal: 16.w,
+                      keyboardDismissBehavior:
+                      ScrollViewKeyboardDismissBehavior.onDrag,
+                      padding: EdgeInsets.fromLTRB(
+                        16.w,
+                        0,
+                        16.w,
+                        112.h,
                       ),
                       child: Column(
                         crossAxisAlignment: CrossAxisAlignment.start,
