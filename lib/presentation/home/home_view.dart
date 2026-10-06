@@ -6,6 +6,7 @@ import 'package:flutter_screenutil_plus/flutter_screenutil_plus.dart';
 import 'package:get/get.dart';
 import 'package:url_launcher/url_launcher.dart';
 
+import '../../core/widgets/app_glass_action_button.dart';
 import '../../core/widgets/app_glass_container.dart';
 import '../../domain/entity/call_list_entity.dart';
 import '../../domain/usecase/call_use_case.dart';
@@ -74,26 +75,13 @@ class HomeView extends StatelessWidget {
           },
         ),
       ),
-      floatingActionButton: FloatingActionButton.extended(
+      floatingActionButton: AppGlassActionButton(
+        icon: Icons.add_rounded,
+        label: 'Schedule Call',
         onPressed: () async {
           await Get.to(() => ScheduleCallView());
           await Get.find<HomeController>().getCallList();
         },
-        backgroundColor: AppColors.primary,
-        foregroundColor: AppColors.white,
-        elevation: 4,
-        icon: Icon(
-          Icons.add_rounded,
-          size: 22.sp,
-        ),
-        label: Text(
-          'Schedule Call',
-          style: AppFont.style.copyWith(
-            fontSize: 13.sp,
-            fontWeight: FontWeight.w700,
-            color: AppColors.white,
-          ),
-        ),
       ),
     );
   }
@@ -437,13 +425,13 @@ class HomeView extends StatelessWidget {
           ),
           suffixIcon: controller.searchQuery.isNotEmpty
               ? IconButton(
-            onPressed: controller.clearSearch,
-            icon: Icon(
-              Icons.clear_rounded,
-              color: AppColors.textTertiary,
-              size: 20.sp,
-            ),
-          )
+                  onPressed: controller.clearSearch,
+                  icon: Icon(
+                    Icons.clear_rounded,
+                    color: AppColors.textTertiary,
+                    size: 20.sp,
+                  ),
+                )
               : null,
           filled: false,
           fillColor: Colors.transparent,
