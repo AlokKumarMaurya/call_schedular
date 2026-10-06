@@ -7,7 +7,6 @@ import 'package:flutter/material.dart';
 import 'package:flutter_screenutil_plus/flutter_screenutil_plus.dart';
 import 'package:get/get.dart';
 import 'package:url_launcher/url_launcher.dart';
-// import 'package:url_launcher/url_launcher.dart';
 
 import '../../domain/entity/call_list_entity.dart';
 import '../call_details/call_details_view.dart';
@@ -80,34 +79,33 @@ class HomeView extends StatelessWidget {
                 ),
 
                 SizedBox(height: 24.h),
-
                 Expanded(
                   child: controller.isLoading
                       ? const Center(child: CircularProgressIndicator())
                       : TabBarView(
-                    controller: controller.tabController,
-                    children: [
-                      _buildCallList(
-                        controller.todayCalls,
-                        emptyMessage: 'No calls scheduled for today',
-                      ),
+                          controller: controller.tabController,
+                          children: [
+                            _buildCallList(
+                              controller.todayCalls,
+                              emptyMessage: 'No calls scheduled for today',
+                            ),
 
-                      _buildCallList(
-                        controller.upcomingCalls,
-                        emptyMessage: 'No upcoming calls',
-                      ),
+                            _buildCallList(
+                              controller.upcomingCalls,
+                              emptyMessage: 'No upcoming calls',
+                            ),
 
-                      _buildCallList(
-                        controller.completedCalls,
-                        emptyMessage: 'No completed calls yet',
-                      ),
+                            _buildCallList(
+                              controller.completedCalls,
+                              emptyMessage: 'No completed calls yet',
+                            ),
 
-                      _buildCallList(
-                        controller.missedCalls,
-                        emptyMessage: 'No missed calls',
-                      ),
-                    ],
-                  ),
+                            _buildCallList(
+                              controller.missedCalls,
+                              emptyMessage: 'No missed calls',
+                            ),
+                          ],
+                        ),
                 ),
               ],
             ),

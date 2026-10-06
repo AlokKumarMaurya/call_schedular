@@ -1,7 +1,8 @@
+import 'package:call_schedular/domain/entity/call_list_entity.dart';
 import 'package:flutter_local_notifications/flutter_local_notifications.dart';
+import 'package:flutter_timezone/flutter_timezone.dart';
 import 'package:timezone/data/latest.dart' as tz;
 import 'package:timezone/timezone.dart' as tz;
-import 'package:flutter_timezone/flutter_timezone.dart';
 
 class NotificationService {
   NotificationService._();
@@ -9,18 +10,14 @@ class NotificationService {
   static final NotificationService instance = NotificationService._();
 
   final FlutterLocalNotificationsPlugin _notifications =
-  FlutterLocalNotificationsPlugin();
+      FlutterLocalNotificationsPlugin();
 
   Future<void> initialize() async {
-    // Initialize timezone database.
     tz.initializeTimeZones();
 
-    // Get the device's actual timezone.
-    final timezoneInfo =
-    await FlutterTimezone.getLocalTimezone();
+    final timezoneInfo = await FlutterTimezone.getLocalTimezone();
 
-    final location =
-    tz.getLocation(timezoneInfo.identifier);
+    final location = tz.getLocation(timezoneInfo.identifier);
 
     tz.setLocalLocation(location);
 
@@ -32,18 +29,16 @@ class NotificationService {
       android: androidSettings,
     );
 
-    await _notifications.initialize(
-      settings: initializationSettings,
-    );
+    await _notifications.initialize(settings: initializationSettings);
   }
 
   Future<bool> requestNotificationPermission() async {
-    final androidPlugin =
-    _notifications.resolvePlatformSpecificImplementation<
-        AndroidFlutterLocalNotificationsPlugin>();
+    final androidPlugin = _notifications
+        .resolvePlatformSpecificImplementation<
+          AndroidFlutterLocalNotificationsPlugin
+        >();
 
-    final granted =
-    await androidPlugin?.requestNotificationsPermission();
+    final granted = await androidPlugin?.requestNotificationsPermission();
 
     return granted ?? false;
   }
@@ -68,11 +63,8 @@ class NotificationService {
   }
 
   Future<void> scheduleTestNotification() async {
-    final scheduledDate = tz.TZDateTime.now(
-      tz.local,
-    ).add(
-      const Duration(seconds: 30),
-    );
+    final scheduledDate = tz.TZDateTime.now(tz.local)
+        .add(const Duration(seconds: 30));
 
     const notificationDetails = NotificationDetails(
       android: AndroidNotificationDetails(
@@ -95,9 +87,63 @@ class NotificationService {
   }
 
   Future<String> getCurrentTimezone() async {
-    final timezoneInfo =
-    await FlutterTimezone.getLocalTimezone();
+    final timezoneInfo = await FlutterTimezone.getLocalTimezone();
 
     return timezoneInfo.identifier;
+  }
+
+  Future<void> scheduleCallReminder(CallListEntity call) async {
+    final scheduledDate = tz.TZDateTime(
+      tz.local,
+      call.scheduledAt.year,
+      call.scheduledAt.month,
+      call.scheduledAt.day,
+      call.scheduledAt.hour,
+      call.scheduledAt.minute,
+    );
+
+    if (!scheduledDate.isAfter(tz.TZDateTime.now(tz.local))) {
+      return;
+    }
+
+    final notificationId = _notificationId(call.id);
+
+    final contactName = call.contactName.trim().isEmpty
+        ? 'Unknown Contact'
+        : call.contactName.trim();
+
+    final phoneNumber = call.phoneNumber.trim();
+
+    final notificationDetails = NotificationDetails(
+      android: AndroidNotificationDetails(
+        'call_reminders',
+        'Call Reminders',
+        channelDescription: 'Reminders for scheduled calls',
+        importance: Importance.high,
+        priority: Priority.high,
+        category: AndroidNotificationCategory.reminder,
+      ),
+    );
+
+    await _notifications.zonedSchedule(
+      id: notificationId,
+      title: 'Call $contactName',
+      body: phoneNumber.isEmpty
+          ? 'You have a scheduled call.'
+          : 'Scheduled call with $contactName • $phoneNumber',
+      scheduledDate: scheduledDate,
+      notificationDetails: notificationDetails,
+      androidScheduleMode: AndroidScheduleMode.inexactAllowWhileIdle,
+    );
+  }
+
+  int _notificationId(String callId) {
+    var hash = 0;
+
+    for (final unit in callId.codeUnits) {
+      hash = (hash * 31 + unit) & 0x7fffffff;
+    }
+
+    return hash;
   }
 }
