@@ -9,6 +9,7 @@ import 'package:flutter_screenutil_plus/flutter_screenutil_plus.dart';
 import 'package:get/get.dart';
 import 'package:url_launcher/url_launcher.dart';
 
+import '../../core/widgets/app_glass_action_button.dart';
 import '../../core/widgets/app_glass_icon_button.dart';
 import '../../domain/usecase/call_use_case.dart';
 
@@ -56,10 +57,13 @@ class _CallDetailsViewState extends State<CallDetailsView> {
         scrolledUnderElevation: 0,
         leadingWidth: 62.w,
         leading: Padding(
-          padding: EdgeInsets.only(left: 12.w, top: 4.h, bottom: 2.h),
+          padding: EdgeInsets.only(
+            left: 12.w,
+            top: 4.h,
+            bottom: 2.h,
+          ),
           child: AppGlassIconButton(
             icon: Icons.arrow_back_ios_new_rounded,
-            // iconSize: 19,
             tooltip: 'Back',
             onPressed: Get.back,
           ),
@@ -110,26 +114,37 @@ class _CallDetailsViewState extends State<CallDetailsView> {
                       contactName: contactName,
                       initial: initial,
                     ),
+
                     SizedBox(height: 24.h),
+
                     _buildSectionTitle(
                       context,
                       'Call Schedule',
                     ),
+
                     SizedBox(height: 10.h),
+
                     _buildScheduleInfo(context),
+
                     SizedBox(height: 12.h),
+
                     _buildRepeatCard(context),
+
                     SizedBox(height: 24.h),
+
                     _buildSectionTitle(
                       context,
                       'Notes',
                     ),
+
                     SizedBox(height: 10.h),
+
                     _buildNotesCard(context),
                   ],
                 ),
               ),
             ),
+
             _buildBottomActions(context),
           ],
         ),
@@ -143,6 +158,7 @@ class _CallDetailsViewState extends State<CallDetailsView> {
         required String initial,
       }) {
     final colors = context.themeColors;
+
     final avatarColor = _avatarColor(
       contactName,
       context,
@@ -187,7 +203,9 @@ class _CallDetailsViewState extends State<CallDetailsView> {
               ),
             ),
           ),
+
           SizedBox(height: 14.h),
+
           Text(
             contactName,
             textAlign: TextAlign.center,
@@ -199,7 +217,9 @@ class _CallDetailsViewState extends State<CallDetailsView> {
               color: colors.textPrimary,
             ),
           ),
+
           SizedBox(height: 5.h),
+
           Text(
             _call.phoneNumber,
             style: AppFont.style.copyWith(
@@ -208,7 +228,9 @@ class _CallDetailsViewState extends State<CallDetailsView> {
               color: colors.textTertiary,
             ),
           ),
+
           SizedBox(height: 14.h),
+
           _buildStatusChip(context),
         ],
       ),
@@ -263,7 +285,9 @@ class _CallDetailsViewState extends State<CallDetailsView> {
             size: 15.sp,
             color: color,
           ),
+
           SizedBox(width: 6.w),
+
           Text(
             label,
             style: AppFont.style.copyWith(
@@ -288,7 +312,9 @@ class _CallDetailsViewState extends State<CallDetailsView> {
             value: _formatDate(_call.scheduledAt),
           ),
         ),
+
         SizedBox(width: 12.w),
+
         Expanded(
           child: _buildInfoCard(
             context,
@@ -335,7 +361,9 @@ class _CallDetailsViewState extends State<CallDetailsView> {
               color: colorScheme.primary,
             ),
           ),
+
           SizedBox(height: 12.h),
+
           Text(
             label,
             style: AppFont.style.copyWith(
@@ -344,7 +372,9 @@ class _CallDetailsViewState extends State<CallDetailsView> {
               color: colors.textTertiary,
             ),
           ),
+
           SizedBox(height: 4.h),
+
           Text(
             value,
             maxLines: 2,
@@ -392,7 +422,9 @@ class _CallDetailsViewState extends State<CallDetailsView> {
               color: colorScheme.primary,
             ),
           ),
+
           SizedBox(width: 12.w),
+
           Expanded(
             child: Column(
               crossAxisAlignment: CrossAxisAlignment.start,
@@ -405,7 +437,9 @@ class _CallDetailsViewState extends State<CallDetailsView> {
                     color: colors.textTertiary,
                   ),
                 ),
+
                 SizedBox(height: 3.h),
+
                 Text(
                   _call.repeat,
                   style: AppFont.style.copyWith(
@@ -454,7 +488,9 @@ class _CallDetailsViewState extends State<CallDetailsView> {
               color: colorScheme.primary,
             ),
           ),
+
           SizedBox(width: 12.w),
+
           Expanded(
             child: Text(
               hasNotes
@@ -517,35 +553,16 @@ class _CallDetailsViewState extends State<CallDetailsView> {
         top: false,
         child: Column(
           children: [
-            SizedBox(
-              width: double.infinity,
-              height: 52.h,
-              child: ElevatedButton.icon(
-                onPressed: () => _makeCall(_call.phoneNumber),
-                icon: Icon(
-                  Icons.call_rounded,
-                  size: 19.sp,
-                ),
-                label: Text(
-                  'Call Now',
-                  style: AppFont.style.copyWith(
-                    fontSize: 15.sp,
-                    fontWeight: FontWeight.w700,
-                    color: colorScheme.onPrimary,
-                  ),
-                ),
-                style: ElevatedButton.styleFrom(
-                  backgroundColor: colorScheme.primary,
-                  foregroundColor: colorScheme.onPrimary,
-                  elevation: 0,
-                  shape: RoundedRectangleBorder(
-                    borderRadius: BorderRadius.circular(16.r),
-                  ),
-                ),
-              ),
+            AppGlassActionButton(
+              icon: Icons.call_rounded,
+              label: 'Call Now',
+              onPressed: () => _makeCall(_call.phoneNumber),
+              expand: true,
             ),
+
             if (!isCompleted) ...[
               SizedBox(height: 10.h),
+
               SizedBox(
                 width: double.infinity,
                 height: 48.h,
@@ -714,9 +731,6 @@ class _CallDetailsViewState extends State<CallDetailsView> {
         return;
       }
 
-      // The phone app was successfully opened.
-      // Complete the current occurrence and create the next
-      // occurrence when the call is recurring.
       if (_call.status != CallStatusEntity.completed) {
         final useCase = Get.find<CallUseCase>();
 
@@ -848,7 +862,6 @@ class _CallDetailsViewState extends State<CallDetailsView> {
     try {
       final useCase = Get.find<CallUseCase>();
 
-      // Cancel the reminder for the current occurrence.
       try {
         await NotificationService.instance.cancelCallReminder(
           _call,
