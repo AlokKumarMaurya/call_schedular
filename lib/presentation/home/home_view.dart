@@ -55,6 +55,7 @@ class HomeView extends StatelessWidget {
                       isSelected: controller.tabController.index == 0,
                       title: 'Today (${controller.todayCalls.length})',
                     ),
+
                     Padding(
                       padding: EdgeInsets.symmetric(horizontal: 20.w),
                       child: AppFilterChip(
@@ -62,9 +63,18 @@ class HomeView extends StatelessWidget {
                         title: 'Upcoming (${controller.upcomingCalls.length})',
                       ),
                     ),
+
                     AppFilterChip(
                       isSelected: controller.tabController.index == 2,
                       title: 'Completed (${controller.completedCalls.length})',
+                    ),
+
+                    Padding(
+                      padding: EdgeInsets.only(left: 20.w),
+                      child: AppFilterChip(
+                        isSelected: controller.tabController.index == 3,
+                        title: 'Missed (${controller.missedCalls.length})',
+                      ),
                     ),
                   ],
                 ),
@@ -75,22 +85,29 @@ class HomeView extends StatelessWidget {
                   child: controller.isLoading
                       ? const Center(child: CircularProgressIndicator())
                       : TabBarView(
-                          controller: controller.tabController,
-                          children: [
-                            _buildCallList(
-                              controller.todayCalls,
-                              emptyMessage: 'No calls scheduled for today',
-                            ),
-                            _buildCallList(
-                              controller.upcomingCalls,
-                              emptyMessage: 'No upcoming calls',
-                            ),
-                            _buildCallList(
-                              controller.completedCalls,
-                              emptyMessage: 'No completed calls yet',
-                            ),
-                          ],
-                        ),
+                    controller: controller.tabController,
+                    children: [
+                      _buildCallList(
+                        controller.todayCalls,
+                        emptyMessage: 'No calls scheduled for today',
+                      ),
+
+                      _buildCallList(
+                        controller.upcomingCalls,
+                        emptyMessage: 'No upcoming calls',
+                      ),
+
+                      _buildCallList(
+                        controller.completedCalls,
+                        emptyMessage: 'No completed calls yet',
+                      ),
+
+                      _buildCallList(
+                        controller.missedCalls,
+                        emptyMessage: 'No missed calls',
+                      ),
+                    ],
+                  ),
                 ),
               ],
             ),

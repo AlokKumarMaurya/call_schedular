@@ -152,6 +152,11 @@ class _CallDetailsViewState extends State<CallDetailsView> {
                       title: 'Repeat',
                       value: _call.repeat,
                     ),
+                    _detailRow(
+                      icon: Icons.info_outline,
+                      title: 'Status',
+                      value: _statusLabel(_call.status),
+                    ),
 
                     _detailRow(
                       icon: Icons.notes_outlined,
@@ -172,28 +177,61 @@ class _CallDetailsViewState extends State<CallDetailsView> {
                 16.w,
                 16.h,
               ),
-              child: SizedBox(
-                width: double.infinity,
-                height: 48.h,
-                child: ElevatedButton(
-                  onPressed: () => _makeCall(_call.phoneNumber),
-                  style: ElevatedButton.styleFrom(
-                    backgroundColor: AppColors.primary,
-                    foregroundColor: AppColors.white,
-                    shape: RoundedRectangleBorder(
-                      borderRadius: BorderRadius.circular(12.r),
+              child: Column(
+                children: [
+                  if (_call.status != CallStatusEntity.completed)
+                    SizedBox(
+                      width: double.infinity,
+                      height: 48.h,
+                      child: OutlinedButton(
+                        onPressed: _markAsCompleted,
+                        style: OutlinedButton.styleFrom(
+                          foregroundColor: AppColors.primary,
+                          side: BorderSide(
+                            color: AppColors.primary,
+                          ),
+                          shape: RoundedRectangleBorder(
+                            borderRadius: BorderRadius.circular(12.r),
+                          ),
+                        ),
+                        child: Text(
+                          'Mark as Completed',
+                          style: AppFont.style.copyWith(
+                            fontSize: 15.sp,
+                            fontWeight: FontWeight.w600,
+                            color: AppColors.primary,
+                          ),
+                        ),
+                      ),
                     ),
-                    elevation: 0,
-                  ),
-                  child: Text(
-                    'Call Now',
-                    style: AppFont.style.copyWith(
-                      fontSize: 15.sp,
-                      fontWeight: FontWeight.w600,
-                      color: AppColors.white,
+
+                  if (_call.status != CallStatusEntity.completed)
+                    SizedBox(height: 10.h),
+
+                  SizedBox(
+                    width: double.infinity,
+                    height: 48.h,
+                    child: ElevatedButton(
+                      onPressed: () => _makeCall(_call.phoneNumber),
+                      style: ElevatedButton.styleFrom(
+                        backgroundColor: AppColors.primary,
+                        foregroundColor: AppColors.white,
+                        shape: RoundedRectangleBorder(
+                          borderRadius: BorderRadius.circular(12.r),
+                        ),
+                        elevation: 0,
+                      ),
+                      child: Text(
+                        'Call Now',
+                        style: AppFont.style.copyWith(
+                          fontSize: 15.sp,
+                          fontWeight: FontWeight.w600,
+                          color: AppColors.white,
+                        ),
+                      ),
                     ),
                   ),
-                ),
+                ],
               ),
             ),
           ],
@@ -331,6 +369,27 @@ class _CallDetailsViewState extends State<CallDetailsView> {
           'Could not open the phone app.',
           snackPosition: SnackPosition.BOTTOM,
         );
+        return;
+      }
+
+      // The phone app was successfully opened.
+      // Mark the scheduled call as completed.
+      if (_call.status != CallStatusEntity.completed) {
+        final updatedCall = _call.copyWith(
+          status: CallStatusEntity.completed,
+        );
+
+        await Get.find<CallUseCase>().updateCall(updatedCall);
+
+        if (!mounted) {
+          return;
+        }
+
+        setState(() {
+          _call = updatedCall;
+        });
+
+        await Get.find<HomeController>().getCallList();
       }
     } catch (e) {
       debugPrint('Error launching phone app: $e');
@@ -377,5 +436,56 @@ class _CallDetailsViewState extends State<CallDetailsView> {
     await Get.find<HomeController>().getCallList();
 
     Get.back();
+  }
+
+  String _statusLabel(CallStatusEntity status) {
+    switch (status) {
+      case CallStatusEntity.upcoming:
+        return 'Upcoming';
+
+      case CallStatusEntity.completed:
+        return 'Completed';
+
+      case CallStatusEntity.missed:
+        return 'Missed';
+    }
+  }
+
+  Future<void> _markAsCompleted() async {
+    if (_call.status == CallStatusEntity.completed) {
+      return;
+    }
+
+    try {
+      final updatedCall = _call.copyWith(
+        status: CallStatusEntity.completed,
+      );
+
+      await Get.find<CallUseCase>().updateCall(updatedCall);
+
+      if (!mounted) {
+        return;
+      }
+
+      setState(() {
+        _call = updatedCall;
+      });
+
+      await Get.find<HomeController>().getCallList();
+
+      Get.snackbar(
+        'Completed',
+        'Call marked as completed.',
+        snackPosition: SnackPosition.BOTTOM,
+      );
+    } catch (e) {
+      debugPrint('Error marking call as completed: $e');
+
+      Get.snackbar(
+        'Error',
+        'Unable to update call status.',
+        snackPosition: SnackPosition.BOTTOM,
+      );
+    }
   }
 }

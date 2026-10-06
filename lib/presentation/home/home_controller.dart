@@ -15,7 +15,15 @@ class HomeController extends GetxController
   void onInit() {
     super.onInit();
 
-    tabController = TabController(length: 3, vsync: this);
+    // We now have:
+    // 0 = Today
+    // 1 = Upcoming
+    // 2 = Completed
+    // 3 = Missed
+    tabController = TabController(
+      length: 4,
+      vsync: this,
+    );
 
     tabController.addListener(() {
       if (!tabController.indexIsChanging) {
@@ -33,12 +41,43 @@ class HomeController extends GetxController
 
       final res = await Get.find<CallUseCase>().getCallList();
 
+      await _markExpiredCallsAsMissed(res);
+
       callListModel = res;
     } catch (e) {
       debugPrint('Error fetching calls: $e');
     } finally {
       isLoading = false;
       update();
+    }
+  }
+
+  Future<void> _markExpiredCallsAsMissed(
+      List<CallListEntity> calls,
+      ) async {
+    final now = DateTime.now();
+    final useCase = Get.find<CallUseCase>();
+
+    for (var i = 0; i < calls.length; i++) {
+      final call = calls[i];
+
+      // Only upcoming calls can become missed.
+      //
+      // Completed calls should never become missed,
+      // even if their scheduled time is in the past.
+      if (call.status == CallStatusEntity.upcoming &&
+          call.scheduledAt.isBefore(now)) {
+        final updatedCall = call.copyWith(
+          status: CallStatusEntity.missed,
+        );
+
+        await useCase.updateCall(updatedCall);
+
+        // Update the same list that will be assigned to
+        // callListModel so the UI immediately gets the
+        // correct status.
+        calls[i] = updatedCall;
+      }
     }
   }
 
@@ -52,7 +91,10 @@ class HomeController extends GetxController
           date.month == now.month &&
           date.day == now.day &&
           call.status == CallStatusEntity.upcoming;
-    }).toList()..sort((a, b) => a.scheduledAt.compareTo(b.scheduledAt));
+    }).toList()
+      ..sort(
+            (a, b) => a.scheduledAt.compareTo(b.scheduledAt),
+      );
   }
 
   List<CallListEntity> get upcomingCalls {
@@ -62,16 +104,34 @@ class HomeController extends GetxController
       return call.scheduledAt.isAfter(now) &&
           !_isSameDay(call.scheduledAt, now) &&
           call.status == CallStatusEntity.upcoming;
-    }).toList()..sort((a, b) => a.scheduledAt.compareTo(b.scheduledAt));
+    }).toList()
+      ..sort(
+            (a, b) => a.scheduledAt.compareTo(b.scheduledAt),
+      );
   }
 
   List<CallListEntity> get completedCalls {
     return callListModel.where((call) {
       return call.status == CallStatusEntity.completed;
-    }).toList()..sort((a, b) => b.scheduledAt.compareTo(a.scheduledAt));
+    }).toList()
+      ..sort(
+            (a, b) => b.scheduledAt.compareTo(a.scheduledAt),
+      );
   }
 
-  bool _isSameDay(DateTime first, DateTime second) {
+  List<CallListEntity> get missedCalls {
+    return callListModel.where((call) {
+      return call.status == CallStatusEntity.missed;
+    }).toList()
+      ..sort(
+            (a, b) => b.scheduledAt.compareTo(a.scheduledAt),
+      );
+  }
+
+  bool _isSameDay(
+      DateTime first,
+      DateTime second,
+      ) {
     return first.year == second.year &&
         first.month == second.month &&
         first.day == second.day;
