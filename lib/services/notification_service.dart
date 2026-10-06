@@ -1,4 +1,6 @@
 import 'package:flutter_local_notifications/flutter_local_notifications.dart';
+import 'package:timezone/data/latest.dart' as tz;
+import 'package:timezone/timezone.dart' as tz;
 
 class NotificationService {
   NotificationService._();
@@ -9,6 +11,9 @@ class NotificationService {
   FlutterLocalNotificationsPlugin();
 
   Future<void> initialize() async {
+    // Initialize timezone database.
+    tz.initializeTimeZones();
+
     const androidSettings = AndroidInitializationSettings(
       '@mipmap/ic_launcher',
     );
@@ -49,6 +54,33 @@ class NotificationService {
       title: 'Call Scheduler',
       body: 'Notification service is working.',
       notificationDetails: notificationDetails,
+    );
+  }
+
+  Future<void> scheduleTestNotification() async {
+    final scheduledDate = tz.TZDateTime.now(
+      tz.local,
+    ).add(
+      const Duration(seconds: 30),
+    );
+
+    const notificationDetails = NotificationDetails(
+      android: AndroidNotificationDetails(
+        'call_reminders',
+        'Call Reminders',
+        channelDescription: 'Notifications for scheduled calls',
+        importance: Importance.high,
+        priority: Priority.high,
+      ),
+    );
+
+    await _notifications.zonedSchedule(
+      id: 1000,
+      title: 'Call Reminder',
+      body: 'This is a scheduled test reminder.',
+      scheduledDate: scheduledDate,
+      notificationDetails: notificationDetails,
+      androidScheduleMode: AndroidScheduleMode.inexactAllowWhileIdle,
     );
   }
 }
