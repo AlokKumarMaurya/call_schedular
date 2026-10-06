@@ -233,9 +233,9 @@ class HomeView extends StatelessWidget {
     }
 
     return ListView.separated(
-      padding: EdgeInsets.only(bottom: 80.h),
+      padding: EdgeInsets.only(top: 4.h, bottom: 100.h),
       itemCount: calls.length,
-      separatorBuilder: (_, __) => SizedBox(height: 8.h),
+      separatorBuilder: (_, __) => SizedBox(height: 10.h),
       itemBuilder: (context, index) {
         final call = calls[index];
 
@@ -293,128 +293,324 @@ class CallRecordTile extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    final initial = call.contactName.isNotEmpty
-        ? call.contactName[0].toUpperCase()
-        : '?';
+    final contactName = call.contactName.trim().isEmpty
+        ? 'Unknown Contact'
+        : call.contactName.trim();
 
-    return GestureDetector(
-      onTap: () {
-        Get.to(() => CallDetailsView(call: call));
-      },
-      child: Container(
-        padding: EdgeInsets.symmetric(horizontal: 16.w, vertical: 12.h),
-        decoration: BoxDecoration(
-          borderRadius: BorderRadius.circular(12.r),
-          color: AppColors.white,
-        ),
-        child: Row(
-          children: [
-            CircleAvatar(
-              backgroundColor: AppColors.primary,
-              child: Text(
-                initial,
-                style: AppFont.style.copyWith(
-                  fontSize: 20.sp,
-                  color: AppColors.white,
+    final initial = contactName[0].toUpperCase();
+    final avatarColor = _avatarColor(contactName);
+
+    return Material(
+      color: AppColors.surface,
+      borderRadius: BorderRadius.circular(18.r),
+      child: InkWell(
+        borderRadius: BorderRadius.circular(18.r),
+        onTap: () {
+          Get.to(() => CallDetailsView(call: call));
+        },
+        child: Container(
+          padding: EdgeInsets.all(14.w),
+          decoration: BoxDecoration(
+            color: AppColors.surface,
+            borderRadius: BorderRadius.circular(18.r),
+            border: Border.all(color: AppColors.border),
+            boxShadow: [
+              BoxShadow(
+                color: AppColors.shadow,
+                blurRadius: 10,
+                offset: const Offset(0, 3),
+              ),
+            ],
+          ),
+          child: Row(
+            children: [
+              _buildAvatar(initial, avatarColor),
+
+              SizedBox(width: 12.w),
+
+              Expanded(
+                child: Column(
+                  crossAxisAlignment: CrossAxisAlignment.start,
+                  children: [
+                    _buildNameRow(contactName),
+
+                    SizedBox(height: 4.h),
+
+                    Text(
+                      call.phoneNumber,
+                      maxLines: 1,
+                      overflow: TextOverflow.ellipsis,
+                      style: AppFont.style.copyWith(
+                        fontSize: 13.sp,
+                        fontWeight: FontWeight.w500,
+                        color: AppColors.textTertiary,
+                      ),
+                    ),
+
+                    SizedBox(height: 10.h),
+
+                    Row(
+                      children: [
+                        _buildStatusChip(),
+
+                        const Spacer(),
+
+                        _buildAction(),
+                      ],
+                    ),
+                  ],
                 ),
               ),
-            ),
-
-            SizedBox(width: 16.w),
-
-            Expanded(
-              child: Column(
-                crossAxisAlignment: CrossAxisAlignment.start,
-                children: [
-                  Text(
-                    call.contactName,
-                    overflow: TextOverflow.ellipsis,
-                    maxLines: 1,
-                    style: AppFont.style.copyWith(
-                      fontWeight: FontWeight.w500,
-                      fontSize: 16.sp,
-                    ),
-                  ),
-
-                  SizedBox(height: 4.h),
-
-                  Text(
-                    call.phoneNumber,
-                    style: AppFont.style.copyWith(
-                      color: AppColors.textTertiary,
-                      fontWeight: FontWeight.w500,
-                      fontSize: 12.sp,
-                    ),
-                  ),
-
-                  SizedBox(height: 8.h),
-
-                  Row(
-                    children: [
-                      Icon(
-                        Icons.access_time,
-                        size: 16.sp,
-                        color: AppColors.iconBlue,
-                      ),
-
-                      SizedBox(width: 8.w),
-
-                      Text(
-                        _formattedDateTime(call.scheduledAt),
-                        style: AppFont.style.copyWith(
-                          fontSize: 12.sp,
-                          fontWeight: FontWeight.w600,
-                          color: AppColors.textTertiary,
-                        ),
-                      ),
-                    ],
-                  ),
-                ],
-              ),
-            ),
-
-            SizedBox(width: 12.w),
-
-            InkWell(
-              borderRadius: BorderRadius.circular(50.r),
-              onTap: () => _makeCall(call.phoneNumber),
-              child: CircleAvatar(
-                backgroundColor: AppColors.iconBlueBackground,
-                child: Icon(Icons.call, size: 20.sp, color: AppColors.iconBlue),
-              ),
-            ),
-          ],
+            ],
+          ),
         ),
       ),
     );
   }
 
-  String _formattedDateTime(DateTime dateTime) {
-    final hour = dateTime.hour;
-    final minute = dateTime.minute;
+  Widget _buildAvatar(String initial, Color color) {
+    return Container(
+      width: 52.w,
+      height: 52.w,
+      decoration: BoxDecoration(
+        shape: BoxShape.circle,
+        color: color.withValues(alpha: 0.12),
+      ),
+      alignment: Alignment.center,
+      child: Text(
+        initial,
+        style: AppFont.style.copyWith(
+          fontSize: 21.sp,
+          fontWeight: FontWeight.w700,
+          color: color,
+        ),
+      ),
+    );
+  }
 
-    final formattedHour = hour % 12 == 0 ? 12 : hour % 12;
-    final period = hour >= 12 ? 'PM' : 'AM';
+  Widget _buildNameRow(String contactName) {
+    return Row(
+      children: [
+        Expanded(
+          child: Text(
+            contactName,
+            maxLines: 1,
+            overflow: TextOverflow.ellipsis,
+            style: AppFont.style.copyWith(
+              fontSize: 16.sp,
+              fontWeight: FontWeight.w700,
+              color: AppColors.textPrimary,
+            ),
+          ),
+        ),
 
-    final time = '$formattedHour:${minute.toString().padLeft(2, '0')} $period';
+        SizedBox(width: 8.w),
 
+        Column(
+          crossAxisAlignment: CrossAxisAlignment.end,
+          children: [
+            Text(
+              _formattedDate(call.scheduledAt),
+              style: AppFont.style.copyWith(
+                fontSize: 11.sp,
+                fontWeight: FontWeight.w600,
+                color: AppColors.textTertiary,
+              ),
+            ),
+
+            SizedBox(height: 2.h),
+
+            Text(
+              _formattedTime(call.scheduledAt),
+              style: AppFont.style.copyWith(
+                fontSize: 11.sp,
+                fontWeight: FontWeight.w600,
+                color: AppColors.textSecondary,
+              ),
+            ),
+          ],
+        ),
+      ],
+    );
+  }
+
+  Widget _buildStatusChip() {
+    final config = _statusConfig();
+
+    return Container(
+      padding: EdgeInsets.symmetric(horizontal: 9.w, vertical: 5.h),
+      decoration: BoxDecoration(
+        color: config.backgroundColor,
+        borderRadius: BorderRadius.circular(20.r),
+      ),
+      child: Row(
+        mainAxisSize: MainAxisSize.min,
+        children: [
+          Icon(config.icon, size: 13.sp, color: config.color),
+          SizedBox(width: 5.w),
+          Text(
+            config.label,
+            style: AppFont.style.copyWith(
+              fontSize: 11.sp,
+              fontWeight: FontWeight.w600,
+              color: config.color,
+            ),
+          ),
+        ],
+      ),
+    );
+  }
+
+  Widget _buildAction() {
+    switch (call.status) {
+      case CallStatusEntity.upcoming:
+        return _roundActionButton(
+          icon: Icons.call_rounded,
+          color: AppColors.iconBlue,
+          backgroundColor: AppColors.iconBlueBackground,
+          onTap: () => _makeCall(call.phoneNumber),
+        );
+
+      case CallStatusEntity.missed:
+        return _roundActionButton(
+          icon: Icons.event_repeat_rounded,
+          color: AppColors.dangerDark,
+          backgroundColor: AppColors.dangerLight,
+          onTap: () => _openReschedule(),
+        );
+
+      case CallStatusEntity.completed:
+        return const SizedBox.shrink();
+    }
+  }
+
+  Widget _roundActionButton({
+    required IconData icon,
+    required Color color,
+    required Color backgroundColor,
+    required VoidCallback onTap,
+  }) {
+    return Material(
+      color: backgroundColor,
+      shape: const CircleBorder(),
+      child: InkWell(
+        customBorder: const CircleBorder(),
+        onTap: onTap,
+        child: SizedBox(
+          width: 38.w,
+          height: 38.w,
+          child: Icon(icon, size: 18.sp, color: color),
+        ),
+      ),
+    );
+  }
+
+  _StatusConfig _statusConfig() {
+    switch (call.status) {
+      case CallStatusEntity.upcoming:
+        return const _StatusConfig(
+          label: 'Upcoming',
+          icon: Icons.schedule_rounded,
+          color: AppColors.primary,
+          backgroundColor: AppColors.primaryLight,
+        );
+
+      case CallStatusEntity.completed:
+        return const _StatusConfig(
+          label: 'Completed',
+          icon: Icons.check_circle_outline_rounded,
+          color: AppColors.successDark,
+          backgroundColor: AppColors.successLight,
+        );
+
+      case CallStatusEntity.missed:
+        return const _StatusConfig(
+          label: 'Missed',
+          icon: Icons.error_outline_rounded,
+          color: AppColors.dangerDark,
+          backgroundColor: AppColors.dangerLight,
+        );
+    }
+  }
+
+  Color _avatarColor(String name) {
+    final colors = [
+      AppColors.primary,
+      AppColors.purpleDark,
+      AppColors.successDark,
+      AppColors.orangeDark,
+      AppColors.dangerDark,
+      AppColors.pink,
+    ];
+
+    var hash = 0;
+
+    for (final unit in name.codeUnits) {
+      hash = (hash * 31 + unit) & 0x7fffffff;
+    }
+
+    return colors[hash % colors.length];
+  }
+
+  String _formattedDate(DateTime dateTime) {
     final now = DateTime.now();
 
     if (_isSameDay(dateTime, now)) {
-      return time;
+      return 'Today';
     }
 
     if (_isSameDay(dateTime, now.add(const Duration(days: 1)))) {
-      return 'Tomorrow, $time';
+      return 'Tomorrow';
     }
 
-    return '${dateTime.day}/${dateTime.month}, $time';
+    return '${dateTime.day} ${_monthName(dateTime.month)}';
+  }
+
+  String _formattedTime(DateTime dateTime) {
+    final hour = dateTime.hour % 12 == 0 ? 12 : dateTime.hour % 12;
+
+    final minute = dateTime.minute.toString().padLeft(2, '0');
+
+    final period = dateTime.hour >= 12 ? 'PM' : 'AM';
+
+    return '$hour:$minute $period';
+  }
+
+  String _monthName(int month) {
+    const months = [
+      'Jan',
+      'Feb',
+      'Mar',
+      'Apr',
+      'May',
+      'Jun',
+      'Jul',
+      'Aug',
+      'Sep',
+      'Oct',
+      'Nov',
+      'Dec',
+    ];
+
+    return months[month - 1];
   }
 
   bool _isSameDay(DateTime first, DateTime second) {
     return first.year == second.year &&
         first.month == second.month &&
         first.day == second.day;
+  }
+
+  Future<void> _openReschedule() async {
+    final rescheduledCall = await Get.to<CallListEntity>(
+      () => ScheduleCallView(call: call, isReschedule: true),
+    );
+
+    if (rescheduledCall == null) {
+      return;
+    }
+
+    await Get.find<HomeController>().getCallList();
   }
 
   Future<void> _makeCall(String phoneNumber) async {
@@ -446,8 +642,6 @@ class CallRecordTile extends StatelessWidget {
         return;
       }
 
-      // The phone app was successfully opened.
-      // Complete the current occurrence.
       if (call.status != CallStatusEntity.completed) {
         final useCase = Get.find<CallUseCase>();
 
@@ -471,4 +665,18 @@ class CallRecordTile extends StatelessWidget {
       );
     }
   }
+}
+
+class _StatusConfig {
+  final String label;
+  final IconData icon;
+  final Color color;
+  final Color backgroundColor;
+
+  const _StatusConfig({
+    required this.label,
+    required this.icon,
+    required this.color,
+    required this.backgroundColor,
+  });
 }
