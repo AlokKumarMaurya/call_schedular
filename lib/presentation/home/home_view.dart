@@ -9,6 +9,8 @@ import 'package:get/get.dart';
 import 'package:url_launcher/url_launcher.dart';
 
 import '../../domain/entity/call_list_entity.dart';
+import '../../domain/usecase/call_use_case.dart';
+import '../../services/notification_service.dart';
 import '../call_details/call_details_view.dart';
 import '../schedule_call/schedule_call_view.dart';
 
@@ -284,10 +286,62 @@ class CallRecordTile extends StatelessWidget {
   }
 
   Future<void> _makeCall(String phoneNumber) async {
-    final uri = Uri(scheme: 'tel', path: phoneNumber);
+    final cleanedPhoneNumber = phoneNumber.trim();
 
-    if (await canLaunchUrl(uri)) {
-      await launchUrl(uri);
+    if (cleanedPhoneNumber.isEmpty) {
+      Get.snackbar(
+        'Unable to call',
+        'Phone number is not available.',
+        snackPosition: SnackPosition.BOTTOM,
+      );
+      return;
+    }
+
+    final uri = Uri(
+      scheme: 'tel',
+      path: cleanedPhoneNumber,
+    );
+
+    try {
+      final launched = await launchUrl(
+        uri,
+        mode: LaunchMode.externalApplication,
+      );
+
+      if (!launched) {
+        Get.snackbar(
+          'Unable to call',
+          'Could not open the phone app.',
+          snackPosition: SnackPosition.BOTTOM,
+        );
+        return;
+      }
+
+      // The phone app was successfully opened.
+      // Complete the current occurrence.
+      if (call.status != CallStatusEntity.completed) {
+        final useCase = Get.find<CallUseCase>();
+
+        try {
+          await NotificationService.instance.cancelCallReminder(call);
+        } catch (e) {
+          debugPrint(
+            'Error cancelling call reminder: $e',
+          );
+        }
+
+        await useCase.completeCall(call);
+
+        await Get.find<HomeController>().getCallList();
+      }
+    } catch (e) {
+      debugPrint('Error launching phone app: $e');
+
+      Get.snackbar(
+        'Unable to call',
+        'Could not open the phone app.',
+        snackPosition: SnackPosition.BOTTOM,
+      );
     }
   }
 }
