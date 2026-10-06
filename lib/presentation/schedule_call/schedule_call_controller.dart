@@ -257,38 +257,35 @@ class ScheduleCallController extends GetxController {
 
     final useCase = Get.find<CallUseCase>();
 
-    if (call == null) {
-      await useCase.addCall(entity);
+    try {
+      if (call == null) {
+        await useCase.addCall(entity);
+      } else {
+        await useCase.updateCall(entity);
+      }
 
       try {
         final permissionGranted =
-        await NotificationService.instance.requestNotificationPermission();
+        await NotificationService.instance
+            .requestNotificationPermission();
 
         if (permissionGranted) {
-          await NotificationService.instance.scheduleCallReminder(entity);
+          await NotificationService.instance
+              .scheduleCallReminder(entity);
         } else {
-          debugPrint('Notification permission was not granted.');
+          debugPrint(
+            'Notification permission was not granted.',
+          );
         }
       } catch (e) {
-        debugPrint('Error scheduling call reminder: $e');
+        debugPrint(
+          'Error scheduling call reminder: $e',
+        );
       }
-    } else {
-      await useCase.updateCall(entity);
 
-      try {
-        final permissionGranted =
-        await NotificationService.instance.requestNotificationPermission();
-
-        if (permissionGranted) {
-          await NotificationService.instance.scheduleCallReminder(entity);
-        } else {
-          debugPrint('Notification permission was not granted.');
-        }
-      } catch (e) {
-        debugPrint('Error updating call reminder: $e');
-      }
+      update();
+    } finally {
+      isSaving = false;
     }
-
-    update();
   }
 }
