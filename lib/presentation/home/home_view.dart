@@ -1,5 +1,4 @@
 import 'package:call_schedular/presentation/home/home_controller.dart';
-import 'package:call_schedular/theme/app_colors.dart';
 import 'package:call_schedular/theme/app_font.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_screenutil_plus/flutter_screenutil_plus.dart';
@@ -12,6 +11,7 @@ import '../../core/widgets/app_glass_icon_button.dart';
 import '../../domain/entity/call_list_entity.dart';
 import '../../domain/usecase/call_use_case.dart';
 import '../../services/notification_service.dart';
+import '../../theme/app_theme_colors.dart';
 import '../call_details/call_details_view.dart';
 import '../schedule_call/schedule_call_view.dart';
 import '../settings/settings_view.dart';
@@ -33,15 +33,15 @@ class HomeView extends StatelessWidget {
                 children: [
                   SizedBox(height: 12.h),
 
-                  _buildHomeHeader(controller),
+                  _buildHomeHeader(context, controller),
 
                   SizedBox(height: 20.h),
 
-                  _buildSearchField(controller),
+                  _buildSearchField(context, controller),
 
                   SizedBox(height: 18.h),
 
-                  _buildStatusTabs(controller),
+                  _buildStatusTabs(context, controller),
 
                   SizedBox(height: 20.h),
 
@@ -53,17 +53,21 @@ class HomeView extends StatelessWidget {
                             children: [
                               _buildCallList(
                                 controller.todayCalls,
+                                context: context,
                                 emptyMessage: 'No calls scheduled for today',
                               ),
                               _buildCallList(
                                 controller.upcomingCalls,
+                                context: context,
                                 emptyMessage: 'No upcoming calls',
                               ),
                               _buildCallList(
                                 controller.completedCalls,
+                                context: context,
                                 emptyMessage: 'No completed calls yet',
                               ),
                               _buildCallList(
+                                context: context,
                                 controller.missedCalls,
                                 emptyMessage: 'No missed calls',
                               ),
@@ -87,7 +91,8 @@ class HomeView extends StatelessWidget {
     );
   }
 
-  Widget _buildHomeHeader(HomeController controller) {
+  Widget _buildHomeHeader(BuildContext context, HomeController controller) {
+    final colors = context.themeColors;
     final hour = DateTime.now().hour;
 
     final greeting = hour < 12
@@ -110,7 +115,7 @@ class HomeView extends StatelessWidget {
                 style: AppFont.style.copyWith(
                   fontSize: 14.sp,
                   fontWeight: FontWeight.w500,
-                  color: AppColors.textSecondary,
+                  color: colors.textSecondary,
                 ),
               ),
 
@@ -121,7 +126,7 @@ class HomeView extends StatelessWidget {
                 style: AppFont.style.copyWith(
                   fontSize: 28.sp,
                   fontWeight: FontWeight.w700,
-                  color: AppColors.textPrimary,
+                  color: colors.textPrimary,
                 ),
               ),
 
@@ -134,7 +139,7 @@ class HomeView extends StatelessWidget {
                 style: AppFont.style.copyWith(
                   fontSize: 13.sp,
                   fontWeight: FontWeight.w500,
-                  color: AppColors.textTertiary,
+                  color: colors.textTertiary,
                 ),
               ),
             ],
@@ -154,21 +159,24 @@ class HomeView extends StatelessWidget {
     );
   }
 
-  Widget _buildStatusTabs(HomeController controller) {
+  Widget _buildStatusTabs(BuildContext context, HomeController controller) {
+    final colors = context.themeColors;
     final selectedIndex = controller.tabController.index;
 
     return Container(
       height: 64.h,
       padding: EdgeInsets.all(4.w),
       decoration: BoxDecoration(
-        color: AppColors.surface,
+        color: colors.surface,
         borderRadius: BorderRadius.circular(16.r),
-        border: Border.all(color: AppColors.border),
+        border: Border.all(color: colors.border),
       ),
       child: Row(
         children: [
           Expanded(
             child: _buildTab(
+              context: context,
+              colors: colors,
               label: 'Today',
               count: controller.todayCalls.length,
               isSelected: selectedIndex == 0,
@@ -180,6 +188,8 @@ class HomeView extends StatelessWidget {
 
           Expanded(
             child: _buildTab(
+              context: context,
+              colors: colors,
               label: 'Upcoming',
               count: controller.upcomingCalls.length,
               isSelected: selectedIndex == 1,
@@ -191,6 +201,8 @@ class HomeView extends StatelessWidget {
 
           Expanded(
             child: _buildTab(
+              context: context,
+              colors: colors,
               label: 'Completed',
               count: controller.completedCalls.length,
               isSelected: selectedIndex == 2,
@@ -202,6 +214,8 @@ class HomeView extends StatelessWidget {
 
           Expanded(
             child: _buildTab(
+              context: context,
+              colors: colors,
               label: 'Missed',
               count: controller.missedCalls.length,
               isSelected: selectedIndex == 3,
@@ -216,6 +230,8 @@ class HomeView extends StatelessWidget {
   }
 
   Widget _buildTab({
+    required BuildContext context,
+    required AppThemeColors colors,
     required String label,
     required int count,
     required bool isSelected,
@@ -233,7 +249,7 @@ class HomeView extends StatelessWidget {
           margin: EdgeInsets.symmetric(horizontal: 2.w, vertical: 1.h),
           padding: EdgeInsets.symmetric(horizontal: 2.w, vertical: 5.h),
           decoration: BoxDecoration(
-            color: isSelected ? AppColors.primaryLight : Colors.transparent,
+            color: isSelected ? colors.primaryLight : Colors.transparent,
             borderRadius: BorderRadius.circular(12.r),
           ),
           child: Column(
@@ -247,8 +263,8 @@ class HomeView extends StatelessWidget {
                   fontSize: 12.sp,
                   fontWeight: FontWeight.w600,
                   color: isSelected
-                      ? AppColors.primary
-                      : AppColors.textSecondary,
+                      ? Theme.of(context).colorScheme.primary
+                      : colors.textSecondary,
                 ),
               ),
 
@@ -260,8 +276,8 @@ class HomeView extends StatelessWidget {
                   fontSize: 11.sp,
                   fontWeight: FontWeight.w700,
                   color: isSelected
-                      ? AppColors.primary
-                      : AppColors.textTertiary,
+                      ? Theme.of(context).colorScheme.primary
+                      : colors.textTertiary,
                 ),
               ),
             ],
@@ -273,10 +289,11 @@ class HomeView extends StatelessWidget {
 
   Widget _buildCallList(
     List<CallListEntity> calls, {
+    required BuildContext context,
     required String emptyMessage,
   }) {
     if (calls.isEmpty) {
-      return _buildEmptyState(emptyMessage);
+      return _buildEmptyState(context, emptyMessage);
     }
 
     return ListView.separated(
@@ -291,7 +308,9 @@ class HomeView extends StatelessWidget {
     );
   }
 
-  Widget _buildEmptyState(String message) {
+  Widget _buildEmptyState(BuildContext context, String message) {
+    final colors = context.themeColors;
+    final colorScheme = Theme.of(context).colorScheme;
     final isToday = message == 'No calls scheduled for today';
     final isUpcoming = message == 'No upcoming calls';
     final isCompleted = message == 'No completed calls yet';
@@ -329,10 +348,10 @@ class HomeView extends StatelessWidget {
               width: 76.w,
               height: 76.w,
               decoration: BoxDecoration(
-                color: AppColors.primaryLight,
+                color: colors.primaryLight,
                 shape: BoxShape.circle,
               ),
-              child: Icon(icon, size: 34.sp, color: AppColors.primary),
+              child: Icon(icon, size: 34.sp, color: colorScheme.primary),
             ),
 
             SizedBox(height: 18.h),
@@ -343,7 +362,7 @@ class HomeView extends StatelessWidget {
               style: AppFont.style.copyWith(
                 fontSize: 18.sp,
                 fontWeight: FontWeight.w700,
-                color: AppColors.textPrimary,
+                color: colors.textPrimary,
               ),
             ),
 
@@ -355,7 +374,7 @@ class HomeView extends StatelessWidget {
               style: AppFont.style.copyWith(
                 fontSize: 13.sp,
                 height: 1.4,
-                color: AppColors.textTertiary,
+                color: colors.textTertiary,
               ),
             ),
 
@@ -379,20 +398,24 @@ class HomeView extends StatelessWidget {
     );
   }
 
-  Widget _buildSearchField(HomeController controller) {
+  Widget _buildSearchField(BuildContext context, HomeController controller) {
+    final colors = context.themeColors;
+    final colorScheme = Theme.of(context).colorScheme;
     return AppGlassContainer(
       padding: EdgeInsets.zero,
       borderRadius: BorderRadius.circular(18.r),
       blurSigma: 14,
       opacity: 0.48,
-      tintColor: AppColors.primaryLight,
+      tintColor: colors.primaryLight,
       border: Border.all(
-        color: AppColors.white.withValues(alpha: 0.85),
+        color: Colors.white.withValues(
+          alpha: Theme.of(context).brightness == Brightness.dark ? 0.18 : 0.85,
+        ),
         width: 1,
       ),
       boxShadow: [
         BoxShadow(
-          color: AppColors.primary.withValues(alpha: 0.06),
+          color: colorScheme.primary.withValues(alpha: 0.06),
           blurRadius: 18,
           offset: const Offset(0, 5),
         ),
@@ -405,7 +428,7 @@ class HomeView extends StatelessWidget {
           hintText: 'Search contacts or calls...',
           prefixIcon: Icon(
             Icons.search_rounded,
-            color: AppColors.textSecondary,
+            color: colors.textSecondary,
             size: 22.sp,
           ),
           suffixIcon: controller.searchQuery.isNotEmpty
@@ -413,7 +436,7 @@ class HomeView extends StatelessWidget {
                   onPressed: controller.clearSearch,
                   icon: Icon(
                     Icons.clear_rounded,
-                    color: AppColors.textTertiary,
+                    color: colors.textTertiary,
                     size: 20.sp,
                   ),
                 )
@@ -435,7 +458,7 @@ class HomeView extends StatelessWidget {
           focusedBorder: OutlineInputBorder(
             borderRadius: BorderRadius.circular(18.r),
             borderSide: BorderSide(
-              color: AppColors.primary.withValues(alpha: 0.30),
+              color: colorScheme.primary.withValues(alpha: 0.30),
               width: 1,
             ),
           ),
@@ -443,7 +466,7 @@ class HomeView extends StatelessWidget {
         style: AppFont.style.copyWith(
           fontSize: 14.sp,
           fontWeight: FontWeight.w500,
-          color: AppColors.textPrimary,
+          color: colors.textPrimary,
         ),
       ),
     );
@@ -457,15 +480,16 @@ class CallRecordTile extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
+    final colors = context.themeColors;
     final contactName = call.contactName.trim().isEmpty
         ? 'Unknown Contact'
         : call.contactName.trim();
 
     final initial = contactName[0].toUpperCase();
-    final avatarColor = _avatarColor(contactName);
+    final avatarColor = _avatarColor(context, contactName);
 
     return Material(
-      color: AppColors.surface,
+      color: colors.surface,
       borderRadius: BorderRadius.circular(18.r),
       child: InkWell(
         borderRadius: BorderRadius.circular(18.r),
@@ -475,12 +499,12 @@ class CallRecordTile extends StatelessWidget {
         child: Container(
           padding: EdgeInsets.all(14.w),
           decoration: BoxDecoration(
-            color: AppColors.surface,
+            color: colors.surface,
             borderRadius: BorderRadius.circular(18.r),
-            border: Border.all(color: AppColors.border),
+            border: Border.all(color: colors.border),
             boxShadow: [
               BoxShadow(
-                color: AppColors.shadow,
+                color: colors.shadow,
                 blurRadius: 10,
                 offset: const Offset(0, 3),
               ),
@@ -496,7 +520,7 @@ class CallRecordTile extends StatelessWidget {
                 child: Column(
                   crossAxisAlignment: CrossAxisAlignment.start,
                   children: [
-                    _buildNameRow(contactName),
+                    _buildNameRow(context, contactName),
 
                     SizedBox(height: 4.h),
 
@@ -507,7 +531,7 @@ class CallRecordTile extends StatelessWidget {
                       style: AppFont.style.copyWith(
                         fontSize: 13.sp,
                         fontWeight: FontWeight.w500,
-                        color: AppColors.textTertiary,
+                        color: colors.textTertiary,
                       ),
                     ),
 
@@ -515,11 +539,11 @@ class CallRecordTile extends StatelessWidget {
 
                     Row(
                       children: [
-                        _buildStatusChip(),
+                        _buildStatusChip(context),
 
                         const Spacer(),
 
-                        _buildAction(),
+                        _buildAction(context),
                       ],
                     ),
                   ],
@@ -552,7 +576,8 @@ class CallRecordTile extends StatelessWidget {
     );
   }
 
-  Widget _buildNameRow(String contactName) {
+  Widget _buildNameRow(BuildContext context, String contactName) {
+    final colors = context.themeColors;
     return Row(
       children: [
         Expanded(
@@ -563,7 +588,7 @@ class CallRecordTile extends StatelessWidget {
             style: AppFont.style.copyWith(
               fontSize: 16.sp,
               fontWeight: FontWeight.w700,
-              color: AppColors.textPrimary,
+              color: colors.textPrimary,
             ),
           ),
         ),
@@ -578,7 +603,7 @@ class CallRecordTile extends StatelessWidget {
               style: AppFont.style.copyWith(
                 fontSize: 11.sp,
                 fontWeight: FontWeight.w600,
-                color: AppColors.textTertiary,
+                color: colors.textTertiary,
               ),
             ),
 
@@ -589,7 +614,7 @@ class CallRecordTile extends StatelessWidget {
               style: AppFont.style.copyWith(
                 fontSize: 11.sp,
                 fontWeight: FontWeight.w600,
-                color: AppColors.textSecondary,
+                color: colors.textSecondary,
               ),
             ),
           ],
@@ -598,8 +623,8 @@ class CallRecordTile extends StatelessWidget {
     );
   }
 
-  Widget _buildStatusChip() {
-    final config = _statusConfig();
+  Widget _buildStatusChip(BuildContext context) {
+    final config = _statusConfig(context);
 
     return Container(
       padding: EdgeInsets.symmetric(horizontal: 9.w, vertical: 5.h),
@@ -625,21 +650,23 @@ class CallRecordTile extends StatelessWidget {
     );
   }
 
-  Widget _buildAction() {
+  Widget _buildAction(BuildContext context) {
+    final colors = context.themeColors;
+    final colorScheme = Theme.of(context).colorScheme;
     switch (call.status) {
       case CallStatusEntity.upcoming:
         return _roundActionButton(
           icon: Icons.call_rounded,
-          color: AppColors.iconBlue,
-          backgroundColor: AppColors.iconBlueBackground,
+          color: colorScheme.primary,
+          backgroundColor: colors.primaryLight,
           onTap: () => _makeCall(call.phoneNumber),
         );
 
       case CallStatusEntity.missed:
         return _roundActionButton(
           icon: Icons.event_repeat_rounded,
-          color: AppColors.dangerDark,
-          backgroundColor: AppColors.dangerLight,
+          color: colors.dangerDark,
+          backgroundColor: colors.dangerLight,
           onTap: () => _openReschedule(),
         );
 
@@ -669,42 +696,45 @@ class CallRecordTile extends StatelessWidget {
     );
   }
 
-  _StatusConfig _statusConfig() {
+  _StatusConfig _statusConfig(BuildContext context) {
+    final colors = context.themeColors;
+    final colorScheme = Theme.of(context).colorScheme;
     switch (call.status) {
       case CallStatusEntity.upcoming:
-        return const _StatusConfig(
+        return _StatusConfig(
           label: 'Upcoming',
           icon: Icons.schedule_rounded,
-          color: AppColors.primary,
-          backgroundColor: AppColors.primaryLight,
+          color: colorScheme.primary,
+          backgroundColor: colors.primaryLight,
         );
 
       case CallStatusEntity.completed:
-        return const _StatusConfig(
+        return _StatusConfig(
           label: 'Completed',
           icon: Icons.check_circle_outline_rounded,
-          color: AppColors.successDark,
-          backgroundColor: AppColors.successLight,
+          color: colors.successDark,
+          backgroundColor: colors.successLight,
         );
 
       case CallStatusEntity.missed:
-        return const _StatusConfig(
+        return _StatusConfig(
           label: 'Missed',
           icon: Icons.error_outline_rounded,
-          color: AppColors.dangerDark,
-          backgroundColor: AppColors.dangerLight,
+          color: colors.dangerDark,
+          backgroundColor: colors.dangerLight,
         );
     }
   }
 
-  Color _avatarColor(String name) {
-    final colors = [
-      AppColors.primary,
-      AppColors.purpleDark,
-      AppColors.successDark,
-      AppColors.orangeDark,
-      AppColors.dangerDark,
-      AppColors.pink,
+  Color _avatarColor(BuildContext context, String name) {
+    final colors = context.themeColors;
+
+    final avatarColors = [
+      Theme.of(context).colorScheme.primary,
+      colors.purpleDark,
+      colors.successDark,
+      colors.orangeDark,
+      colors.dangerDark,
     ];
 
     var hash = 0;
@@ -713,7 +743,7 @@ class CallRecordTile extends StatelessWidget {
       hash = (hash * 31 + unit) & 0x7fffffff;
     }
 
-    return colors[hash % colors.length];
+    return avatarColors[hash % avatarColors.length];
   }
 
   String _formattedDate(DateTime dateTime) {
