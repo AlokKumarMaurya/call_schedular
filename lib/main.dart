@@ -88,7 +88,9 @@ class _MyAppState extends State<MyApp> {
       return;
     }
 
-    Get.off(
+    Get.until((route) => route.isFirst);
+
+    Get.to(
           () => CallDetailsView(call: call!),
     );
   }
