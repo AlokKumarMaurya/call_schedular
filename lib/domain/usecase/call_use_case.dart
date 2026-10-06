@@ -122,6 +122,17 @@ class CallUseCase {
       if (!nextCall.scheduledAt.isBefore(now)) {
         // The next occurrence is in the future.
         await _repo.addCall(nextCall);
+
+        try {
+          await NotificationService.instance.scheduleCallReminder(
+            nextCall,
+          );
+        } catch (e) {
+          debugPrint(
+            'Error scheduling overdue recurring call reminder: $e',
+          );
+        }
+
         break;
       }
 
