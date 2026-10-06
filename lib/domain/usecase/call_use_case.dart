@@ -1,5 +1,7 @@
 import 'package:call_schedular/domain/entity/call_list_entity.dart';
 import 'package:call_schedular/domain/repo/call_repo.dart';
+import 'package:call_schedular/services/notification_service.dart';
+import 'package:flutter/cupertino.dart';
 
 class CallUseCase {
   final CallRepo _repo;
@@ -39,6 +41,16 @@ class CallUseCase {
       final nextCall = call.createNextOccurrence();
 
       await _repo.addCall(nextCall);
+
+      try {
+        await NotificationService.instance.scheduleCallReminder(
+          nextCall,
+        );
+      } catch (e) {
+        debugPrint(
+          'Error scheduling next call reminder: $e',
+        );
+      }
     }
 
     return completedCall;

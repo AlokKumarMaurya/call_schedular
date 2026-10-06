@@ -137,6 +137,18 @@ class NotificationService {
     );
   }
 
+  Future<void> scheduleNextCallReminder(
+      CallListEntity call,
+      ) async {
+    if (!call.isRecurring) {
+      return;
+    }
+
+    final nextCall = call.createNextOccurrence();
+
+    await scheduleCallReminder(nextCall);
+  }
+
   Future<void> cancelCallReminder(CallListEntity call) async {
     final notificationId = _notificationId(call.id);
 
