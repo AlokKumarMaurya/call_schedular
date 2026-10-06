@@ -10,10 +10,10 @@ import 'package:url_launcher/url_launcher.dart';
 
 import '../../domain/entity/call_list_entity.dart';
 import '../../domain/usecase/call_use_case.dart';
-import '../../lib/presentation/settings/settings_view.dart';
 import '../../services/notification_service.dart';
 import '../call_details/call_details_view.dart';
 import '../schedule_call/schedule_call_view.dart';
+import '../settings/settings_view.dart';
 
 class HomeView extends StatelessWidget {
   const HomeView({super.key});
