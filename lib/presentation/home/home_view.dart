@@ -73,13 +73,26 @@ class HomeView extends StatelessWidget {
           },
         ),
       ),
-      floatingActionButton: FloatingActionButton(
+      floatingActionButton: FloatingActionButton.extended(
         onPressed: () async {
           await Get.to(() => ScheduleCallView());
           await Get.find<HomeController>().getCallList();
         },
         backgroundColor: AppColors.primary,
-        child: Icon(Icons.add, color: AppColors.white, size: 28.sp),
+        foregroundColor: AppColors.white,
+        elevation: 4,
+        icon: Icon(
+          Icons.add_rounded,
+          size: 22.sp,
+        ),
+        label: Text(
+          'Schedule Call',
+          style: AppFont.style.copyWith(
+            fontSize: 13.sp,
+            fontWeight: FontWeight.w700,
+            color: AppColors.white,
+          ),
+        ),
       ),
     );
   }
@@ -295,7 +308,7 @@ class HomeView extends StatelessWidget {
     return ListView.separated(
       padding: EdgeInsets.only(top: 4.h, bottom: 100.h),
       itemCount: calls.length,
-      separatorBuilder: (_, __) => SizedBox(height: 10.h),
+      separatorBuilder: (_, _) => SizedBox(height: 10.h),
       itemBuilder: (context, index) {
         final call = calls[index];
 
