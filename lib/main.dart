@@ -88,7 +88,7 @@ class _MyAppState extends State<MyApp> {
       return;
     }
 
-    Get.to(
+    Get.off(
           () => CallDetailsView(call: call!),
     );
   }
