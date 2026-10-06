@@ -1,6 +1,5 @@
-
-import 'package:call_schedular/theme/app_colors.dart';
 import 'package:call_schedular/theme/app_font.dart';
+import 'package:call_schedular/theme/app_theme_colors.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_screenutil_plus/flutter_screenutil_plus.dart';
 
@@ -28,6 +27,9 @@ class ScheduleInputField extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
+    final colors = context.themeColors;
+    final colorScheme = Theme.of(context).colorScheme;
+
     return Column(
       crossAxisAlignment: CrossAxisAlignment.start,
       children: [
@@ -36,10 +38,12 @@ class ScheduleInputField extends StatelessWidget {
           style: AppFont.style.copyWith(
             fontSize: 14.sp,
             fontWeight: FontWeight.w500,
-            color: AppColors.textSecondary,
+            color: colors.textSecondary,
           ),
         ),
+
         SizedBox(height: 6.h),
+
         TextFormField(
           controller: controller,
           keyboardType: keyboardType,
@@ -48,51 +52,72 @@ class ScheduleInputField extends StatelessWidget {
           style: AppFont.style.copyWith(
             fontSize: 14.sp,
             fontWeight: FontWeight.w500,
-            color: AppColors.textPrimary,
+            color: colors.textPrimary,
           ),
+          cursorColor: colorScheme.primary,
           decoration: InputDecoration(
             hintText: hintText,
             hintStyle: AppFont.style.copyWith(
               fontSize: 14.sp,
-              color: AppColors.textTertiary,
+              color: colors.textTertiary,
             ),
             prefixIcon: prefixIcon == null
                 ? null
                 : Icon(
               prefixIcon,
               size: 20.sp,
-              color: AppColors.textPrimary,
+              color: colors.textSecondary,
             ),
             suffixIcon: suffixIcon,
+
             filled: true,
-            fillColor: AppColors.surface,
+            fillColor: colors.surface,
+
             contentPadding: EdgeInsets.symmetric(
               horizontal: 12.w,
               vertical: 12.h,
             ),
+
             border: OutlineInputBorder(
               borderRadius: BorderRadius.circular(12.r),
-              borderSide: const BorderSide(
-                color: AppColors.border,
+              borderSide: BorderSide(
+                color: colors.border,
               ),
             ),
+
             enabledBorder: OutlineInputBorder(
               borderRadius: BorderRadius.circular(12.r),
-              borderSide: const BorderSide(
-                color: AppColors.border,
+              borderSide: BorderSide(
+                color: colors.border,
               ),
             ),
+
             focusedBorder: OutlineInputBorder(
               borderRadius: BorderRadius.circular(12.r),
-              borderSide: const BorderSide(
-                color: AppColors.primary,
+              borderSide: BorderSide(
+                color: colorScheme.primary,
+                width: 1.5,
               ),
             ),
+
             errorBorder: OutlineInputBorder(
               borderRadius: BorderRadius.circular(12.r),
-              borderSide: const BorderSide(
-                color: AppColors.danger,
+              borderSide: BorderSide(
+                color: colors.dangerDark,
               ),
+            ),
+
+            focusedErrorBorder: OutlineInputBorder(
+              borderRadius: BorderRadius.circular(12.r),
+              borderSide: BorderSide(
+                color: colors.dangerDark,
+                width: 1.5,
+              ),
+            ),
+
+            errorStyle: AppFont.style.copyWith(
+              fontSize: 11.sp,
+              color: colors.dangerDark,
             ),
           ),
         ),
