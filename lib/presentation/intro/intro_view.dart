@@ -6,6 +6,8 @@ import 'package:flutter/material.dart';
 import 'package:flutter_screenutil_plus/flutter_screenutil_plus.dart';
 import 'package:get/get.dart';
 
+import '../../core/widgets/app_glass_action_button.dart';
+
 class IntroView extends StatelessWidget {
   const IntroView({super.key});
 
@@ -101,37 +103,11 @@ class IntroView extends StatelessWidget {
               GetBuilder<IntroController>(
                 init: IntroController(),
                 builder: (controller) {
-                  return GestureDetector(
-                    onTap: controller.handelGetStarted,
-                    child: Container(
-                      width: double.infinity,
-                      decoration: BoxDecoration(
-                        borderRadius: BorderRadius.circular(18.sp),
-                        color: colorScheme.primary,
-                        boxShadow: [
-                          BoxShadow(
-                            color: colorScheme.primary.withValues(
-                              alpha: 0.18,
-                            ),
-                            blurRadius: 16,
-                            offset: const Offset(0, 6),
-                          ),
-                        ],
-                      ),
-                      padding: EdgeInsets.symmetric(
-                        vertical: 12.sp,
-                        horizontal: 32.sp,
-                      ),
-                      alignment: Alignment.center,
-                      child: Text(
-                        'Get Started',
-                        style: AppFont.style.copyWith(
-                          fontSize: 16.sp,
-                          fontWeight: FontWeight.w700,
-                          color: colorScheme.onPrimary,
-                        ),
-                      ),
-                    ),
+                  return AppGlassActionButton(
+                    icon: Icons.arrow_forward_rounded,
+                    label: 'Get Started',
+                    onPressed: controller.handelGetStarted,
+                    expand: true,
                   );
                 },
               ),
