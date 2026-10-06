@@ -8,6 +8,7 @@ import 'package:flutter_screenutil_plus/flutter_screenutil_plus.dart';
 import 'package:get/get.dart';
 import 'package:url_launcher/url_launcher.dart';
 import '../../domain/usecase/call_use_case.dart';
+import 'package:call_schedular/services/notification_service.dart';
 
 class CallDetailsView extends StatefulWidget {
   final CallListEntity call;
@@ -434,11 +435,33 @@ class _CallDetailsViewState extends State<CallDetailsView> {
       return;
     }
 
-    await Get.find<CallUseCase>().deleteCall(_call.id);
+    try {
+      await Get.find<CallUseCase>().deleteCall(_call.id);
 
-    await Get.find<HomeController>().getCallList();
+      try {
+        await NotificationService.instance.cancelCallReminder(
+          _call,
+        );
+      } catch (e) {
+        debugPrint(
+          'Error cancelling call reminder: $e',
+        );
+      }
 
-    Get.back();
+      await Get.find<HomeController>().getCallList();
+
+      Get.back();
+    } catch (e) {
+      debugPrint(
+        'Error deleting call: $e',
+      );
+
+      Get.snackbar(
+        'Error',
+        'Unable to delete call. Please try again.',
+        snackPosition: SnackPosition.BOTTOM,
+      );
+    }
   }
 
   String _statusLabel(CallStatusEntity status) {

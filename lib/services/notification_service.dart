@@ -137,6 +137,14 @@ class NotificationService {
     );
   }
 
+  Future<void> cancelCallReminder(CallListEntity call) async {
+    final notificationId = _notificationId(call.id);
+
+    await _notifications.cancel(
+      id: notificationId,
+    );
+  }
+
   int _notificationId(String callId) {
     var hash = 0;
 
