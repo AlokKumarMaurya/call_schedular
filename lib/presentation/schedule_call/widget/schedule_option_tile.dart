@@ -1,6 +1,5 @@
-
-import 'package:call_schedular/theme/app_colors.dart';
 import 'package:call_schedular/theme/app_font.dart';
+import 'package:call_schedular/theme/app_theme_colors.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_screenutil_plus/flutter_screenutil_plus.dart';
 
@@ -22,6 +21,9 @@ class ScheduleOptionTile extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
+    final colors = context.themeColors;
+    final colorScheme = Theme.of(context).colorScheme;
+
     return InkWell(
       onTap: onTap,
       borderRadius: BorderRadius.circular(12.r),
@@ -37,9 +39,11 @@ class ScheduleOptionTile extends StatelessWidget {
                 Icon(
                   icon,
                   size: 20.sp,
-                  color: AppColors.iconBlue,
+                  color: colorScheme.primary,
                 ),
+
                 SizedBox(width: 16.w),
+
                 Expanded(
                   child: Column(
                     crossAxisAlignment: CrossAxisAlignment.start,
@@ -49,34 +53,38 @@ class ScheduleOptionTile extends StatelessWidget {
                         style: AppFont.style.copyWith(
                           fontSize: 14.sp,
                           fontWeight: FontWeight.w600,
-                          color: AppColors.textPrimary,
+                          color: colors.textPrimary,
                         ),
                       ),
+
                       SizedBox(height: 4.h),
+
                       Text(
                         value,
                         style: AppFont.style.copyWith(
                           fontSize: 13.sp,
                           fontWeight: FontWeight.w500,
-                          color: AppColors.textPrimary,
+                          color: colors.textSecondary,
                         ),
                       ),
                     ],
                   ),
                 ),
+
                 Icon(
-                  Icons.chevron_right,
+                  Icons.chevron_right_rounded,
                   size: 22.sp,
-                  color: AppColors.textSecondary,
+                  color: colors.textSecondary,
                 ),
               ],
             ),
           ),
+
           if (showDivider)
             Divider(
               height: 1,
               indent: 48.w,
-              color: AppColors.divider,
+              color: colors.divider,
             ),
         ],
       ),
