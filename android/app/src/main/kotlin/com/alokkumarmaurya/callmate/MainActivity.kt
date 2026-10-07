@@ -1,4 +1,4 @@
-package com.example.call_schedular
+package com.alokkumarmaurya.callmate
 
 import io.flutter.embedding.android.FlutterActivity
 

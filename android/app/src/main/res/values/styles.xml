@@ -1,6 +1,7 @@
 <?xml version="1.0" encoding="utf-8"?>
 <resources>
 
+    <!-- Flutter launch theme -->
     <style name="LaunchTheme" parent="@android:style/Theme.Light.NoTitleBar">
 
         <item name="android:windowBackground">
@@ -26,31 +27,49 @@
     </style>
 
 
+    <!-- Flutter normal theme -->
     <style name="NormalTheme" parent="@android:style/Theme.Light.NoTitleBar">
 
         <item name="android:windowBackground">
             @drawable/launch_background
         </item>
 
+        <item name="android:forceDarkAllowed">
+            false
+        </item>
+
     </style>
 
 
-    <style name="SplashTheme"
-           parent="android:style/Theme.Material.Light.NoActionBar">
+    <!-- Custom native full-screen splash -->
+    <style
+            name="SplashTheme"
+            parent="@android:style/Theme.Light.NoTitleBar">
 
+        <!-- IMPORTANT:
+             Keep the same image visible while SplashActivity is starting.
+             This prevents the black transition screen. -->
         <item name="android:windowBackground">
-            @drawable/launch_background
+            @drawable/splash_screen
+        </item>
+
+        <item name="android:forceDarkAllowed">
+            false
         </item>
 
         <item name="android:windowFullscreen">
             true
         </item>
 
-        <item name="android:windowActionModeOverlay">
+        <item name="android:windowDrawsSystemBarBackgrounds">
             true
         </item>
 
-        <item name="android:windowDisablePreview">
+        <item name="android:windowLayoutInDisplayCutoutMode">
+            shortEdges
+        </item>
+
+        <item name="android:windowNoTitle">
             true
         </item>
 

@@ -4,7 +4,7 @@
     <uses-permission android:name="android.permission.RECEIVE_BOOT_COMPLETED" />
 
     <application
-            android:label="call_schedular"
+            android:label="Callmate"
             android:name="${applicationName}"
             android:icon="@mipmap/ic_launcher">
 

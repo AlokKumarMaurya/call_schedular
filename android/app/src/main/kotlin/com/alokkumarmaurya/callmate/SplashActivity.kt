@@ -1,4 +1,4 @@
-package com.example.call_schedular
+package com.alokkumarmaurya.callmate
 
 import android.app.Activity
 import android.content.Intent

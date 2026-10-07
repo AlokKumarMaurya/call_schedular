@@ -2,8 +2,9 @@
 <resources>
 
     <!-- Android 12+ Flutter launch theme -->
-    <style name="LaunchTheme"
-           parent="@android:style/Theme.Light.NoTitleBar">
+    <style
+            name="LaunchTheme"
+            parent="@android:style/Theme.Light.NoTitleBar">
 
         <item name="android:forceDarkAllowed">
             false
@@ -21,7 +22,7 @@
             shortEdges
         </item>
 
-        <!-- IMPORTANT: prevent black screen while Flutter starts -->
+        <!-- Flutter launch background -->
         <item name="android:windowBackground">
             @drawable/launch_background
         </item>
@@ -43,33 +44,48 @@
 
 
     <!-- Flutter normal theme -->
-    <style name="NormalTheme"
-           parent="@android:style/Theme.Light.NoTitleBar">
+    <style
+            name="NormalTheme"
+            parent="@android:style/Theme.Light.NoTitleBar">
 
         <item name="android:windowBackground">
             @drawable/launch_background
         </item>
 
+        <item name="android:forceDarkAllowed">
+            false
+        </item>
+
     </style>
 
 
-    <!-- Our native SplashActivity -->
-    <style name="SplashTheme"
-           parent="android:style/Theme.Material.Light.NoActionBar">
+    <!-- Custom native full-screen splash -->
+    <style
+            name="SplashTheme"
+            parent="@android:style/Theme.Light.NoTitleBar">
 
+        <!-- Draw the actual splash immediately -->
         <item name="android:windowBackground">
-            @drawable/launch_background
+            @drawable/splash_screen
+        </item>
+
+        <item name="android:forceDarkAllowed">
+            false
         </item>
 
         <item name="android:windowFullscreen">
             true
         </item>
 
-        <item name="android:windowActionModeOverlay">
+        <item name="android:windowDrawsSystemBarBackgrounds">
             true
         </item>
 
-        <item name="android:windowDisablePreview">
+        <item name="android:windowLayoutInDisplayCutoutMode">
+            shortEdges
+        </item>
+
+        <item name="android:windowNoTitle">
             true
         </item>
 
