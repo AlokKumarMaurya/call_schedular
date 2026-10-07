@@ -5,7 +5,6 @@ import android.content.Intent
 import android.os.Bundle
 import android.os.Handler
 import android.os.Looper
-import io.flutter.embedding.android.FlutterActivity
 import io.flutter.embedding.engine.FlutterEngine
 import io.flutter.embedding.engine.FlutterEngineCache
 import io.flutter.embedding.engine.dart.DartExecutor
@@ -21,34 +20,38 @@ class SplashActivity : Activity() {
         super.onCreate(savedInstanceState)
 
         /*
-         * Start the Flutter engine immediately while the native
-         * splash screen is visible.
+         * Start Flutter while the native splash is visible.
          *
-         * This removes the engine startup delay that was previously
-         * happening after SplashActivity finished.
+         * The Flutter engine will execute main.dart in the
+         * background while this Activity continues displaying
+         * the native splash.
          */
         prewarmFlutterEngine()
 
-        /*
-         * Keep the existing splash duration.
-         *
-         * During this time:
-         *
-         * Native splash is visible
-         *        +
-         * Flutter engine is starting in the background
-         */
         Handler(Looper.getMainLooper()).postDelayed({
 
-            val intent = FlutterActivity
-                .withCachedEngine(FLUTTER_ENGINE_ID)
-                .destroyEngineWithActivity(false)
-                .build(this)
-
-            intent.addFlags(Intent.FLAG_ACTIVITY_NO_ANIMATION)
+            /*
+             * IMPORTANT:
+             *
+             * Launch our declared MainActivity, not FlutterActivity.
+             *
+             * MainActivity already knows how to attach to the
+             * cached Flutter engine through getCachedEngineId().
+             */
+            val intent = Intent(
+                this,
+                MainActivity::class.java
+            ).apply {
+                addFlags(Intent.FLAG_ACTIVITY_NO_ANIMATION)
+            }
 
             startActivity(intent)
 
+            /*
+             * Remove the Activity transition animation so the
+             * native splash does not blink during the transition
+             * to Flutter.
+             */
             @Suppress("DEPRECATION")
             overridePendingTransition(0, 0)
 
@@ -63,9 +66,9 @@ class SplashActivity : Activity() {
     private fun prewarmFlutterEngine() {
 
         /*
-         * Do not create the engine more than once.
+         * Do not create another engine if one is already cached.
          *
-         * This can happen if Android recreates the Activity.
+         * This protects against Activity recreation.
          */
         if (
             FlutterEngineCache
@@ -80,13 +83,8 @@ class SplashActivity : Activity() {
         /*
          * Start Dart main() immediately.
          *
-         * main.dart will:
-         *
-         * 1. Initialize GetStorage
-         * 2. Initialize AppThemeController
-         * 3. Initialize AppDI
-         * 4. runApp()
-         * 5. Initialize notifications after the first frame
+         * Flutter initialization happens while the native
+         * splash is still visible.
          */
         flutterEngine
             .dartExecutor
@@ -95,8 +93,10 @@ class SplashActivity : Activity() {
             )
 
         /*
-         * Store the already-running engine so MainActivity can
-         * attach to it instead of creating a new FlutterEngine.
+         * Store the running engine.
+         *
+         * MainActivity will retrieve this engine using
+         * getCachedEngineId().
          */
         FlutterEngineCache
             .getInstance()
