@@ -14,12 +14,14 @@ import 'package:get/get.dart';
 import 'package:get_storage/get_storage.dart';
 import 'package:call_schedular/services/notification_service.dart';
 import 'package:flutter_native_splash/flutter_native_splash.dart';
+
 import 'domain/entity/call_list_entity.dart';
 import 'domain/usecase/call_use_case.dart';
 
 void main() async {
-  WidgetsBinding widgetsBinding = WidgetsFlutterBinding.ensureInitialized();
-  FlutterNativeSplash.preserve(widgetsBinding: widgetsBinding);
+  print('111111111111111111111111111111111111111111111111');
+  WidgetsFlutterBinding.ensureInitialized();
+
   await GetStorage.init();
   Get.put(AppThemeController(), permanent: true);
 
@@ -43,7 +45,10 @@ class _MyAppState extends State<MyApp> {
   @override
   void initState() {
     super.initState();
-    initialization();
+    print('22222222222222222222222222222222222222222222222');
+
+    // 2. We moved FlutterNativeSplash.remove() out of initState to guarantee
+    // the layout has drawn at least one frame before removing the splash.
     WidgetsBinding.instance.addPostFrameCallback((_) {
       _handleInitialNotification();
     });
@@ -52,15 +57,6 @@ class _MyAppState extends State<MyApp> {
         .instance
         .callNotificationTapStream
         .listen(_openCallFromNotification);
-  }
-
-  void initialization() async {
-    // 4. Simulate initialization tasks (e.g., loading databases, shared preferences, or APIs)
-    // You can replace this delay with your actual async setup logic
-    await Future.delayed(const Duration(seconds: 3));
-
-    // 5. Remove the splash screen and reveal the home screen
-    FlutterNativeSplash.remove();
   }
 
   Future<void> _handleInitialNotification() async {
@@ -109,6 +105,7 @@ class _MyAppState extends State<MyApp> {
 
   @override
   Widget build(BuildContext context) {
+    print('33333333333333333333333333333333333333333333333');
     return ScreenUtilPlusInit(
       designSize: const Size(360, 690),
       minTextAdapt: true,
@@ -122,7 +119,14 @@ class _MyAppState extends State<MyApp> {
             darkTheme: appDarkTheme,
             themeMode: themeController.themeMode.value,
             title: AppConst.appName,
-            home: child,
+            // 4. Fallback safeguard: explicitly wrapping child inside a styled Scaffold
+            // ensures the device screen paints a matching background if rendering delays happen.
+            home: Scaffold(
+              backgroundColor: themeController.themeMode.value == ThemeMode.dark
+                  ? appDarkTheme.scaffoldBackgroundColor
+                  : appTheme.scaffoldBackgroundColor,
+              body: child,
+            ),
             debugShowCheckedModeBanner: false,
           ),
         );
