@@ -21,10 +21,10 @@ import 'domain/usecase/call_use_case.dart';
 Future<void> main() async {
   WidgetsFlutterBinding.ensureInitialized();
 
-  // Keep the Android launch screen visible until all startup
-  // initialization is completed and Flutter is ready to render.
-  WidgetsBinding.instance.deferFirstFrame();
-
+  /*
+   * Only initialization required to determine the first Flutter
+   * screen is performed before runApp().
+   */
   try {
     await GetStorage.init();
 
@@ -33,21 +33,20 @@ Future<void> main() async {
       permanent: true,
     );
 
-    await NotificationService.instance.initialize();
-
     AppDI.init();
   } catch (e, stackTrace) {
-    debugPrint('App initialization failed: $e');
+    debugPrint('App startup initialization failed: $e');
     debugPrintStack(stackTrace: stackTrace);
   }
 
+  /*
+   * Do not defer the first Flutter frame.
+   *
+   * SplashActivity pre-warms the FlutterEngine while the native
+   * splash is visible, so Flutter can start rendering immediately
+   * when MainActivity attaches to the cached engine.
+   */
   runApp(const MyApp());
-
-  // Give Flutter a chance to build the first frame before allowing
-  // Android to remove the native launch screen.
-  WidgetsBinding.instance.addPostFrameCallback((_) {
-    WidgetsBinding.instance.allowFirstFrame();
-  });
 }
 
 class MyApp extends StatefulWidget {
@@ -64,14 +63,37 @@ class _MyAppState extends State<MyApp> {
   void initState() {
     super.initState();
 
-    WidgetsBinding.instance.addPostFrameCallback((_) {
-      _handleInitialNotification();
-    });
-
+    /*
+     * Listen for notification taps as soon as the Flutter app
+     * is mounted.
+     */
     _notificationSubscription = NotificationService
         .instance
         .callNotificationTapStream
         .listen(_openCallFromNotification);
+
+    /*
+     * Notification initialization is deliberately performed after
+     * the first Flutter frame so it cannot delay the initial UI.
+     */
+    WidgetsBinding.instance.addPostFrameCallback((_) {
+      unawaited(_initializeNotifications());
+    });
+  }
+
+  Future<void> _initializeNotifications() async {
+    try {
+      await NotificationService.instance.initialize();
+
+      /*
+       * Check whether the application was launched by tapping
+       * a notification.
+       */
+      await _handleInitialNotification();
+    } catch (e, stackTrace) {
+      debugPrint('Notification initialization failed: $e');
+      debugPrintStack(stackTrace: stackTrace);
+    }
   }
 
   Future<void> _handleInitialNotification() async {
@@ -132,8 +154,29 @@ class _MyAppState extends State<MyApp> {
   Widget build(BuildContext context) {
     return ScreenUtilPlusInit(
       designSize: const Size(360, 690),
+
+      /*
+       * IMPORTANT:
+       *
+       * Because SplashActivity pre-warms the FlutterEngine before
+       * MainActivity attaches the FlutterView, ScreenUtil may
+       * initially receive zero/uninitialized screen dimensions.
+       *
+       * ensureScreenSize waits for valid screen metrics before
+       * building widgets that use .w / .h / .sp / .r.
+       *
+       * Without this, values such as:
+       *
+       *     13.sp
+       *
+       * can temporarily resolve to 0, which causes Flutter's
+       * TextField/EditableText StrutStyle assertion to fail.
+       */
+      ensureScreenSize: true,
+
       minTextAdapt: true,
       splitScreenMode: true,
+
       builder: (context, child) {
         final themeController = Get.find<AppThemeController>();
 
@@ -155,6 +198,7 @@ class _MyAppState extends State<MyApp> {
           ),
         );
       },
+
       child: AppLocalStorage.isIntroViewed
           ? const HomeView()
           : const IntroView(),
