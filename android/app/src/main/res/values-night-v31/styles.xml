@@ -26,7 +26,6 @@
             @drawable/launch_background
         </item>
 
-        <!-- Android 12 system splash -->
         <item name="android:windowSplashScreenBackground">
             #061226
         </item>
@@ -42,17 +41,29 @@
     </style>
 
 
-    <!-- Flutter normal theme -->
+    <!-- Flutter normal dark theme -->
     <style
             name="NormalTheme"
             parent="@android:style/Theme.Black.NoTitleBar">
 
         <item name="android:windowBackground">
-            @drawable/launch_background
+            #0A111B
         </item>
 
         <item name="android:forceDarkAllowed">
             false
+        </item>
+
+        <item name="android:windowFullscreen">
+            true
+        </item>
+
+        <item name="android:windowDrawsSystemBarBackgrounds">
+            true
+        </item>
+
+        <item name="android:windowLayoutInDisplayCutoutMode">
+            shortEdges
         </item>
 
     </style>
@@ -63,7 +74,6 @@
             name="SplashTheme"
             parent="@android:style/Theme.Black.NoTitleBar">
 
-        <!-- Same full-screen splash immediately -->
         <item name="android:windowBackground">
             @drawable/splash_screen
         </item>

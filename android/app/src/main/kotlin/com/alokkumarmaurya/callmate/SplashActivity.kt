@@ -13,15 +13,28 @@ class SplashActivity : Activity() {
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
 
-        setContentView(R.layout.activity_splash)
+        // The splash image is already provided by SplashTheme's
+        // windowBackground. Do not set another content view here.
+        //
+        // This prevents the same splash image from being rendered twice
+        // and removes the small visual blink.
 
         Handler(Looper.getMainLooper()).postDelayed({
 
-            startActivity(
-                Intent(this, MainActivity::class.java)
-            )
+            val intent = Intent(this, MainActivity::class.java).apply {
+                addFlags(Intent.FLAG_ACTIVITY_NO_ANIMATION)
+            }
+
+            startActivity(intent)
+
+            // Prevent the native Activity transition animation.
+            @Suppress("DEPRECATION")
+            overridePendingTransition(0, 0)
 
             finish()
+
+            @Suppress("DEPRECATION")
+            overridePendingTransition(0, 0)
 
         }, splashDuration)
     }

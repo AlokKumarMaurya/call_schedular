@@ -12,23 +12,42 @@ import 'package:flutter/material.dart';
 import 'package:flutter_screenutil_plus/flutter_screenutil_plus.dart';
 import 'package:get/get.dart';
 import 'package:get_storage/get_storage.dart';
+
 import 'package:call_schedular/services/notification_service.dart';
 
 import 'domain/entity/call_list_entity.dart';
 import 'domain/usecase/call_use_case.dart';
 
-void main() async {
-  print('111111111111111111111111111111111111111111111111');
+Future<void> main() async {
   WidgetsFlutterBinding.ensureInitialized();
 
-  await GetStorage.init();
-  Get.put(AppThemeController(), permanent: true);
+  // Keep the Android launch screen visible until all startup
+  // initialization is completed and Flutter is ready to render.
+  WidgetsBinding.instance.deferFirstFrame();
 
-  await NotificationService.instance.initialize();
+  try {
+    await GetStorage.init();
 
-  AppDI.init();
+    Get.put(
+      AppThemeController(),
+      permanent: true,
+    );
+
+    await NotificationService.instance.initialize();
+
+    AppDI.init();
+  } catch (e, stackTrace) {
+    debugPrint('App initialization failed: $e');
+    debugPrintStack(stackTrace: stackTrace);
+  }
 
   runApp(const MyApp());
+
+  // Give Flutter a chance to build the first frame before allowing
+  // Android to remove the native launch screen.
+  WidgetsBinding.instance.addPostFrameCallback((_) {
+    WidgetsBinding.instance.allowFirstFrame();
+  });
 }
 
 class MyApp extends StatefulWidget {
@@ -44,10 +63,7 @@ class _MyAppState extends State<MyApp> {
   @override
   void initState() {
     super.initState();
-    print('22222222222222222222222222222222222222222222222');
 
-    // 2. We moved FlutterNativeSplash.remove() out of initState to guarantee
-    // the layout has drawn at least one frame before removing the splash.
     WidgetsBinding.instance.addPostFrameCallback((_) {
       _handleInitialNotification();
     });
@@ -83,7 +99,10 @@ class _MyAppState extends State<MyApp> {
     }
 
     if (call == null) {
-      debugPrint('Call not found for notification: $callId');
+      debugPrint(
+        'Call not found for notification: $callId',
+      );
+
       return;
     }
 
@@ -91,20 +110,26 @@ class _MyAppState extends State<MyApp> {
       return;
     }
 
-    Get.until((route) => route.isFirst);
+    Get.until(
+          (route) => route.isFirst,
+    );
 
-    Get.to(() => CallDetailsView(call: call!));
+    Get.to(
+          () => CallDetailsView(
+        call: call!,
+      ),
+    );
   }
 
   @override
   void dispose() {
     _notificationSubscription?.cancel();
+
     super.dispose();
   }
 
   @override
   Widget build(BuildContext context) {
-    print('33333333333333333333333333333333333333333333333');
     return ScreenUtilPlusInit(
       designSize: const Size(360, 690),
       minTextAdapt: true,
@@ -113,20 +138,20 @@ class _MyAppState extends State<MyApp> {
         final themeController = Get.find<AppThemeController>();
 
         return Obx(
-          () => GetMaterialApp(
+              () => GetMaterialApp(
             theme: appTheme,
             darkTheme: appDarkTheme,
             themeMode: themeController.themeMode.value,
             title: AppConst.appName,
-            // 4. Fallback safeguard: explicitly wrapping child inside a styled Scaffold
-            // ensures the device screen paints a matching background if rendering delays happen.
+            debugShowCheckedModeBanner: false,
+
             home: Scaffold(
-              backgroundColor: themeController.themeMode.value == ThemeMode.dark
+              backgroundColor:
+              themeController.themeMode.value == ThemeMode.dark
                   ? appDarkTheme.scaffoldBackgroundColor
                   : appTheme.scaffoldBackgroundColor,
               body: child,
             ),
-            debugShowCheckedModeBanner: false,
           ),
         );
       },
