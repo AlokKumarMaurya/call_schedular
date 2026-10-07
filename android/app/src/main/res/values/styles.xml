@@ -1,7 +1,6 @@
 <?xml version="1.0" encoding="utf-8"?>
 <resources>
 
-    <!-- Flutter launch theme -->
     <style name="LaunchTheme" parent="@android:style/Theme.Light.NoTitleBar">
 
         <item name="android:windowBackground">
@@ -27,36 +26,30 @@
     </style>
 
 
-    <!-- Flutter normal theme -->
     <style name="NormalTheme" parent="@android:style/Theme.Light.NoTitleBar">
 
         <item name="android:windowBackground">
-            #061226
+            @drawable/launch_background
         </item>
 
     </style>
 
 
-    <!-- Custom native full-screen splash -->
     <style name="SplashTheme"
            parent="android:style/Theme.Material.Light.NoActionBar">
 
-        <!-- Background while SplashActivity starts -->
         <item name="android:windowBackground">
-            #061226
+            @drawable/launch_background
         </item>
 
-        <!-- Full screen -->
         <item name="android:windowFullscreen">
             true
         </item>
 
-        <!-- No action bar -->
         <item name="android:windowActionModeOverlay">
             true
         </item>
 
-        <!-- Prevent default preview animation -->
         <item name="android:windowDisablePreview">
             true
         </item>
