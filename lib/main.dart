@@ -13,7 +13,6 @@ import 'package:flutter_screenutil_plus/flutter_screenutil_plus.dart';
 import 'package:get/get.dart';
 import 'package:get_storage/get_storage.dart';
 import 'package:call_schedular/services/notification_service.dart';
-import 'package:flutter_native_splash/flutter_native_splash.dart';
 
 import 'domain/entity/call_list_entity.dart';
 import 'domain/usecase/call_use_case.dart';
