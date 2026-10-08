@@ -10,6 +10,7 @@ class CallListModel {
   final CallStatus status;
   final String? notes;
   final String repeat;
+  final List<int> reminderMinutesBefore;
 
   const CallListModel({
     required this.id,
@@ -19,6 +20,7 @@ class CallListModel {
     this.status = CallStatus.upcoming,
     this.notes,
     this.repeat = 'Does not repeat',
+    this.reminderMinutesBefore = const [0],
   });
 
   /// Convert domain entity to data model
@@ -34,6 +36,7 @@ class CallListModel {
       ),
       notes: entity.notes,
       repeat: entity.repeat,
+      reminderMinutesBefore: entity.reminderMinutesBefore,
     );
   }
 
@@ -52,6 +55,9 @@ class CallListModel {
       ),
       notes: map['notes'] as String?,
       repeat: map['repeat'] as String? ?? 'Does not repeat',
+      reminderMinutesBefore: _parseReminders(
+        map['reminder_minutes_before'] as String?,
+      ),
     );
   }
 
@@ -65,6 +71,7 @@ class CallListModel {
       'status': status.name,
       'notes': notes,
       'repeat': repeat,
+      'reminder_minutes_before': reminderMinutesBefore.join(','),
     };
   }
 
