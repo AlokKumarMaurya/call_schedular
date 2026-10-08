@@ -39,6 +39,15 @@ class CallDatabase {
             reminder_minutes_before TEXT NOT NULL DEFAULT '0'
           )
         ''');
+        await db.execute('''
+          CREATE TABLE sync_outbox (
+            id INTEGER PRIMARY KEY AUTOINCREMENT,
+            call_id TEXT NOT NULL,
+            operation TEXT NOT NULL,
+            payload TEXT,
+            updated_at INTEGER NOT NULL
+          )
+        ''');
       },
       onUpgrade: (db, oldVersion, newVersion) async {
         if (oldVersion < 4) {
