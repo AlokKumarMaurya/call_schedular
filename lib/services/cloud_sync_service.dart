@@ -245,15 +245,17 @@ class CloudSyncService {
     Future<void> Function() operation,
   ) {
     _syncQueue = _syncQueue.then(
-      (_) => operation().catchError(
-        (Object error, StackTrace stackTrace) async {
+      (_) async {
+        try {
+          await operation();
+        } catch (e, stackTrace) {
           await AppCrashReporter.instance.recordError(
-            error,
+            e,
             stackTrace,
             reason: 'Cloud call sync operation failed',
           );
-        },
-      ),
+        }
+      },
     );
 
     return _syncQueue;
