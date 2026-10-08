@@ -3,6 +3,7 @@ import 'package:call_schedular/data/repo/call_list_repo_impl.dart';
 import 'package:call_schedular/domain/repo/call_repo.dart';
 import 'package:call_schedular/services/backup_service.dart';
 import 'package:call_schedular/services/cloud_sync_service.dart';
+import 'package:call_schedular/services/home_widget_service.dart';
 import 'package:get/get.dart';
 
 import 'data/data_source/call_list_data_source.dart';
@@ -31,6 +32,11 @@ class AppDI {
       permanent: true,
     );
 
+    Get.put<HomeWidgetService>(
+      HomeWidgetService(Get.find<CallLocalDataSource>()),
+      permanent: true,
+    );
+
     Get.lazyPut<BackupService>(
       () => BackupService(Get.find<CallRepo>()),
     );
@@ -41,6 +47,7 @@ class AppDI {
       () => CallRepoImpl(
         Get.find<CallLocalDataSource>(),
         Get.find<CloudSyncService>(),
+        Get.find<HomeWidgetService>(),
       ),
     );
   }

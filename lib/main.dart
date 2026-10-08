@@ -10,6 +10,7 @@ import 'package:call_schedular/services/app_crash_reporter.dart';
 import 'package:call_schedular/services/app_update_service.dart';
 import 'package:call_schedular/services/cloud_sync_service.dart';
 import 'package:call_schedular/services/notification_service.dart';
+import 'package:call_schedular/services/home_widget_service.dart';
 import 'package:call_schedular/theme/app_theme.dart';
 import 'package:call_schedular/theme/app_theme_controller.dart';
 import 'package:firebase_core/firebase_core.dart';
@@ -120,6 +121,7 @@ class _MyAppState extends State<MyApp> with WidgetsBindingObserver {
      */
     WidgetsBinding.instance.addPostFrameCallback((_) {
       unawaited(_initializeNotifications());
+      unawaited(Get.find<HomeWidgetService>().refresh());
 
       /*
        * App update checking is intentionally started after the
@@ -240,6 +242,7 @@ class _MyAppState extends State<MyApp> with WidgetsBindingObserver {
   void didChangeAppLifecycleState(AppLifecycleState state) {
     if (state == AppLifecycleState.resumed) {
       unawaited(Get.find<CloudSyncService>().retryPendingSync());
+      unawaited(Get.find<HomeWidgetService>().refresh());
     }
   }
 
