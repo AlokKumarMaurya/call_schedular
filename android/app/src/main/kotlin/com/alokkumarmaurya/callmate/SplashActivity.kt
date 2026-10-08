@@ -1,6 +1,6 @@
 package com.alokkumarmaurya.callmate
 
-import io.flutter.embedding.android.FlutterActivity
+import io.flutter.embedding.android.FlutterFragmentActivity
 
 /**
  * Flutter entry activity.
@@ -18,4 +18,4 @@ import io.flutter.embedding.android.FlutterActivity
  * This prevents a black screen on slower devices where Flutter may
  * take longer than an arbitrary splash duration to render.
  */
-class SplashActivity : FlutterActivity()
+class SplashActivity : FlutterFragmentActivity()
