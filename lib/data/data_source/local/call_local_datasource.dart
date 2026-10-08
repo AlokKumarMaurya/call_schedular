@@ -17,21 +17,30 @@ class CallLocalDataSource {
       orderBy: 'scheduled_at ASC',
     );
 
-    return result.map((map) => CallListModel.fromMap(map).toEntity()).toList();
+    return result
+        .map(
+          (map) => CallListModel.fromMap(map).toEntity(),
+    )
+        .toList();
   }
 
-  Future<void> insertCall(CallListEntity entity) async {
+  Future<void> insertCall(
+      CallListEntity entity,
+      ) async {
     final Database db = await _callDatabase.database;
 
-   final a= await db.insert(
+    final a = await db.insert(
       CallDatabase.tableName,
       CallListModel.fromEntity(entity).toMap(),
       conflictAlgorithm: ConflictAlgorithm.replace,
     );
-   print('=============================== $a');
+
+    print('=============================== $a');
   }
 
-  Future<void> updateCall(CallListEntity entity) async {
+  Future<void> updateCall(
+      CallListEntity entity,
+      ) async {
     final Database db = await _callDatabase.database;
 
     await db.update(
@@ -42,9 +51,37 @@ class CallLocalDataSource {
     );
   }
 
-  Future<void> deleteCall(String id) async {
+  Future<void> deleteCall(
+      String id,
+      ) async {
     final Database db = await _callDatabase.database;
 
-    await db.delete(CallDatabase.tableName, where: 'id = ?', whereArgs: [id]);
+    await db.delete(
+      CallDatabase.tableName,
+      where: 'id = ?',
+      whereArgs: [id],
+    );
+  }
+
+  Future<void> replaceCalls(
+      List<CallListEntity> calls,
+      ) async {
+    final Database db = await _callDatabase.database;
+
+    await db.transaction(
+          (transaction) async {
+        await transaction.delete(
+          CallDatabase.tableName,
+        );
+
+        for (final call in calls) {
+          await transaction.insert(
+            CallDatabase.tableName,
+            CallListModel.fromEntity(call).toMap(),
+            conflictAlgorithm: ConflictAlgorithm.replace,
+          );
+        }
+      },
+    );
   }
 }

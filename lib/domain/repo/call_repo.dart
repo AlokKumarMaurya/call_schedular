@@ -8,4 +8,6 @@ abstract class CallRepo {
   Future<void> updateCall(CallListEntity call);
 
   Future<void> deleteCall(String id);
+
+  Future<void> replaceCalls(List<CallListEntity> calls);
 }

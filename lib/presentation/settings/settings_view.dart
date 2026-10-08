@@ -1,5 +1,6 @@
 import 'package:call_schedular/constants/app_const.dart';
 import 'package:call_schedular/services/app_update_service.dart';
+import 'package:call_schedular/services/backup_service.dart';
 import 'package:call_schedular/services/notification_service.dart';
 import 'package:call_schedular/theme/app_font.dart';
 import 'package:call_schedular/theme/app_theme_colors.dart';
@@ -27,6 +28,9 @@ class _SettingsViewState extends State<SettingsView>
 
   bool _isCheckingForUpdate = false;
 
+  bool _isBackingUp = false;
+  bool _isRestoring = false;
+
   String _appVersion = '';
   String _buildNumber = '';
 
@@ -49,7 +53,9 @@ class _SettingsViewState extends State<SettingsView>
   }
 
   @override
-  void didChangeAppLifecycleState(AppLifecycleState state) {
+  void didChangeAppLifecycleState(
+      AppLifecycleState state,
+      ) {
     if (state == AppLifecycleState.resumed) {
       _loadNotificationStatus();
     }
@@ -83,7 +89,8 @@ class _SettingsViewState extends State<SettingsView>
   }
 
   Future<void> _openNotificationSettings() async {
-    await NotificationService.instance.openNotificationSettings();
+    await NotificationService.instance
+        .openNotificationSettings();
   }
 
   Future<void> _checkForUpdates() async {
@@ -96,7 +103,8 @@ class _SettingsViewState extends State<SettingsView>
     });
 
     try {
-      await AppUpdateService.instance.checkAndPromptManually();
+      await AppUpdateService.instance
+          .checkAndPromptManually();
     } finally {
       if (!mounted) {
         return;
@@ -106,6 +114,165 @@ class _SettingsViewState extends State<SettingsView>
         _isCheckingForUpdate = false;
       });
     }
+  }
+
+  Future<void> _createBackup() async {
+    if (_isBackingUp || _isRestoring) {
+      return;
+    }
+
+    setState(() {
+      _isBackingUp = true;
+    });
+
+    try {
+      final result = await Get.find<BackupService>()
+          .exportBackup();
+
+      if (!mounted || result.isCancelled) {
+        return;
+      }
+
+      if (result.isSuccess) {
+        _showSnackBar(
+          'Backup created with ${result.callCount} calls.',
+          isError: false,
+        );
+      } else {
+        _showSnackBar(
+          result.message ?? 'Unable to create backup.',
+          isError: true,
+        );
+      }
+    } finally {
+      if (!mounted) {
+        return;
+      }
+
+      setState(() {
+        _isBackingUp = false;
+      });
+    }
+  }
+
+  Future<void> _restoreBackup() async {
+    if (_isBackingUp || _isRestoring) {
+      return;
+    }
+
+    final shouldRestore = await _showRestoreConfirmation();
+
+    if (!shouldRestore || !mounted) {
+      return;
+    }
+
+    setState(() {
+      _isRestoring = true;
+    });
+
+    try {
+      final result = await Get.find<BackupService>()
+          .restoreBackup();
+
+      if (!mounted || result.isCancelled) {
+        return;
+      }
+
+      if (result.isSuccess) {
+        _showSnackBar(
+          'Backup restored with ${result.callCount} calls.',
+          isError: false,
+        );
+      } else {
+        _showSnackBar(
+          result.message ?? 'Unable to restore backup.',
+          isError: true,
+        );
+      }
+    } finally {
+      if (!mounted) {
+        return;
+      }
+
+      setState(() {
+        _isRestoring = false;
+      });
+    }
+  }
+
+  Future<bool> _showRestoreConfirmation() async {
+    final colors = context.themeColors;
+    final colorScheme = Theme.of(context).colorScheme;
+
+    final result = await Get.dialog<bool>(
+      AlertDialog(
+        title: Text(
+          'Restore Backup?',
+          style: AppFont.style.copyWith(
+            fontSize: 20.sp,
+            fontWeight: FontWeight.w700,
+            color: colors.textPrimary,
+          ),
+        ),
+        content: Text(
+          'Restoring a backup will replace all existing calls in Callmate with the calls from the selected backup file.',
+          style: AppFont.style.copyWith(
+            fontSize: 14.sp,
+            color: colors.textSecondary,
+          ),
+        ),
+        actions: [
+          TextButton(
+            onPressed: () {
+              Get.back(result: false);
+            },
+            child: Text(
+              'Cancel',
+              style: AppFont.style.copyWith(
+                color: colors.textSecondary,
+                fontWeight: FontWeight.w600,
+              ),
+            ),
+          ),
+          TextButton(
+            onPressed: () {
+              Get.back(result: true);
+            },
+            child: Text(
+              'Restore',
+              style: AppFont.style.copyWith(
+                color: colorScheme.primary,
+                fontWeight: FontWeight.w700,
+              ),
+            ),
+          ),
+        ],
+      ),
+    );
+
+    return result ?? false;
+  }
+
+  void _showSnackBar(
+      String message, {
+        required bool isError,
+      }) {
+    final colors = context.themeColors;
+
+    Get.snackbar(
+      isError ? 'Backup Error' : 'Backup',
+      message,
+      snackPosition: SnackPosition.BOTTOM,
+      margin: EdgeInsets.all(16.w),
+      borderRadius: 14.r,
+      backgroundColor: colors.surface,
+      colorText: colors.textPrimary,
+      borderColor: colors.border,
+      borderWidth: 1,
+      duration: const Duration(
+        seconds: 3,
+      ),
+    );
   }
 
   @override
@@ -160,7 +327,8 @@ class _SettingsViewState extends State<SettingsView>
                 _themeController.themeMode.value,
               ),
               iconBackground: colors.primaryLight,
-              iconColor: Theme.of(context).colorScheme.primary,
+              iconColor:
+              Theme.of(context).colorScheme.primary,
               title: 'Appearance',
               subtitle: _themeModeLabel(
                 _themeController.themeMode.value,
@@ -180,7 +348,8 @@ class _SettingsViewState extends State<SettingsView>
             context,
             icon: Icons.notifications_outlined,
             iconBackground: colors.primaryLight,
-            iconColor: Theme.of(context).colorScheme.primary,
+            iconColor:
+            Theme.of(context).colorScheme.primary,
             title: 'Notifications',
             subtitle: _isLoadingNotifications
                 ? 'Checking notification status...'
@@ -188,6 +357,63 @@ class _SettingsViewState extends State<SettingsView>
                 ? 'Enabled'
                 : 'Disabled',
             onTap: _openNotificationSettings,
+          ),
+
+          SizedBox(height: 24.h),
+
+          _buildSectionTitle(
+            context,
+            'Backup & Restore',
+          ),
+
+          _buildSettingTile(
+            context,
+            icon: Icons.backup_outlined,
+            iconBackground: colors.successLight,
+            iconColor: colors.successDark,
+            title: 'Backup Calls',
+            subtitle: _isBackingUp
+                ? 'Creating backup...'
+                : 'Save your scheduled calls to a file',
+            trailing: _isBackingUp
+                ? SizedBox(
+              width: 20.w,
+              height: 20.w,
+              child: CircularProgressIndicator(
+                strokeWidth: 2,
+                color: colors.successDark,
+              ),
+            )
+                : null,
+            onTap: _isBackingUp || _isRestoring
+                ? null
+                : _createBackup,
+          ),
+
+          SizedBox(height: 10.h),
+
+          _buildSettingTile(
+            context,
+            icon: Icons.restore_rounded,
+            iconBackground: colors.orangeLight,
+            iconColor: colors.orangeDark,
+            title: 'Restore Calls',
+            subtitle: _isRestoring
+                ? 'Restoring backup...'
+                : 'Restore calls from a backup file',
+            trailing: _isRestoring
+                ? SizedBox(
+              width: 20.w,
+              height: 20.w,
+              child: CircularProgressIndicator(
+                strokeWidth: 2,
+                color: colors.orangeDark,
+              ),
+            )
+                : null,
+            onTap: _isBackingUp || _isRestoring
+                ? null
+                : _restoreBackup,
           ),
 
           SizedBox(height: 24.h),
@@ -251,7 +477,8 @@ class _SettingsViewState extends State<SettingsView>
             iconBackground: colors.successLight,
             iconColor: colors.successDark,
             title: 'App Information',
-            subtitle: 'Version $_appVersion • Build $_buildNumber',
+            subtitle:
+            'Version $_appVersion • Build $_buildNumber',
             onTap: _showAppInformation,
           ),
         ],
@@ -323,7 +550,8 @@ class _SettingsViewState extends State<SettingsView>
                   height: 44.w,
                   decoration: BoxDecoration(
                     color: iconBackground,
-                    borderRadius: BorderRadius.circular(13.r),
+                    borderRadius:
+                    BorderRadius.circular(13.r),
                   ),
                   child: Icon(
                     icon,
@@ -519,7 +747,8 @@ class _SettingsViewState extends State<SettingsView>
         },
         borderRadius: BorderRadius.circular(16.r),
         child: AnimatedContainer(
-          duration: const Duration(milliseconds: 180),
+          duration:
+          const Duration(milliseconds: 180),
           padding: EdgeInsets.symmetric(
             horizontal: 14.w,
             vertical: 12.h,
@@ -628,7 +857,9 @@ class _SettingsViewState extends State<SettingsView>
     );
   }
 
-  IconData _themeModeIcon(ThemeMode mode) {
+  IconData _themeModeIcon(
+      ThemeMode mode,
+      ) {
     switch (mode) {
       case ThemeMode.light:
         return Icons.light_mode_rounded;
@@ -641,7 +872,9 @@ class _SettingsViewState extends State<SettingsView>
     }
   }
 
-  String _themeModeLabel(ThemeMode mode) {
+  String _themeModeLabel(
+      ThemeMode mode,
+      ) {
     switch (mode) {
       case ThemeMode.light:
         return 'Light';

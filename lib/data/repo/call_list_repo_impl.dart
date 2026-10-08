@@ -26,4 +26,9 @@ class CallRepoImpl implements CallRepo {
   Future<void> deleteCall(String id) {
     return _localDataSource.deleteCall(id);
   }
+
+  @override
+  Future<void> replaceCalls(List<CallListEntity> calls) {
+    return _localDataSource.replaceCalls(calls);
+  }
 }
