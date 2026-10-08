@@ -84,5 +84,6 @@ class CallListModel {
     status: CallStatusEntity.fromString(status.name),
     notes: notes,
     repeat: repeat,
+    reminderMinutesBefore: reminderMinutesBefore,
   );
 }
