@@ -27,10 +27,6 @@ import 'firebase_options.dart';
 Future<void> main() async {
   WidgetsFlutterBinding.ensureInitialized();
 
-  /*
-   * Firebase must be initialized before Crashlytics can
-   * register its global error handlers.
-   */
   try {
     await Firebase.initializeApp(
       options: DefaultFirebaseOptions.currentPlatform,
@@ -38,19 +34,10 @@ Future<void> main() async {
 
     await AppCrashReporter.instance.initialize();
   } catch (e, stackTrace) {
-    debugPrint(
-      'Firebase/Crashlytics initialization failed: $e',
-    );
-
-    debugPrintStack(
-      stackTrace: stackTrace,
-    );
+    debugPrint('Firebase/Crashlytics initialization failed: $e');
+    debugPrintStack(stackTrace: stackTrace);
   }
 
-  /*
-   * Only initialization required to determine the first Flutter
-   * screen is performed before runApp().
-   */
   try {
     await GetStorage.init();
 
@@ -62,18 +49,9 @@ Future<void> main() async {
     AppDI.init();
     await Get.find<AppLockService>().initialize();
   } catch (e, stackTrace) {
-    debugPrint(
-      'App startup initialization failed: $e',
-    );
+    debugPrint('App startup initialization failed: $e');
+    debugPrintStack(stackTrace: stackTrace);
 
-    debugPrintStack(
-      stackTrace: stackTrace,
-    );
-
-    /*
-     * If something fails during application startup, record it
-     * as a non-fatal error when Crashlytics is available.
-     */
     await AppCrashReporter.instance.recordError(
       e,
       stackTrace,
@@ -81,12 +59,6 @@ Future<void> main() async {
     );
   }
 
-  /*
-   * Do not defer the first Flutter frame.
-   *
-   * The native splash remains visible while Flutter initializes.
-   * The first Flutter frame is rendered as soon as the app is ready.
-   */
   runApp(const MyApp());
 }
 
@@ -105,34 +77,20 @@ class _MyAppState extends State<MyApp> with WidgetsBindingObserver {
     super.initState();
     WidgetsBinding.instance.addObserver(this);
 
-    /*
-     * Listen for notification taps as soon as the Flutter app
-     * is mounted.
-     */
     _notificationSubscription = NotificationService
         .instance
         .callNotificationTapStream
         .listen(_openCallFromNotification);
 
-    /*
-     * Notification initialization and app-update checking are
-     * deliberately performed after the first Flutter frame.
-     *
-     * This prevents either service from delaying the initial UI
-     * or affecting the native splash handoff.
-     */
     WidgetsBinding.instance.addPostFrameCallback((_) {
       unawaited(_initializeNotifications());
       unawaited(Get.find<HomeWidgetService>().refresh());
-      if (Get.find<AppLockService>().isLocked.value) {
-        unawaited(Get.find<AppLockService>().authenticate());
+
+      final appLockService = Get.find<AppLockService>();
+      if (appLockService.isLocked.value) {
+        unawaited(appLockService.authenticate());
       }
 
-      /*
-       * App update checking is intentionally started after the
-       * first frame so the splash/startup experience remains
-       * completely independent from Google Play.
-       */
       unawaited(
         AppUpdateService.instance.checkAndPrompt(),
       );
@@ -142,20 +100,10 @@ class _MyAppState extends State<MyApp> with WidgetsBindingObserver {
   Future<void> _initializeNotifications() async {
     try {
       await NotificationService.instance.initialize();
-
-      /*
-       * Check whether the application was launched by tapping
-       * a notification.
-       */
       await _handleInitialNotification();
     } catch (e, stackTrace) {
-      debugPrint(
-        'Notification initialization failed: $e',
-      );
-
-      debugPrintStack(
-        stackTrace: stackTrace,
-      );
+      debugPrint('Notification initialization failed: $e');
+      debugPrintStack(stackTrace: stackTrace);
 
       await AppCrashReporter.instance.recordError(
         e,
@@ -167,7 +115,7 @@ class _MyAppState extends State<MyApp> with WidgetsBindingObserver {
 
   Future<void> _handleInitialNotification() async {
     final callId =
-    NotificationService.instance.consumeInitialCallId();
+        NotificationService.instance.consumeInitialCallId();
 
     if (callId == null || callId.isEmpty) {
       return;
@@ -179,7 +127,6 @@ class _MyAppState extends State<MyApp> with WidgetsBindingObserver {
   Future<void> _openCallFromNotification(String callId) async {
     try {
       final useCase = Get.find<CallUseCase>();
-
       final calls = await useCase.getCallList();
 
       CallListEntity? call;
@@ -197,14 +144,10 @@ class _MyAppState extends State<MyApp> with WidgetsBindingObserver {
         );
 
         await AppCrashReporter.instance.recordError(
-          StateError(
-            'Call not found for notification',
-          ),
+          StateError('Call not found for notification'),
           StackTrace.current,
           reason: 'Notification referenced a missing call',
-          information: [
-            'callId: $callId',
-          ],
+          information: ['callId: $callId'],
         );
 
         return;
@@ -214,31 +157,22 @@ class _MyAppState extends State<MyApp> with WidgetsBindingObserver {
         return;
       }
 
-      Get.until(
-            (route) => route.isFirst,
-      );
+      Get.until((route) => route.isFirst);
 
       Get.to(
-            () => CallDetailsView(
+        () => CallDetailsView(
           call: call!,
         ),
       );
     } catch (e, stackTrace) {
-      debugPrint(
-        'Failed to open call from notification: $e',
-      );
-
-      debugPrintStack(
-        stackTrace: stackTrace,
-      );
+      debugPrint('Failed to open call from notification: $e');
+      debugPrintStack(stackTrace: stackTrace);
 
       await AppCrashReporter.instance.recordError(
         e,
         stackTrace,
         reason: 'Failed to open call from notification',
-        information: [
-          'callId: $callId',
-        ],
+        information: ['callId: $callId'],
       );
     }
   }
@@ -247,13 +181,18 @@ class _MyAppState extends State<MyApp> with WidgetsBindingObserver {
   void didChangeAppLifecycleState(AppLifecycleState state) {
     if (state == AppLifecycleState.resumed) {
       final appLockService = Get.find<AppLockService>();
+
       if (appLockService.enabled) {
         appLockService.lock();
         unawaited(appLockService.authenticate());
       }
 
-      unawaited(Get.find<CloudSyncService>().retryPendingSync());
-      unawaited(Get.find<HomeWidgetService>().refresh());
+      unawaited(
+        Get.find<CloudSyncService>().retryPendingSync(),
+      );
+      unawaited(
+        Get.find<HomeWidgetService>().refresh(),
+      );
     }
   }
 
@@ -268,113 +207,110 @@ class _MyAppState extends State<MyApp> with WidgetsBindingObserver {
   }
 
   Widget _buildAppLockOverlay(
-      BuildContext context,
-      AppLockService appLockService,
-      ) {
-    final isAuthenticating = appLockService.isAuthenticating.value;
+    BuildContext context,
+    AppLockService appLockService,
+  ) {
+    final isAuthenticating =
+        appLockService.isAuthenticating.value;
 
     return Positioned.fill(
       child: ColoredBox(
-          color: Theme.of(context).scaffoldBackgroundColor,
-          child: SafeArea(
-            child: Center(
-              child: Padding(
-                padding: const EdgeInsets.all(32),
-                child: Column(
-                  mainAxisSize: MainAxisSize.min,
-                  children: [
-                    Icon(
-                      Icons.lock_rounded,
-                      size: 64,
-                      color: Theme.of(context).colorScheme.primary,
+        color: Theme.of(context).scaffoldBackgroundColor,
+        child: SafeArea(
+          child: Center(
+            child: Padding(
+              padding: const EdgeInsets.all(32),
+              child: Column(
+                mainAxisSize: MainAxisSize.min,
+                children: [
+                  Icon(
+                    Icons.lock_rounded,
+                    size: 64,
+                    color: Theme.of(context).colorScheme.primary,
+                  ),
+                  const SizedBox(height: 20),
+                  Text(
+                    'Callmate is locked',
+                    style: Theme.of(context).textTheme.headlineSmall,
+                    textAlign: TextAlign.center,
+                  ),
+                  const SizedBox(height: 8),
+                  Text(
+                    'Authenticate with your device to continue.',
+                    style: Theme.of(context).textTheme.bodyMedium,
+                    textAlign: TextAlign.center,
+                  ),
+                  const SizedBox(height: 24),
+                  FilledButton.icon(
+                    onPressed: isAuthenticating
+                        ? null
+                        : () => unawaited(
+                              appLockService.authenticate(),
+                            ),
+                    icon: isAuthenticating
+                        ? const SizedBox(
+                            width: 18,
+                            height: 18,
+                            child: CircularProgressIndicator(
+                              strokeWidth: 2,
+                            ),
+                          )
+                        : const Icon(
+                            Icons.fingerprint_rounded,
+                          ),
+                    label: Text(
+                      isAuthenticating
+                          ? 'Authenticating...'
+                          : 'Unlock Callmate',
                     ),
-                    const SizedBox(height: 20),
-                    Text(
-                      'Callmate is locked',
-                      style: Theme.of(context).textTheme.headlineSmall,
-                      textAlign: TextAlign.center,
-                    ),
-                    const SizedBox(height: 8),
-                    Text(
-                      'Authenticate with your device to continue.',
-                      style: Theme.of(context).textTheme.bodyMedium,
-                      textAlign: TextAlign.center,
-                    ),
-                    const SizedBox(height: 24),
-                    FilledButton.icon(
-                      onPressed: isAuthenticating
-                          ? null
-                          : () => unawaited(appLockService.authenticate()),
-                      icon: isAuthenticating
-                          ? const SizedBox(
-                              width: 18,
-                              height: 18,
-                              child: CircularProgressIndicator(strokeWidth: 2),
-                            )
-                          : const Icon(Icons.fingerprint_rounded),
-                      label: Text(
-                        isAuthenticating
-                            ? 'Authenticating...'
-                            : 'Unlock Callmate',
-                      ),
-                    ),
-                  ],
-                ),
+                  ),
+                ],
               ),
             ),
           ),
         ),
       ),
+    );
   }
 
   @override
   Widget build(BuildContext context) {
     return ScreenUtilPlusInit(
       designSize: const Size(360, 690),
-
-      /*
-       * ensureScreenSize waits for valid screen metrics before
-       * building widgets that use .w / .h / .sp / .r.
-       *
-       * This is important for the current startup architecture,
-       * where the native splash hands off directly to Flutter.
-       */
       ensureScreenSize: true,
-
       minTextAdapt: true,
       splitScreenMode: true,
-
       builder: (context, child) {
         final themeController =
-        Get.find<AppThemeController>();
+            Get.find<AppThemeController>();
         final appLockService = Get.find<AppLockService>();
 
         return Obx(
-              () => GetMaterialApp(
+          () => GetMaterialApp(
             theme: appTheme,
             darkTheme: appDarkTheme,
             themeMode: themeController.themeMode.value,
             title: AppConst.appName,
             debugShowCheckedModeBanner: false,
-
             home: Scaffold(
               backgroundColor:
-              themeController.themeMode.value ==
-                  ThemeMode.dark
-                  ? appDarkTheme.scaffoldBackgroundColor
-                  : appTheme.scaffoldBackgroundColor,
+                  themeController.themeMode.value == ThemeMode.dark
+                      ? appDarkTheme.scaffoldBackgroundColor
+                      : appTheme.scaffoldBackgroundColor,
               body: Stack(
                 children: [
                   child ?? const SizedBox.shrink(),
                   if (appLockService.isLocked.value)
-                    _buildAppLockOverlay(context, appLockService),
+                    _buildAppLockOverlay(
+                      context,
+                      appLockService,
+                    ),
                 ],
               ),
             ),
           ),
         );
       },
-
       child: AppLocalStorage.isIntroViewed
           ? const HomeView()
           : const IntroView(),
