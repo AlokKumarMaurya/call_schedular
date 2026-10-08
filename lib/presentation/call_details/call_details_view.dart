@@ -2,6 +2,7 @@ import 'package:call_schedular/domain/entity/call_list_entity.dart';
 import 'package:call_schedular/presentation/home/home_controller.dart';
 import 'package:call_schedular/presentation/schedule_call/schedule_call_view.dart';
 import 'package:call_schedular/services/calendar_service.dart';
+import 'package:call_schedular/services/call_share_service.dart';
 import 'package:call_schedular/services/notification_service.dart';
 import 'package:call_schedular/theme/app_font.dart';
 import 'package:call_schedular/theme/app_theme_colors.dart';
@@ -76,6 +77,12 @@ class _CallDetailsViewState
           ),
         ),
         actions: [
+          AppGlassIconButton(
+            icon: Icons.share_outlined,
+            tooltip: 'Share',
+            onPressed: _shareCall,
+          ),
+          SizedBox(width: 8.w),
           AppGlassIconButton(
             icon: isHistorical
                 ? Icons.event_repeat_outlined
@@ -701,6 +708,24 @@ class _CallDetailsViewState
 
     return avatarColors[
     hash % avatarColors.length];
+  }
+
+  Future<void> _shareCall() async {
+    try {
+      await CallShareService.instance.shareCall(_call);
+    } catch (e) {
+      debugPrint('Error sharing call details: $e');
+
+      if (!mounted) {
+        return;
+      }
+
+      Get.snackbar(
+        'Share',
+        'Unable to share the call details.',
+        snackPosition: SnackPosition.BOTTOM,
+      );
+    }
   }
 
   Future<void> _editCall() async {
