@@ -8,6 +8,7 @@ import 'package:call_schedular/presentation/home/home_view.dart';
 import 'package:call_schedular/presentation/intro/intro_view.dart';
 import 'package:call_schedular/services/app_crash_reporter.dart';
 import 'package:call_schedular/services/app_update_service.dart';
+import 'package:call_schedular/services/cloud_sync_service.dart';
 import 'package:call_schedular/services/notification_service.dart';
 import 'package:call_schedular/theme/app_theme.dart';
 import 'package:call_schedular/theme/app_theme_controller.dart';
@@ -93,12 +94,13 @@ class MyApp extends StatefulWidget {
   State<MyApp> createState() => _MyAppState();
 }
 
-class _MyAppState extends State<MyApp> {
+class _MyAppState extends State<MyApp> with WidgetsBindingObserver {
   StreamSubscription<String>? _notificationSubscription;
 
   @override
   void initState() {
     super.initState();
+    WidgetsBinding.instance.addObserver(this);
 
     /*
      * Listen for notification taps as soon as the Flutter app
@@ -235,7 +237,15 @@ class _MyAppState extends State<MyApp> {
   }
 
   @override
+  void didChangeAppLifecycleState(AppLifecycleState state) {
+    if (state == AppLifecycleState.resumed) {
+      unawaited(Get.find<CloudSyncService>().retryPendingSync());
+    }
+  }
+
+  @override
   void dispose() {
+    WidgetsBinding.instance.removeObserver(this);
     _notificationSubscription?.cancel();
 
     AppUpdateService.instance.dispose();
