@@ -1,3 +1,5 @@
+import 'dart:convert';
+
 import 'package:call_schedular/data/models/call_list_model.dart';
 import 'package:sqflite/sqflite.dart';
 
@@ -82,6 +84,54 @@ class CallLocalDataSource {
           );
         }
       },
+    );
+  }
+}
+
+extension CallLocalSyncDataSource on CallLocalDataSource {
+  Future<void> enqueueSyncOperation({
+    required String callId,
+    required String operation,
+    required int updatedAt,
+    Map<String, Object?>? payload,
+  }) async {
+    final db = await CallDatabase.instance.database;
+
+    await db.transaction((transaction) async {
+      await transaction.delete(
+        'sync_outbox',
+        where: 'call_id = ?',
+        whereArgs: [callId],
+      );
+
+      await transaction.insert(
+        'sync_outbox',
+        {
+          'call_id': callId,
+          'operation': operation,
+          'payload': payload == null ? null : jsonEncode(payload),
+          'updated_at': updatedAt,
+        },
+      );
+    });
+  }
+
+  Future<List<Map<String, Object?>>> getPendingSyncOperations() async {
+    final db = await CallDatabase.instance.database;
+
+    return db.query(
+      'sync_outbox',
+      orderBy: 'updated_at ASC, id ASC',
+    );
+  }
+
+  Future<void> removeSyncOperation(int id) async {
+    final db = await CallDatabase.instance.database;
+
+    await db.delete(
+      'sync_outbox',
+      where: 'id = ?',
+      whereArgs: [id],
     );
   }
 }
