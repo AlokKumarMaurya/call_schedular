@@ -1,6 +1,7 @@
 import 'package:call_schedular/domain/entity/call_list_entity.dart';
 import 'package:call_schedular/presentation/home/home_controller.dart';
 import 'package:call_schedular/presentation/schedule_call/schedule_call_view.dart';
+import 'package:call_schedular/services/calendar_service.dart';
 import 'package:call_schedular/services/notification_service.dart';
 import 'package:call_schedular/theme/app_font.dart';
 import 'package:call_schedular/theme/app_theme_colors.dart';
@@ -16,13 +17,18 @@ import '../../domain/usecase/call_use_case.dart';
 class CallDetailsView extends StatefulWidget {
   final CallListEntity call;
 
-  const CallDetailsView({super.key, required this.call});
+  const CallDetailsView({
+    super.key,
+    required this.call,
+  });
 
   @override
-  State<CallDetailsView> createState() => _CallDetailsViewState();
+  State<CallDetailsView> createState() =>
+      _CallDetailsViewState();
 }
 
-class _CallDetailsViewState extends State<CallDetailsView> {
+class _CallDetailsViewState
+    extends State<CallDetailsView> {
   late CallListEntity _call;
 
   @override
@@ -44,7 +50,7 @@ class _CallDetailsViewState extends State<CallDetailsView> {
 
     final isHistorical =
         _call.status == CallStatusEntity.completed ||
-        _call.status == CallStatusEntity.missed;
+            _call.status == CallStatusEntity.missed;
 
     return Scaffold(
       backgroundColor: colors.background,
@@ -74,8 +80,11 @@ class _CallDetailsViewState extends State<CallDetailsView> {
             icon: isHistorical
                 ? Icons.event_repeat_outlined
                 : Icons.edit_outlined,
-            tooltip: isHistorical ? 'Reschedule' : 'Edit',
-            onPressed: isHistorical ? _rescheduleCall : _editCall,
+            tooltip: isHistorical
+                ? 'Reschedule'
+                : 'Edit',
+            onPressed:
+            isHistorical ? _rescheduleCall : _editCall,
           ),
           SizedBox(width: 8.w),
           AppGlassIconButton(
@@ -93,40 +102,41 @@ class _CallDetailsViewState extends State<CallDetailsView> {
           children: [
             Expanded(
               child: SingleChildScrollView(
-                padding: EdgeInsets.fromLTRB(16.w, 8.h, 16.w, 24.h),
+                padding: EdgeInsets.fromLTRB(
+                  16.w,
+                  8.h,
+                  16.w,
+                  24.h,
+                ),
                 child: Column(
-                  crossAxisAlignment: CrossAxisAlignment.start,
+                  crossAxisAlignment:
+                  CrossAxisAlignment.start,
                   children: [
                     _buildContactHero(
                       context,
                       contactName: contactName,
                       initial: initial,
                     ),
-
                     SizedBox(height: 24.h),
-
-                    _buildSectionTitle(context, 'Call Schedule'),
-
+                    _buildSectionTitle(
+                      context,
+                      'Call Schedule',
+                    ),
                     SizedBox(height: 10.h),
-
                     _buildScheduleInfo(context),
-
                     SizedBox(height: 12.h),
-
                     _buildRepeatCard(context),
-
                     SizedBox(height: 24.h),
-
-                    _buildSectionTitle(context, 'Notes'),
-
+                    _buildSectionTitle(
+                      context,
+                      'Notes',
+                    ),
                     SizedBox(height: 10.h),
-
                     _buildNotesCard(context),
                   ],
                 ),
               ),
             ),
-
             _buildBottomActions(context),
           ],
         ),
@@ -135,21 +145,27 @@ class _CallDetailsViewState extends State<CallDetailsView> {
   }
 
   Widget _buildContactHero(
-    BuildContext context, {
-    required String contactName,
-    required String initial,
-  }) {
+      BuildContext context, {
+        required String contactName,
+        required String initial,
+      }) {
     final colors = context.themeColors;
 
-    final avatarColor = _avatarColor(contactName, context);
+    final avatarColor =
+    _avatarColor(contactName, context);
 
     return Container(
       width: double.infinity,
-      padding: EdgeInsets.symmetric(horizontal: 20.w, vertical: 24.h),
+      padding: EdgeInsets.symmetric(
+        horizontal: 20.w,
+        vertical: 24.h,
+      ),
       decoration: BoxDecoration(
         color: colors.surface,
         borderRadius: BorderRadius.circular(22.r),
-        border: Border.all(color: colors.border),
+        border: Border.all(
+          color: colors.border,
+        ),
         boxShadow: [
           BoxShadow(
             color: colors.shadow,
@@ -165,7 +181,9 @@ class _CallDetailsViewState extends State<CallDetailsView> {
             height: 76.w,
             decoration: BoxDecoration(
               shape: BoxShape.circle,
-              color: avatarColor.withValues(alpha: 0.12),
+              color: avatarColor.withValues(
+                alpha: 0.12,
+              ),
             ),
             alignment: Alignment.center,
             child: Text(
@@ -177,9 +195,7 @@ class _CallDetailsViewState extends State<CallDetailsView> {
               ),
             ),
           ),
-
           SizedBox(height: 14.h),
-
           Text(
             contactName,
             textAlign: TextAlign.center,
@@ -191,9 +207,7 @@ class _CallDetailsViewState extends State<CallDetailsView> {
               color: colors.textPrimary,
             ),
           ),
-
           SizedBox(height: 5.h),
-
           Text(
             _call.phoneNumber,
             style: AppFont.style.copyWith(
@@ -202,16 +216,16 @@ class _CallDetailsViewState extends State<CallDetailsView> {
               color: colors.textTertiary,
             ),
           ),
-
           SizedBox(height: 14.h),
-
           _buildStatusChip(context),
         ],
       ),
     );
   }
 
-  Widget _buildStatusChip(BuildContext context) {
+  Widget _buildStatusChip(
+      BuildContext context,
+      ) {
     final colors = context.themeColors;
 
     late final String label;
@@ -223,38 +237,49 @@ class _CallDetailsViewState extends State<CallDetailsView> {
       case CallStatusEntity.upcoming:
         label = 'Upcoming';
         icon = Icons.schedule_rounded;
-        color = Theme.of(context).colorScheme.primary;
-        backgroundColor = colors.primaryLight;
+        color =
+            Theme.of(context).colorScheme.primary;
+        backgroundColor =
+            colors.primaryLight;
         break;
 
       case CallStatusEntity.completed:
         label = 'Completed';
-        icon = Icons.check_circle_outline_rounded;
+        icon =
+            Icons.check_circle_outline_rounded;
         color = colors.successDark;
-        backgroundColor = colors.successLight;
+        backgroundColor =
+            colors.successLight;
         break;
 
       case CallStatusEntity.missed:
         label = 'Missed';
         icon = Icons.error_outline_rounded;
         color = colors.dangerDark;
-        backgroundColor = colors.dangerLight;
+        backgroundColor =
+            colors.dangerLight;
         break;
     }
 
     return Container(
-      padding: EdgeInsets.symmetric(horizontal: 11.w, vertical: 6.h),
+      padding: EdgeInsets.symmetric(
+        horizontal: 11.w,
+        vertical: 6.h,
+      ),
       decoration: BoxDecoration(
         color: backgroundColor,
-        borderRadius: BorderRadius.circular(20.r),
+        borderRadius:
+        BorderRadius.circular(20.r),
       ),
       child: Row(
         mainAxisSize: MainAxisSize.min,
         children: [
-          Icon(icon, size: 15.sp, color: color),
-
+          Icon(
+            icon,
+            size: 15.sp,
+            color: color,
+          ),
           SizedBox(width: 6.w),
-
           Text(
             label,
             style: AppFont.style.copyWith(
@@ -268,7 +293,9 @@ class _CallDetailsViewState extends State<CallDetailsView> {
     );
   }
 
-  Widget _buildScheduleInfo(BuildContext context) {
+  Widget _buildScheduleInfo(
+      BuildContext context,
+      ) {
     return Row(
       children: [
         Expanded(
@@ -276,18 +303,20 @@ class _CallDetailsViewState extends State<CallDetailsView> {
             context,
             icon: Icons.calendar_month_rounded,
             label: 'Date',
-            value: _formatDate(_call.scheduledAt),
+            value: _formatDate(
+              _call.scheduledAt,
+            ),
           ),
         ),
-
         SizedBox(width: 12.w),
-
         Expanded(
           child: _buildInfoCard(
             context,
             icon: Icons.access_time_rounded,
             label: 'Time',
-            value: _formatTime(_call.scheduledAt),
+            value: _formatTime(
+              _call.scheduledAt,
+            ),
           ),
         ),
       ],
@@ -295,36 +324,44 @@ class _CallDetailsViewState extends State<CallDetailsView> {
   }
 
   Widget _buildInfoCard(
-    BuildContext context, {
-    required IconData icon,
-    required String label,
-    required String value,
-  }) {
+      BuildContext context, {
+        required IconData icon,
+        required String label,
+        required String value,
+      }) {
     final colors = context.themeColors;
-    final colorScheme = Theme.of(context).colorScheme;
+    final colorScheme =
+        Theme.of(context).colorScheme;
 
     return Container(
       padding: EdgeInsets.all(14.w),
       decoration: BoxDecoration(
         color: colors.surface,
-        borderRadius: BorderRadius.circular(16.r),
-        border: Border.all(color: colors.border),
+        borderRadius:
+        BorderRadius.circular(16.r),
+        border: Border.all(
+          color: colors.border,
+        ),
       ),
       child: Column(
-        crossAxisAlignment: CrossAxisAlignment.start,
+        crossAxisAlignment:
+        CrossAxisAlignment.start,
         children: [
           Container(
             width: 36.w,
             height: 36.w,
             decoration: BoxDecoration(
               color: colors.primaryLight,
-              borderRadius: BorderRadius.circular(10.r),
+              borderRadius:
+              BorderRadius.circular(10.r),
             ),
-            child: Icon(icon, size: 19.sp, color: colorScheme.primary),
+            child: Icon(
+              icon,
+              size: 19.sp,
+              color: colorScheme.primary,
+            ),
           ),
-
           SizedBox(height: 12.h),
-
           Text(
             label,
             style: AppFont.style.copyWith(
@@ -333,9 +370,7 @@ class _CallDetailsViewState extends State<CallDetailsView> {
               color: colors.textTertiary,
             ),
           ),
-
           SizedBox(height: 4.h),
-
           Text(
             value,
             maxLines: 2,
@@ -351,17 +386,26 @@ class _CallDetailsViewState extends State<CallDetailsView> {
     );
   }
 
-  Widget _buildRepeatCard(BuildContext context) {
+  Widget _buildRepeatCard(
+      BuildContext context,
+      ) {
     final colors = context.themeColors;
-    final colorScheme = Theme.of(context).colorScheme;
+    final colorScheme =
+        Theme.of(context).colorScheme;
 
     return Container(
       width: double.infinity,
-      padding: EdgeInsets.symmetric(horizontal: 14.w, vertical: 14.h),
+      padding: EdgeInsets.symmetric(
+        horizontal: 14.w,
+        vertical: 14.h,
+      ),
       decoration: BoxDecoration(
         color: colors.surface,
-        borderRadius: BorderRadius.circular(16.r),
-        border: Border.all(color: colors.border),
+        borderRadius:
+        BorderRadius.circular(16.r),
+        border: Border.all(
+          color: colors.border,
+        ),
       ),
       child: Row(
         children: [
@@ -370,7 +414,8 @@ class _CallDetailsViewState extends State<CallDetailsView> {
             height: 38.w,
             decoration: BoxDecoration(
               color: colors.primaryLight,
-              borderRadius: BorderRadius.circular(11.r),
+              borderRadius:
+              BorderRadius.circular(11.r),
             ),
             child: Icon(
               Icons.repeat_rounded,
@@ -378,12 +423,11 @@ class _CallDetailsViewState extends State<CallDetailsView> {
               color: colorScheme.primary,
             ),
           ),
-
           SizedBox(width: 12.w),
-
           Expanded(
             child: Column(
-              crossAxisAlignment: CrossAxisAlignment.start,
+              crossAxisAlignment:
+              CrossAxisAlignment.start,
               children: [
                 Text(
                   'Repeat',
@@ -393,9 +437,7 @@ class _CallDetailsViewState extends State<CallDetailsView> {
                     color: colors.textTertiary,
                   ),
                 ),
-
                 SizedBox(height: 3.h),
-
                 Text(
                   _call.repeat,
                   style: AppFont.style.copyWith(
@@ -412,29 +454,38 @@ class _CallDetailsViewState extends State<CallDetailsView> {
     );
   }
 
-  Widget _buildNotesCard(BuildContext context) {
+  Widget _buildNotesCard(
+      BuildContext context,
+      ) {
     final colors = context.themeColors;
-    final colorScheme = Theme.of(context).colorScheme;
+    final colorScheme =
+        Theme.of(context).colorScheme;
 
-    final hasNotes = _call.notes?.trim().isNotEmpty == true;
+    final hasNotes =
+        _call.notes?.trim().isNotEmpty == true;
 
     return Container(
       width: double.infinity,
       padding: EdgeInsets.all(16.w),
       decoration: BoxDecoration(
         color: colors.surface,
-        borderRadius: BorderRadius.circular(16.r),
-        border: Border.all(color: colors.border),
+        borderRadius:
+        BorderRadius.circular(16.r),
+        border: Border.all(
+          color: colors.border,
+        ),
       ),
       child: Row(
-        crossAxisAlignment: CrossAxisAlignment.start,
+        crossAxisAlignment:
+        CrossAxisAlignment.start,
         children: [
           Container(
             width: 36.w,
             height: 36.w,
             decoration: BoxDecoration(
               color: colors.primaryLight,
-              borderRadius: BorderRadius.circular(10.r),
+              borderRadius:
+              BorderRadius.circular(10.r),
             ),
             child: Icon(
               Icons.notes_rounded,
@@ -442,17 +493,19 @@ class _CallDetailsViewState extends State<CallDetailsView> {
               color: colorScheme.primary,
             ),
           ),
-
           SizedBox(width: 12.w),
-
           Expanded(
             child: Text(
-              hasNotes ? _call.notes!.trim() : 'No notes added for this call.',
+              hasNotes
+                  ? _call.notes!.trim()
+                  : 'No notes added for this call.',
               style: AppFont.style.copyWith(
                 fontSize: 14.sp,
                 height: 1.4,
                 fontWeight: FontWeight.w500,
-                color: hasNotes ? colors.textPrimary : colors.textTertiary,
+                color: hasNotes
+                    ? colors.textPrimary
+                    : colors.textTertiary,
               ),
             ),
           ),
@@ -461,7 +514,10 @@ class _CallDetailsViewState extends State<CallDetailsView> {
     );
   }
 
-  Widget _buildSectionTitle(BuildContext context, String title) {
+  Widget _buildSectionTitle(
+      BuildContext context,
+      String title,
+      ) {
     final colors = context.themeColors;
 
     return Text(
@@ -474,18 +530,39 @@ class _CallDetailsViewState extends State<CallDetailsView> {
     );
   }
 
-  Widget _buildBottomActions(BuildContext context) {
+  Widget _buildBottomActions(
+      BuildContext context,
+      ) {
     final colors = context.themeColors;
-    final colorScheme = Theme.of(context).colorScheme;
+    final colorScheme =
+        Theme.of(context).colorScheme;
 
-    final isCompleted = _call.status == CallStatusEntity.completed;
-    final isMissed = _call.status == CallStatusEntity.missed;
+    final isCompleted =
+        _call.status ==
+            CallStatusEntity.completed;
+
+    final isMissed =
+        _call.status ==
+            CallStatusEntity.missed;
+
+    final isUpcoming =
+        _call.status ==
+            CallStatusEntity.upcoming;
 
     return Container(
-      padding: EdgeInsets.fromLTRB(16.w, 10.h, 16.w, 16.h),
+      padding: EdgeInsets.fromLTRB(
+        16.w,
+        10.h,
+        16.w,
+        16.h,
+      ),
       decoration: BoxDecoration(
         color: colors.background,
-        border: Border(top: BorderSide(color: colors.divider)),
+        border: Border(
+          top: BorderSide(
+            color: colors.divider,
+          ),
+        ),
       ),
       child: SafeArea(
         top: false,
@@ -494,9 +571,55 @@ class _CallDetailsViewState extends State<CallDetailsView> {
             AppGlassActionButton(
               icon: Icons.call_rounded,
               label: 'Call Now',
-              onPressed: () => _makeCall(_call.phoneNumber),
+              onPressed: () =>
+                  _makeCall(
+                    _call.phoneNumber,
+                  ),
               expand: true,
             ),
+
+            if (isUpcoming) ...[
+              SizedBox(height: 10.h),
+
+              SizedBox(
+                width: double.infinity,
+                height: 48.h,
+                child: OutlinedButton.icon(
+                  onPressed:
+                  _addToCalendar,
+                  icon: Icon(
+                    Icons.calendar_month_rounded,
+                    size: 18.sp,
+                  ),
+                  label: Text(
+                    'Add to Calendar',
+                    style: AppFont.style.copyWith(
+                      fontSize: 14.sp,
+                      fontWeight:
+                      FontWeight.w700,
+                      color:
+                      colorScheme.primary,
+                    ),
+                  ),
+                  style:
+                  OutlinedButton.styleFrom(
+                    foregroundColor:
+                    colorScheme.primary,
+                    side: BorderSide(
+                      color:
+                      colorScheme.primary,
+                    ),
+                    shape:
+                    RoundedRectangleBorder(
+                      borderRadius:
+                      BorderRadius.circular(
+                        16.r,
+                      ),
+                    ),
+                  ),
+                ),
+              ),
+            ],
 
             if (!isCompleted) ...[
               SizedBox(height: 10.h),
@@ -505,24 +628,42 @@ class _CallDetailsViewState extends State<CallDetailsView> {
                 width: double.infinity,
                 height: 48.h,
                 child: OutlinedButton.icon(
-                  onPressed: isMissed ? _rescheduleCall : _markAsCompleted,
+                  onPressed: isMissed
+                      ? _rescheduleCall
+                      : _markAsCompleted,
                   icon: Icon(
-                    isMissed ? Icons.event_repeat_rounded : Icons.check_rounded,
+                    isMissed
+                        ? Icons
+                        .event_repeat_rounded
+                        : Icons.check_rounded,
                     size: 18.sp,
                   ),
                   label: Text(
-                    isMissed ? 'Reschedule Call' : 'Mark as Completed',
+                    isMissed
+                        ? 'Reschedule Call'
+                        : 'Mark as Completed',
                     style: AppFont.style.copyWith(
                       fontSize: 14.sp,
-                      fontWeight: FontWeight.w700,
-                      color: colorScheme.primary,
+                      fontWeight:
+                      FontWeight.w700,
+                      color:
+                      colorScheme.primary,
                     ),
                   ),
-                  style: OutlinedButton.styleFrom(
-                    foregroundColor: colorScheme.primary,
-                    side: BorderSide(color: colorScheme.primary),
-                    shape: RoundedRectangleBorder(
-                      borderRadius: BorderRadius.circular(16.r),
+                  style:
+                  OutlinedButton.styleFrom(
+                    foregroundColor:
+                    colorScheme.primary,
+                    side: BorderSide(
+                      color:
+                      colorScheme.primary,
+                    ),
+                    shape:
+                    RoundedRectangleBorder(
+                      borderRadius:
+                      BorderRadius.circular(
+                        16.r,
+                      ),
                     ),
                   ),
                 ),
@@ -534,9 +675,13 @@ class _CallDetailsViewState extends State<CallDetailsView> {
     );
   }
 
-  Color _avatarColor(String name, BuildContext context) {
+  Color _avatarColor(
+      String name,
+      BuildContext context,
+      ) {
     final colors = context.themeColors;
-    final colorScheme = Theme.of(context).colorScheme;
+    final colorScheme =
+        Theme.of(context).colorScheme;
 
     final avatarColors = [
       colorScheme.primary,
@@ -550,15 +695,20 @@ class _CallDetailsViewState extends State<CallDetailsView> {
     var hash = 0;
 
     for (final unit in name.codeUnits) {
-      hash = (hash * 31 + unit) & 0x7fffffff;
+      hash =
+      (hash * 31 + unit) & 0x7fffffff;
     }
 
-    return avatarColors[hash % avatarColors.length];
+    return avatarColors[
+    hash % avatarColors.length];
   }
 
   Future<void> _editCall() async {
-    final updatedCall = await Get.to<CallListEntity>(
-      () => ScheduleCallView(call: _call),
+    final updatedCall =
+    await Get.to<CallListEntity>(
+          () => ScheduleCallView(
+        call: _call,
+      ),
     );
 
     if (updatedCall == null) {
@@ -569,19 +719,25 @@ class _CallDetailsViewState extends State<CallDetailsView> {
       _call = updatedCall;
     });
 
-    await Get.find<HomeController>().getCallList();
+    await Get.find<HomeController>()
+        .getCallList();
   }
 
   Future<void> _rescheduleCall() async {
-    final rescheduledCall = await Get.to<CallListEntity>(
-      () => ScheduleCallView(call: _call, isReschedule: true),
+    final rescheduledCall =
+    await Get.to<CallListEntity>(
+          () => ScheduleCallView(
+        call: _call,
+        isReschedule: true,
+      ),
     );
 
     if (rescheduledCall == null) {
       return;
     }
 
-    await Get.find<HomeController>().getCallList();
+    await Get.find<HomeController>()
+        .getCallList();
 
     if (!mounted) {
       return;
@@ -606,58 +762,129 @@ class _CallDetailsViewState extends State<CallDetailsView> {
       'December',
     ];
 
-    return '${date.day} ${months[date.month - 1]} ${date.year}';
+    return '${date.day} '
+        '${months[date.month - 1]} '
+        '${date.year}';
   }
 
   String _formatTime(DateTime date) {
-    final hour = date.hour % 12 == 0 ? 12 : date.hour % 12;
+    final hour =
+    date.hour % 12 == 0
+        ? 12
+        : date.hour % 12;
 
-    final minute = date.minute.toString().padLeft(2, '0');
+    final minute =
+    date.minute.toString().padLeft(
+      2,
+      '0',
+    );
 
-    final period = date.hour >= 12 ? 'PM' : 'AM';
+    final period =
+    date.hour >= 12 ? 'PM' : 'AM';
 
     return '$hour:$minute $period';
   }
 
-  Future<void> _makeCall(String phoneNumber) async {
-    final cleanedPhoneNumber = phoneNumber.trim();
+  Future<void> _addToCalendar() async {
+    try {
+      final added =
+      await CalendarService.instance
+          .addCallToCalendar(_call);
+
+      if (!mounted) {
+        return;
+      }
+
+      if (added) {
+        Get.snackbar(
+          'Added to Calendar',
+          'The call was added to your calendar.',
+          snackPosition:
+          SnackPosition.BOTTOM,
+        );
+      } else {
+        Get.snackbar(
+          'Calendar',
+          'The calendar event was not added.',
+          snackPosition:
+          SnackPosition.BOTTOM,
+        );
+      }
+    } catch (e) {
+      debugPrint(
+        'Error adding call to calendar: $e',
+      );
+
+      if (!mounted) {
+        return;
+      }
+
+      Get.snackbar(
+        'Calendar',
+        'Unable to add the call to your calendar.',
+        snackPosition:
+        SnackPosition.BOTTOM,
+      );
+    }
+  }
+
+  Future<void> _makeCall(
+      String phoneNumber,
+      ) async {
+    final cleanedPhoneNumber =
+    phoneNumber.trim();
 
     if (cleanedPhoneNumber.isEmpty) {
       Get.snackbar(
         'Unable to call',
         'Phone number is not available.',
-        snackPosition: SnackPosition.BOTTOM,
+        snackPosition:
+        SnackPosition.BOTTOM,
       );
       return;
     }
 
-    final uri = Uri(scheme: 'tel', path: cleanedPhoneNumber);
+    final uri = Uri(
+      scheme: 'tel',
+      path: cleanedPhoneNumber,
+    );
 
     try {
-      final launched = await launchUrl(
+      final launched =
+      await launchUrl(
         uri,
-        mode: LaunchMode.externalApplication,
+        mode:
+        LaunchMode.externalApplication,
       );
 
       if (!launched) {
         Get.snackbar(
           'Unable to call',
           'Could not open the phone app.',
-          snackPosition: SnackPosition.BOTTOM,
+          snackPosition:
+          SnackPosition.BOTTOM,
         );
         return;
       }
 
-      if (_call.status != CallStatusEntity.completed) {
-        final useCase = Get.find<CallUseCase>();
+      if (_call.status !=
+          CallStatusEntity.completed) {
+        final useCase =
+        Get.find<CallUseCase>();
 
         try {
-          await NotificationService.instance.cancelCallReminder(_call);
+          await NotificationService.instance
+              .cancelCallReminder(_call);
         } catch (e) {
-          debugPrint('Error cancelling call reminder: $e');
+          debugPrint(
+            'Error cancelling call reminder: $e',
+          );
         }
 
-        final updatedCall = await useCase.completeCall(_call);
+        final updatedCall =
+        await useCase.completeCall(
+          _call,
+        );
 
         if (!mounted) {
           return;
@@ -667,15 +894,19 @@ class _CallDetailsViewState extends State<CallDetailsView> {
           _call = updatedCall;
         });
 
-        await Get.find<HomeController>().getCallList();
+        await Get.find<HomeController>()
+            .getCallList();
       }
     } catch (e) {
-      debugPrint('Error launching phone app: $e');
+      debugPrint(
+        'Error launching phone app: $e',
+      );
 
       Get.snackbar(
         'Unable to call',
         'Could not open the phone app.',
-        snackPosition: SnackPosition.BOTTOM,
+        snackPosition:
+        SnackPosition.BOTTOM,
       );
     }
   }
@@ -683,7 +914,8 @@ class _CallDetailsViewState extends State<CallDetailsView> {
   Future<void> _deleteCall() async {
     final colors = context.themeColors;
 
-    final confirmed = await Get.dialog<bool>(
+    final confirmed =
+    await Get.dialog<bool>(
       AlertDialog(
         title: Text(
           'Delete call?',
@@ -703,18 +935,21 @@ class _CallDetailsViewState extends State<CallDetailsView> {
         ),
         actions: [
           TextButton(
-            onPressed: () => Get.back(result: false),
+            onPressed: () =>
+                Get.back(result: false),
             child: Text(
               'Cancel',
               style: AppFont.style.copyWith(
                 fontSize: 14.sp,
                 fontWeight: FontWeight.w600,
-                color: colors.textSecondary,
+                color:
+                colors.textSecondary,
               ),
             ),
           ),
           TextButton(
-            onPressed: () => Get.back(result: true),
+            onPressed: () =>
+                Get.back(result: true),
             child: Text(
               'Delete',
               style: AppFont.style.copyWith(
@@ -733,43 +968,57 @@ class _CallDetailsViewState extends State<CallDetailsView> {
     }
 
     try {
-      await Get.find<CallUseCase>().deleteCall(_call.id);
+      await Get.find<CallUseCase>()
+          .deleteCall(_call.id);
 
       try {
-        await NotificationService.instance.cancelCallReminder(_call);
+        await NotificationService.instance
+            .cancelCallReminder(_call);
       } catch (e) {
-        debugPrint('Error cancelling call reminder: $e');
+        debugPrint(
+          'Error cancelling call reminder: $e',
+        );
       }
 
-      await Get.find<HomeController>().getCallList();
+      await Get.find<HomeController>()
+          .getCallList();
 
       Get.back();
     } catch (e) {
-      debugPrint('Error deleting call: $e');
+      debugPrint(
+        'Error deleting call: $e',
+      );
 
       Get.snackbar(
         'Error',
         'Unable to delete call. Please try again.',
-        snackPosition: SnackPosition.BOTTOM,
+        snackPosition:
+        SnackPosition.BOTTOM,
       );
     }
   }
 
   Future<void> _markAsCompleted() async {
-    if (_call.status == CallStatusEntity.completed) {
+    if (_call.status ==
+        CallStatusEntity.completed) {
       return;
     }
 
     try {
-      final useCase = Get.find<CallUseCase>();
+      final useCase =
+      Get.find<CallUseCase>();
 
       try {
-        await NotificationService.instance.cancelCallReminder(_call);
+        await NotificationService.instance
+            .cancelCallReminder(_call);
       } catch (e) {
-        debugPrint('Error cancelling call reminder: $e');
+        debugPrint(
+          'Error cancelling call reminder: $e',
+        );
       }
 
-      final updatedCall = await useCase.completeCall(_call);
+      final updatedCall =
+      await useCase.completeCall(_call);
 
       if (!mounted) {
         return;
@@ -779,22 +1028,28 @@ class _CallDetailsViewState extends State<CallDetailsView> {
         _call = updatedCall;
       });
 
-      await Get.find<HomeController>().getCallList();
+      await Get.find<HomeController>()
+          .getCallList();
 
       Get.snackbar(
         'Completed',
-        _call.repeat == 'Does not repeat'
+        _call.repeat ==
+            'Does not repeat'
             ? 'Call marked as completed.'
             : 'Call completed. Next occurrence scheduled.',
-        snackPosition: SnackPosition.BOTTOM,
+        snackPosition:
+        SnackPosition.BOTTOM,
       );
     } catch (e) {
-      debugPrint('Error marking call as completed: $e');
+      debugPrint(
+        'Error marking call as completed: $e',
+      );
 
       Get.snackbar(
         'Error',
         'Unable to update call status.',
-        snackPosition: SnackPosition.BOTTOM,
+        snackPosition:
+        SnackPosition.BOTTOM,
       );
     }
   }
