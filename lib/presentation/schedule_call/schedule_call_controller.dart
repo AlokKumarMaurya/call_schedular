@@ -329,7 +329,11 @@ class ScheduleCallController extends GetxController {
                       ),
                     ),
                     const SizedBox(height: 12),
-                    ...reminderOptions.entries.map((entry) {
+                    Flexible(
+                      child: SingleChildScrollView(
+                        child: Column(
+                          children: [
+                            ...reminderOptions.entries.map((entry) {
                       final isSelected = selected.contains(entry.key);
 
                       return Container(
@@ -381,7 +385,11 @@ class ScheduleCallController extends GetxController {
                           },
                         ),
                       );
-                    }),
+                            }),
+                          ],
+                        ),
+                      ),
+                    ),
                     const SizedBox(height: 8),
                     SizedBox(
                       width: double.infinity,
