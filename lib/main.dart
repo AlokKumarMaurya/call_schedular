@@ -274,9 +274,7 @@ class _MyAppState extends State<MyApp> with WidgetsBindingObserver {
     final isAuthenticating = appLockService.isAuthenticating.value;
 
     return Positioned.fill(
-      child: AbsorbPointer(
-        absorbing: true,
-        child: ColoredBox(
+      child: ColoredBox(
           color: Theme.of(context).scaffoldBackgroundColor,
           child: SafeArea(
             child: Center(
