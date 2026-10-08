@@ -1,0 +1,29 @@
+{
+  "project_info": {
+    "project_number": "603716521891",
+    "project_id": "call-schedular-6eae7",
+    "storage_bucket": "call-schedular-6eae7.firebasestorage.app"
+  },
+  "client": [
+    {
+      "client_info": {
+        "mobilesdk_app_id": "1:603716521891:android:127aff6fff19a3cbc15416",
+        "android_client_info": {
+          "package_name": "com.alokkumarmaurya.callmate"
+        }
+      },
+      "oauth_client": [],
+      "api_key": [
+        {
+          "current_key": "AIzaSyB9XNfQ1tROA0_zMN2pN99mp7bEerEs2oc"
+        }
+      ],
+      "services": {
+        "appinvite_service": {
+          "other_platform_oauth_client": []
+        }
+      }
+    }
+  ],
+  "configuration_version": "1"
+}
