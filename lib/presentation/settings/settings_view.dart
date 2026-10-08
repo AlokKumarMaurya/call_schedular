@@ -2,6 +2,7 @@ import 'package:call_schedular/constants/app_const.dart';
 import 'package:call_schedular/services/app_update_service.dart';
 import 'package:call_schedular/services/backup_service.dart';
 import 'package:call_schedular/services/notification_service.dart';
+import 'package:call_schedular/presentation/home/home_controller.dart';
 import 'package:call_schedular/theme/app_font.dart';
 import 'package:call_schedular/theme/app_theme_colors.dart';
 import 'package:call_schedular/theme/app_theme_controller.dart';
@@ -179,6 +180,8 @@ class _SettingsViewState extends State<SettingsView>
       }
 
       if (result.isSuccess) {
+        await Get.find<HomeController>().getCallList();
+
         _showSnackBar(
           'Backup restored with ${result.callCount} calls.',
           isError: false,
