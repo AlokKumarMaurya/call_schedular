@@ -12,7 +12,28 @@
           "package_name": "com.alokkumarmaurya.callmate"
         }
       },
-      "oauth_client": [],
+      "oauth_client": [
+        {
+          "client_id": "603716521891-4le3vobcc000tk7sul8es55sq0977i65.apps.googleusercontent.com",
+          "client_type": 1,
+          "android_info": {
+            "package_name": "com.alokkumarmaurya.callmate",
+            "certificate_hash": "82cfe847b2943092c0ea61d6d14b91b49c07600c"
+          }
+        },
+        {
+          "client_id": "603716521891-it0f9gb7v22tlpk1cqem35b56d7eqigo.apps.googleusercontent.com",
+          "client_type": 1,
+          "android_info": {
+            "package_name": "com.alokkumarmaurya.callmate",
+            "certificate_hash": "d6c54652d23645b477c8a2b1e481f50028f2358d"
+          }
+        },
+        {
+          "client_id": "603716521891-a3sf5t3fipdp67l7kg83gqej62kimvk4.apps.googleusercontent.com",
+          "client_type": 3
+        }
+      ],
       "api_key": [
         {
           "current_key": "AIzaSyB9XNfQ1tROA0_zMN2pN99mp7bEerEs2oc"
@@ -20,7 +41,12 @@
       ],
       "services": {
         "appinvite_service": {
-          "other_platform_oauth_client": []
+          "other_platform_oauth_client": [
+            {
+              "client_id": "603716521891-a3sf5t3fipdp67l7kg83gqej62kimvk4.apps.googleusercontent.com",
+              "client_type": 3
+            }
+          ]
         }
       }
     }
