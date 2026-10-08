@@ -1,6 +1,7 @@
 import 'package:call_schedular/data/data_source/local/call_database.dart';
 import 'package:call_schedular/data/repo/call_list_repo_impl.dart';
 import 'package:call_schedular/domain/repo/call_repo.dart';
+import 'package:call_schedular/services/app_lock_service.dart';
 import 'package:call_schedular/services/backup_service.dart';
 import 'package:call_schedular/services/cloud_sync_service.dart';
 import 'package:call_schedular/services/home_widget_service.dart';
@@ -27,6 +28,10 @@ class AppDI {
   }
 
   static void _initServices() {
+    Get.put<AppLockService>(
+      AppLockService(),
+      permanent: true,
+    );
     Get.put<CloudSyncService>(
       CloudSyncService(Get.find<CallLocalDataSource>()),
       permanent: true,
