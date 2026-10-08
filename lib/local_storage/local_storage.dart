@@ -17,4 +17,11 @@ class AppLocalStorage {
   static void setThemeMode(String value) {
     _box.write(AppLocalStorageKeys.themeMode, value);
   }
+
+  static bool get isAppLockEnabled =>
+      _box.read(AppLocalStorageKeys.isAppLockEnabled) ?? false;
+
+  static void setAppLockEnabled(bool value) {
+    _box.write(AppLocalStorageKeys.isAppLockEnabled, value);
+  }
 }

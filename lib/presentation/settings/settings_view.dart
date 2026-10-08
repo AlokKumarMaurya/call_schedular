@@ -2,6 +2,7 @@ import 'dart:async';
 
 import 'package:call_schedular/constants/app_const.dart';
 import 'package:call_schedular/services/app_auth_service.dart';
+import 'package:call_schedular/services/app_lock_service.dart';
 import 'package:call_schedular/services/app_update_service.dart';
 import 'package:call_schedular/services/backup_service.dart';
 import 'package:call_schedular/services/notification_service.dart';
@@ -27,6 +28,7 @@ class SettingsView extends StatefulWidget {
 class _SettingsViewState extends State<SettingsView>
     with WidgetsBindingObserver {
   late final AppThemeController _themeController;
+  late final AppLockService _appLockService;
 
   StreamSubscription<User?>? _authSubscription;
 
@@ -49,6 +51,7 @@ class _SettingsViewState extends State<SettingsView>
     super.initState();
 
     _themeController = Get.find<AppThemeController>();
+    _appLockService = Get.find<AppLockService>();
     _currentUser = AppAuthService.instance.currentUser;
 
     _authSubscription = AppAuthService.instance.authStateChanges.listen(
@@ -86,6 +89,26 @@ class _SettingsViewState extends State<SettingsView>
       _currentUser = user;
       _isSigningIn = false;
     });
+  }
+
+  Future<void> _toggleAppLock(bool enabled) async {
+    if (enabled) {
+      final enabledSuccessfully = await _appLockService.enable();
+
+      if (!mounted) {
+        return;
+      }
+
+      if (!enabledSuccessfully) {
+        _showSnackBar(
+          'Device authentication is not available or authentication was cancelled.',
+          isError: true,
+        );
+      }
+      return;
+    }
+
+    await _appLockService.disable();
   }
 
   Future<void> _signInWithGoogle() async {
@@ -530,6 +553,33 @@ class _SettingsViewState extends State<SettingsView>
                 ? 'Enabled'
                 : 'Disabled',
             onTap: _openNotificationSettings,
+          ),
+
+          SizedBox(height: 24.h),
+
+          _buildSectionTitle(
+            context,
+            'Security',
+          ),
+
+          Obx(
+            () => _buildSettingTile(
+              context,
+              icon: Icons.lock_outline_rounded,
+              iconBackground: colors.primaryLight,
+              iconColor: Theme.of(context).colorScheme.primary,
+              title: 'App Lock',
+              subtitle: _appLockService.isEnabled.value
+                  ? 'Require device authentication when opening Callmate'
+                  : 'Protect Callmate with your device lock',
+              trailing: Switch.adaptive(
+                value: _appLockService.isEnabled.value,
+                onChanged: _toggleAppLock,
+              ),
+              onTap: () => _toggleAppLock(
+                !_appLockService.isEnabled.value,
+              ),
+            ),
           ),
 
           SizedBox(height: 24.h),
