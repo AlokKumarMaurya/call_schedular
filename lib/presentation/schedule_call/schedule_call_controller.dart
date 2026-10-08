@@ -357,11 +357,25 @@ class ScheduleCallController extends GetxController {
       if (entity.status == CallStatusEntity.upcoming &&
           entity.scheduledAt.isAfter(DateTime.now())) {
         try {
-          final permissionGranted = await NotificationService.instance
-              .requestNotificationPermission();
+          if (entity.status == CallStatusEntity.upcoming &&
+              entity.scheduledAt.isAfter(DateTime.now())) {
+            try {
+              final permissionGranted = await NotificationService.instance
+                  .requestNotificationPermission();
 
-          if (permissionGranted) {
-            await NotificationService.instance.scheduleCallReminder(entity);
+              if (!permissionGranted) {
+                debugPrint('Notification permission was not granted.');
+              } else {
+                await NotificationService.instance
+                    .requestExactAlarmPermission();
+
+                await NotificationService.instance.scheduleCallReminder(entity);
+              }
+            } catch (e, stackTrace) {
+              debugPrint('Error scheduling call reminder: $e');
+
+              debugPrintStack(stackTrace: stackTrace);
+            }
           } else {
             debugPrint('Notification permission was not granted.');
           }
