@@ -1,4 +1,5 @@
 import 'dart:async';
+import 'dart:convert';
 
 import 'package:call_schedular/data/data_source/local/call_local_datasource.dart';
 import 'package:call_schedular/domain/entity/call_list_entity.dart';
@@ -54,6 +55,7 @@ class CloudSyncService {
 
     try {
       await _initialSync();
+      await _drainOutbox();
 
       final collection = _callsCollection;
 
@@ -94,33 +96,163 @@ class CloudSyncService {
 
     if (cloudSnapshot.docs.isEmpty) {
       if (localCalls.isNotEmpty) {
-        await _writeAllCalls(localCalls);
+        for (final call in localCalls) {
+          await _queueUpsert(call, DateTime.now().millisecondsSinceEpoch);
+        }
       }
 
       _isInitialSync = false;
       return;
     }
 
-    final cloudCalls = cloudSnapshot.docs
-        .map(_callFromDocument)
-        .whereType<CallListEntity>()
-        .toList();
+    final cloudById = <String, _CloudCall>{};
 
-    final mergedCalls = <String, CallListEntity>{
-      for (final call in cloudCalls) call.id: call,
-    };
-
-    for (final call in localCalls) {
-      mergedCalls.putIfAbsent(call.id, () => call);
+    for (final document in cloudSnapshot.docs) {
+      final call = _callFromDocument(document);
+      if (call != null) {
+        cloudById[call.id] = call;
+      }
     }
 
-    final result = mergedCalls.values.toList()
+    final merged = <String, CallListEntity>{};
+
+    for (final localCall in localCalls) {
+      final cloudCall = cloudById[localCall.id];
+
+      if (cloudCall == null ||
+          cloudCall.updatedAt <=
+              await _localUpdatedAt(localCall.id)) {
+        merged[localCall.id] = localCall;
+      } else {
+        merged[localCall.id] = cloudCall.call;
+      }
+    }
+
+    for (final cloudCall in cloudById.values) {
+      merged.putIfAbsent(cloudCall.id, () => cloudCall.call);
+    }
+
+    final result = merged.values.toList()
       ..sort((a, b) => a.scheduledAt.compareTo(b.scheduledAt));
 
     await _localDataSource.replaceCalls(result);
-    await _writeAllCalls(result);
+
+    for (final call in result) {
+      final cloudCall = cloudById[call.id];
+      final localUpdatedAt = await _localUpdatedAt(call.id);
+
+      if (cloudCall == null ||
+          localUpdatedAt >= cloudCall.updatedAt) {
+        await _queueUpsert(call, localUpdatedAt);
+      }
+    }
 
     _isInitialSync = false;
+  }
+
+  Future<int> _localUpdatedAt(String callId) async {
+    final operations = await _localDataSource.getPendingSyncOperations();
+
+    for (final operation in operations) {
+      if (operation['call_id'] == callId) {
+        return (operation['updated_at'] as int?) ?? 0;
+      }
+    }
+
+    return 0;
+  }
+
+  Future<void> _queueUpsert(
+    CallListEntity call,
+    int updatedAt,
+  ) async {
+    await _localDataSource.enqueueSyncOperation(
+      callId: call.id,
+      operation: 'upsert',
+      updatedAt: updatedAt,
+      payload: _callToMap(
+        call,
+        updatedAt: updatedAt,
+      ),
+    );
+  }
+
+  Future<void> queueUpsert(CallListEntity call) async {
+    final updatedAt = DateTime.now().millisecondsSinceEpoch;
+
+    await _queueUpsert(call, updatedAt);
+    unawaited(_drainOutbox());
+  }
+
+  Future<void> queueDelete(String id) async {
+    final updatedAt = DateTime.now().millisecondsSinceEpoch;
+
+    await _localDataSource.enqueueSyncOperation(
+      callId: id,
+      operation: 'delete',
+      updatedAt: updatedAt,
+    );
+
+    unawaited(_drainOutbox());
+  }
+
+  Future<void> syncAllCalls() async {
+    final calls = await _localDataSource.getCallList();
+
+    for (final call in calls) {
+      await queueUpsert(call);
+    }
+  }
+
+  Future<void> _drainOutbox() {
+    _syncQueue = _syncQueue.then(
+      (_) => _drainOutboxInternal(),
+    );
+
+    return _syncQueue;
+  }
+
+  Future<void> _drainOutboxInternal() async {
+    final collection = _callsCollection;
+
+    if (collection == null) {
+      return;
+    }
+
+    try {
+      final operations =
+          await _localDataSource.getPendingSyncOperations();
+
+      for (final operation in operations) {
+        final operationId = operation['id'] as int;
+        final operationType = operation['operation'] as String;
+        final callId = operation['call_id'] as String;
+
+        if (operationType == 'delete') {
+          await collection.doc(callId).delete();
+        } else {
+          final payloadString = operation['payload'] as String?;
+
+          if (payloadString == null) {
+            await _localDataSource.removeSyncOperation(operationId);
+            continue;
+          }
+
+          final payload =
+              jsonDecode(payloadString) as Map<String, dynamic>;
+
+          await collection.doc(callId).set(payload);
+        }
+
+        await _localDataSource.removeSyncOperation(operationId);
+      }
+    } catch (e, stackTrace) {
+      await AppCrashReporter.instance.recordError(
+        e,
+        stackTrace,
+        reason: 'Cloud sync outbox drain failed',
+      );
+    }
   }
 
   void _handleCloudSnapshot(
@@ -138,21 +270,33 @@ class CloudSyncService {
 
     try {
       for (final change in snapshot.docChanges) {
-        switch (change.type) {
-          case DocumentChangeType.added:
-          case DocumentChangeType.modified:
-            final call = _callFromDocument(change.doc);
+        final cloudCall = _callFromDocument(change.doc);
 
-            if (call != null) {
-              await _localDataSource.insertCall(call);
-            }
-            break;
+        if (change.type == DocumentChangeType.removed) {
+          final pendingUpdatedAt =
+              await _localUpdatedAt(change.doc.id);
 
-          case DocumentChangeType.removed:
+          if (pendingUpdatedAt == 0) {
             await _localDataSource.deleteCall(change.doc.id);
-            break;
+          }
+          continue;
         }
+
+        if (cloudCall == null) {
+          continue;
+        }
+
+        final pendingUpdatedAt =
+            await _localUpdatedAt(cloudCall.id);
+
+        if (pendingUpdatedAt > cloudCall.updatedAt) {
+          continue;
+        }
+
+        await _localDataSource.insertCall(cloudCall.call);
       }
+
+      await _drainOutbox();
     } catch (e, stackTrace) {
       await AppCrashReporter.instance.recordError(
         e,
@@ -162,106 +306,10 @@ class CloudSyncService {
     }
   }
 
-  Future<void> syncCall(CallListEntity call) {
-    return _enqueue(() async {
-      final collection = _callsCollection;
-
-      if (collection == null) {
-        return;
-      }
-
-      await collection.doc(call.id).set(_callToMap(call));
-    });
-  }
-
-  Future<void> deleteCall(String id) {
-    return _enqueue(() async {
-      final collection = _callsCollection;
-
-      if (collection == null) {
-        return;
-      }
-
-      await collection.doc(id).delete();
-    });
-  }
-
-  Future<void> syncAllCalls() {
-    return _enqueue(() async {
-      final calls = await _localDataSource.getCallList();
-      await _writeAllCalls(calls);
-    });
-  }
-
-  Future<void> _writeAllCalls(List<CallListEntity> calls) async {
-    final collection = _callsCollection;
-
-    if (collection == null) {
-      return;
-    }
-
-    final cloudSnapshot = await collection.get();
-
-    for (var start = 0; start < calls.length; start += 400) {
-      final end = (start + 400).clamp(0, calls.length);
-      final batch = _firestore.batch();
-
-      for (final call in calls.sublist(start, end)) {
-        batch.set(
-          collection.doc(call.id),
-          _callToMap(call),
-        );
-      }
-
-      for (final document in cloudSnapshot.docs) {
-        final stillExists = calls.any(
-          (call) => call.id == document.id,
-        );
-
-        if (!stillExists) {
-          batch.delete(document.reference);
-        }
-      }
-
-      await batch.commit();
-
-      if (end >= calls.length) {
-        break;
-      }
-    }
-
-    if (calls.isEmpty && cloudSnapshot.docs.isNotEmpty) {
-      final batch = _firestore.batch();
-
-      for (final document in cloudSnapshot.docs) {
-        batch.delete(document.reference);
-      }
-
-      await batch.commit();
-    }
-  }
-
-  Future<void> _enqueue(
-    Future<void> Function() operation,
-  ) {
-    _syncQueue = _syncQueue.then(
-      (_) async {
-        try {
-          await operation();
-        } catch (e, stackTrace) {
-          await AppCrashReporter.instance.recordError(
-            e,
-            stackTrace,
-            reason: 'Cloud call sync operation failed',
-          );
-        }
-      },
-    );
-
-    return _syncQueue;
-  }
-
-  Map<String, dynamic> _callToMap(CallListEntity call) {
+  Map<String, dynamic> _callToMap(
+    CallListEntity call, {
+    required int updatedAt,
+  }) {
     return {
       'id': call.id,
       'contactName': call.contactName,
@@ -271,11 +319,11 @@ class CloudSyncService {
       'notes': call.notes,
       'repeat': call.repeat,
       'reminderMinutesBefore': call.reminderMinutesBefore,
-      'updatedAt': FieldValue.serverTimestamp(),
+      'updatedAt': updatedAt,
     };
   }
 
-  CallListEntity? _callFromDocument(
+  _CloudCall? _callFromDocument(
     DocumentSnapshot<Map<String, dynamic>> document,
   ) {
     final data = document.data();
@@ -285,8 +333,19 @@ class CloudSyncService {
     }
 
     final scheduledAt = data['scheduledAt'];
+    final rawUpdatedAt = data['updatedAt'];
 
-    if (scheduledAt is! num) {
+    if (scheduledAt is! num || rawUpdatedAt == null) {
+      return null;
+    }
+
+    final updatedAt = rawUpdatedAt is Timestamp
+        ? rawUpdatedAt.millisecondsSinceEpoch
+        : rawUpdatedAt is num
+            ? rawUpdatedAt.toInt()
+            : 0;
+
+    if (updatedAt <= 0) {
       return null;
     }
 
@@ -306,7 +365,7 @@ class CloudSyncService {
             .toList()
         : const <int>[0];
 
-    return CallListEntity(
+    final call = CallListEntity(
       id: data['id'] is String && (data['id'] as String).isNotEmpty
           ? data['id'] as String
           : document.id,
@@ -320,6 +379,11 @@ class CloudSyncService {
       repeat: data['repeat'] as String? ?? 'Does not repeat',
       reminderMinutesBefore:
           reminders.isEmpty ? const [0] : reminders,
+    );
+
+    return _CloudCall(
+      call: call,
+      updatedAt: updatedAt,
     );
   }
 
@@ -337,4 +401,16 @@ class CloudSyncService {
     _authSubscription = null;
     _callsSubscription = null;
   }
+}
+
+class _CloudCall {
+  const _CloudCall({
+    required this.call,
+    required this.updatedAt,
+  });
+
+  final CallListEntity call;
+  final int updatedAt;
+
+  String get id => call.id;
 }
