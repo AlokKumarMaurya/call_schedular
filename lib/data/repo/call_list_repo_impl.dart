@@ -1,7 +1,8 @@
 import 'package:call_schedular/data/data_source/local/call_local_datasource.dart';
 import 'package:call_schedular/domain/entity/call_list_entity.dart';
-import 'package:call_schedular/domain/repo/call_repo.dart';
 import 'dart:async';
+
+import 'package:call_schedular/domain/repo/call_repo.dart';
 
 import 'package:call_schedular/services/cloud_sync_service.dart';
 import 'package:call_schedular/services/home_widget_service.dart';
@@ -33,6 +34,7 @@ class CallRepoImpl implements CallRepo {
   Future<void> updateCall(CallListEntity call) async {
     await _localDataSource.updateCall(call);
     await _cloudSyncService.queueUpsert(call);
+    unawaited(_homeWidgetService.refresh());
   }
 
   @override
