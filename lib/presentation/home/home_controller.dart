@@ -5,6 +5,20 @@ import 'package:get/get.dart';
 
 import '../../services/notification_service.dart';
 
+enum CallDateFilter {
+  all,
+  today,
+  tomorrow,
+  thisWeek,
+  custom,
+}
+
+enum CallRecurrenceFilter {
+  all,
+  recurring,
+  nonRecurring,
+}
+
 class HomeController extends GetxController
     with GetSingleTickerProviderStateMixin {
   late TabController tabController;
@@ -16,6 +30,18 @@ class HomeController extends GetxController
   final searchController = TextEditingController();
 
   String searchQuery = '';
+
+  CallDateFilter dateFilter = CallDateFilter.all;
+
+  CallRecurrenceFilter recurrenceFilter = CallRecurrenceFilter.all;
+
+  DateTime? customFilterDate;
+
+  bool get hasSearchFilters {
+    return searchQuery.isNotEmpty ||
+        dateFilter != CallDateFilter.all ||
+        recurrenceFilter != CallRecurrenceFilter.all;
+  }
 
   @override
   void onInit() {
@@ -72,8 +98,8 @@ class HomeController extends GetxController
             call.status == CallStatusEntity.upcoming;
       }).toList(),
     )..sort(
-          (a, b) => a.scheduledAt.compareTo(b.scheduledAt),
-    );
+        (a, b) => a.scheduledAt.compareTo(b.scheduledAt),
+      );
   }
 
   List<CallListEntity> get upcomingCalls {
@@ -86,8 +112,8 @@ class HomeController extends GetxController
             call.status == CallStatusEntity.upcoming;
       }).toList(),
     )..sort(
-          (a, b) => a.scheduledAt.compareTo(b.scheduledAt),
-    );
+        (a, b) => a.scheduledAt.compareTo(b.scheduledAt),
+      );
   }
 
   List<CallListEntity> get completedCalls {
@@ -96,8 +122,8 @@ class HomeController extends GetxController
         return call.status == CallStatusEntity.completed;
       }).toList(),
     )..sort(
-          (a, b) => b.scheduledAt.compareTo(a.scheduledAt),
-    );
+        (a, b) => b.scheduledAt.compareTo(a.scheduledAt),
+      );
   }
 
   List<CallListEntity> get missedCalls {
@@ -106,8 +132,8 @@ class HomeController extends GetxController
         return call.status == CallStatusEntity.missed;
       }).toList(),
     )..sort(
-          (a, b) => b.scheduledAt.compareTo(a.scheduledAt),
-    );
+        (a, b) => b.scheduledAt.compareTo(a.scheduledAt),
+      );
   }
 
   bool _isSameDay(DateTime first, DateTime second) {
@@ -127,20 +153,117 @@ class HomeController extends GetxController
     update();
   }
 
+  void setDateFilter(
+    CallDateFilter filter, {
+    DateTime? customDate,
+  }) {
+    dateFilter = filter;
+    customFilterDate = filter == CallDateFilter.custom
+        ? customDate
+        : null;
+    update();
+  }
+
+  void setRecurrenceFilter(CallRecurrenceFilter filter) {
+    recurrenceFilter = filter;
+    update();
+  }
+
+  void clearSearchFilters() {
+    searchController.clear();
+    searchQuery = '';
+    dateFilter = CallDateFilter.all;
+    recurrenceFilter = CallRecurrenceFilter.all;
+    customFilterDate = null;
+    update();
+  }
+
+  String get dateFilterLabel {
+    switch (dateFilter) {
+      case CallDateFilter.all:
+        return 'Any date';
+      case CallDateFilter.today:
+        return 'Today';
+      case CallDateFilter.tomorrow:
+        return 'Tomorrow';
+      case CallDateFilter.thisWeek:
+        return 'This week';
+      case CallDateFilter.custom:
+        if (customFilterDate == null) {
+          return 'Custom date';
+        }
+        return customFilterDate!.day.toString() +
+            '/' +
+            customFilterDate!.month.toString() +
+            '/' +
+            customFilterDate!.year.toString();
+    }
+  }
+
+  String get recurrenceFilterLabel {
+    switch (recurrenceFilter) {
+      case CallRecurrenceFilter.all:
+        return 'All calls';
+      case CallRecurrenceFilter.recurring:
+        return 'Recurring';
+      case CallRecurrenceFilter.nonRecurring:
+        return 'One-time';
+    }
+  }
+
   List<CallListEntity> _filterCalls(List<CallListEntity> calls) {
+    return calls.where((call) {
+      final matchesSearch = _matchesSearch(call);
+      final matchesDate = _matchesDateFilter(call.scheduledAt);
+      final matchesRecurrence =
+          recurrenceFilter == CallRecurrenceFilter.all ||
+          (recurrenceFilter == CallRecurrenceFilter.recurring &&
+              call.isRecurring) ||
+          (recurrenceFilter == CallRecurrenceFilter.nonRecurring &&
+              !call.isRecurring);
+
+      return matchesSearch && matchesDate && matchesRecurrence;
+    }).toList();
+  }
+
+  bool _matchesSearch(CallListEntity call) {
     if (searchQuery.isEmpty) {
-      return calls;
+      return true;
     }
 
-    return calls.where((call) {
-      final contactName = call.contactName.toLowerCase();
-      final phoneNumber = call.phoneNumber.toLowerCase();
-      final notes = call.notes?.toLowerCase() ?? '';
+    final contactName = call.contactName.toLowerCase();
+    final phoneNumber = call.phoneNumber.toLowerCase();
+    final notes = call.notes?.toLowerCase() ?? '';
 
-      return contactName.contains(searchQuery) ||
-          phoneNumber.contains(searchQuery) ||
-          notes.contains(searchQuery);
-    }).toList();
+    return contactName.contains(searchQuery) ||
+        phoneNumber.contains(searchQuery) ||
+        notes.contains(searchQuery);
+  }
+
+  bool _matchesDateFilter(DateTime date) {
+    switch (dateFilter) {
+      case CallDateFilter.all:
+        return true;
+      case CallDateFilter.today:
+        return _isSameDay(date, DateTime.now());
+      case CallDateFilter.tomorrow:
+        return _isSameDay(
+          date,
+          DateTime.now().add(const Duration(days: 1)),
+        );
+      case CallDateFilter.thisWeek:
+        final now = DateTime.now();
+        final today = DateTime(now.year, now.month, now.day);
+        final startOfWeek = today.subtract(
+          Duration(days: today.weekday - DateTime.monday),
+        );
+        final endOfWeek = startOfWeek.add(const Duration(days: 7));
+
+        return !date.isBefore(startOfWeek) && date.isBefore(endOfWeek);
+      case CallDateFilter.custom:
+        return customFilterDate != null &&
+            _isSameDay(date, customFilterDate!);
+    }
   }
 
   @override
