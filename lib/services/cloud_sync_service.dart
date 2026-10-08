@@ -204,6 +204,48 @@ class CloudSyncService {
     }
   }
 
+  Future<void> retryPendingSync() async {
+    final user = AppAuthService.instance.currentUser;
+
+    if (user == null) {
+      return;
+    }
+
+    try {
+      if (_isInitialSync) {
+        await _initialSync();
+        _isInitialSync = false;
+      }
+
+      await _drainOutbox();
+
+      if (_callsSubscription == null) {
+        final collection = _callsCollection;
+
+        if (collection != null) {
+          _callsSubscription = collection.snapshots().listen(
+            _handleCloudSnapshot,
+            onError: (Object error, StackTrace stackTrace) {
+              unawaited(
+                AppCrashReporter.instance.recordError(
+                  error,
+                  stackTrace,
+                  reason: 'Cloud call sync listener failed',
+                ),
+              );
+            },
+          );
+        }
+      }
+    } catch (e, stackTrace) {
+      await AppCrashReporter.instance.recordError(
+        e,
+        stackTrace,
+        reason: 'Retrying pending cloud sync failed',
+      );
+    }
+  }
+
   Future<void> _drainOutbox() {
     _syncQueue = _syncQueue.then(
       (_) => _drainOutboxInternal(),
