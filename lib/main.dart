@@ -6,10 +6,12 @@ import 'package:call_schedular/local_storage/local_storage.dart';
 import 'package:call_schedular/presentation/call_details/call_details_view.dart';
 import 'package:call_schedular/presentation/home/home_view.dart';
 import 'package:call_schedular/presentation/intro/intro_view.dart';
+import 'package:call_schedular/services/app_crash_reporter.dart';
 import 'package:call_schedular/services/app_update_service.dart';
 import 'package:call_schedular/services/notification_service.dart';
 import 'package:call_schedular/theme/app_theme.dart';
 import 'package:call_schedular/theme/app_theme_controller.dart';
+import 'package:firebase_core/firebase_core.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_screenutil_plus/flutter_screenutil_plus.dart';
 import 'package:get/get.dart';
@@ -17,9 +19,30 @@ import 'package:get_storage/get_storage.dart';
 
 import 'domain/entity/call_list_entity.dart';
 import 'domain/usecase/call_use_case.dart';
+import 'firebase_options.dart';
 
 Future<void> main() async {
   WidgetsFlutterBinding.ensureInitialized();
+
+  /*
+   * Firebase must be initialized before Crashlytics can
+   * register its global error handlers.
+   */
+  try {
+    await Firebase.initializeApp(
+      options: DefaultFirebaseOptions.currentPlatform,
+    );
+
+    await AppCrashReporter.instance.initialize();
+  } catch (e, stackTrace) {
+    debugPrint(
+      'Firebase/Crashlytics initialization failed: $e',
+    );
+
+    debugPrintStack(
+      stackTrace: stackTrace,
+    );
+  }
 
   /*
    * Only initialization required to determine the first Flutter
@@ -35,8 +58,23 @@ Future<void> main() async {
 
     AppDI.init();
   } catch (e, stackTrace) {
-    debugPrint('App startup initialization failed: $e');
-    debugPrintStack(stackTrace: stackTrace);
+    debugPrint(
+      'App startup initialization failed: $e',
+    );
+
+    debugPrintStack(
+      stackTrace: stackTrace,
+    );
+
+    /*
+     * If something fails during application startup, record it
+     * as a non-fatal error when Crashlytics is available.
+     */
+    await AppCrashReporter.instance.recordError(
+      e,
+      stackTrace,
+      reason: 'Application startup initialization failed',
+    );
   }
 
   /*
@@ -102,13 +140,25 @@ class _MyAppState extends State<MyApp> {
        */
       await _handleInitialNotification();
     } catch (e, stackTrace) {
-      debugPrint('Notification initialization failed: $e');
-      debugPrintStack(stackTrace: stackTrace);
+      debugPrint(
+        'Notification initialization failed: $e',
+      );
+
+      debugPrintStack(
+        stackTrace: stackTrace,
+      );
+
+      await AppCrashReporter.instance.recordError(
+        e,
+        stackTrace,
+        reason: 'Notification initialization failed',
+      );
     }
   }
 
   Future<void> _handleInitialNotification() async {
-    final callId = NotificationService.instance.consumeInitialCallId();
+    final callId =
+    NotificationService.instance.consumeInitialCallId();
 
     if (callId == null || callId.isEmpty) {
       return;
@@ -118,40 +168,70 @@ class _MyAppState extends State<MyApp> {
   }
 
   Future<void> _openCallFromNotification(String callId) async {
-    final useCase = Get.find<CallUseCase>();
+    try {
+      final useCase = Get.find<CallUseCase>();
 
-    final calls = await useCase.getCallList();
+      final calls = await useCase.getCallList();
 
-    CallListEntity? call;
+      CallListEntity? call;
 
-    for (final item in calls) {
-      if (item.id == callId) {
-        call = item;
-        break;
+      for (final item in calls) {
+        if (item.id == callId) {
+          call = item;
+          break;
+        }
       }
-    }
 
-    if (call == null) {
-      debugPrint(
-        'Call not found for notification: $callId',
+      if (call == null) {
+        debugPrint(
+          'Call not found for notification: $callId',
+        );
+
+        await AppCrashReporter.instance.recordError(
+          StateError(
+            'Call not found for notification',
+          ),
+          StackTrace.current,
+          reason: 'Notification referenced a missing call',
+          information: [
+            'callId: $callId',
+          ],
+        );
+
+        return;
+      }
+
+      if (!mounted) {
+        return;
+      }
+
+      Get.until(
+            (route) => route.isFirst,
       );
 
-      return;
+      Get.to(
+            () => CallDetailsView(
+          call: call!,
+        ),
+      );
+    } catch (e, stackTrace) {
+      debugPrint(
+        'Failed to open call from notification: $e',
+      );
+
+      debugPrintStack(
+        stackTrace: stackTrace,
+      );
+
+      await AppCrashReporter.instance.recordError(
+        e,
+        stackTrace,
+        reason: 'Failed to open call from notification',
+        information: [
+          'callId: $callId',
+        ],
+      );
     }
-
-    if (!mounted) {
-      return;
-    }
-
-    Get.until(
-          (route) => route.isFirst,
-    );
-
-    Get.to(
-          () => CallDetailsView(
-        call: call!,
-      ),
-    );
   }
 
   @override
@@ -181,7 +261,8 @@ class _MyAppState extends State<MyApp> {
       splitScreenMode: true,
 
       builder: (context, child) {
-        final themeController = Get.find<AppThemeController>();
+        final themeController =
+        Get.find<AppThemeController>();
 
         return Obx(
               () => GetMaterialApp(
@@ -193,7 +274,8 @@ class _MyAppState extends State<MyApp> {
 
             home: Scaffold(
               backgroundColor:
-              themeController.themeMode.value == ThemeMode.dark
+              themeController.themeMode.value ==
+                  ThemeMode.dark
                   ? appDarkTheme.scaffoldBackgroundColor
                   : appTheme.scaffoldBackgroundColor,
               body: child,
