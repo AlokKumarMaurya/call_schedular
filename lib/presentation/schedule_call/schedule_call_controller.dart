@@ -338,23 +338,19 @@ class ScheduleCallController extends GetxController {
 
                       return Container(
                         margin: const EdgeInsets.only(bottom: 6),
-                        decoration: BoxDecoration(
-                          color: isSelected
-                              ? sheetColors.primaryLight
-                              : Colors.transparent,
-                          borderRadius: BorderRadius.circular(14),
-                          border: Border.all(
-                            color: isSelected
-                                ? sheetColorScheme.primary
-                                    .withValues(alpha: 0.18)
-                                : sheetColors.border,
-                          ),
-                        ),
                         child: Material(
                           color: isSelected
                               ? sheetColors.primaryLight
                               : Colors.transparent,
-                          borderRadius: BorderRadius.circular(14),
+                          shape: RoundedRectangleBorder(
+                            borderRadius: BorderRadius.circular(14),
+                            side: BorderSide(
+                              color: isSelected
+                                  ? sheetColorScheme.primary
+                                      .withValues(alpha: 0.18)
+                                  : sheetColors.border,
+                            ),
+                          ),
                           clipBehavior: Clip.antiAlias,
                           child: ListTile(
                             contentPadding: const EdgeInsets.symmetric(
