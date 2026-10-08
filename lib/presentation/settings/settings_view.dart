@@ -1,4 +1,5 @@
 import 'package:call_schedular/constants/app_const.dart';
+import 'package:call_schedular/services/app_auth_service.dart';
 import 'package:call_schedular/services/app_update_service.dart';
 import 'package:call_schedular/services/backup_service.dart';
 import 'package:call_schedular/services/notification_service.dart';
@@ -6,6 +7,7 @@ import 'package:call_schedular/presentation/home/home_controller.dart';
 import 'package:call_schedular/theme/app_font.dart';
 import 'package:call_schedular/theme/app_theme_colors.dart';
 import 'package:call_schedular/theme/app_theme_controller.dart';
+import 'package:firebase_auth/firebase_auth.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_screenutil_plus/flutter_screenutil_plus.dart';
 import 'package:get/get.dart';
@@ -24,6 +26,11 @@ class _SettingsViewState extends State<SettingsView>
     with WidgetsBindingObserver {
   late final AppThemeController _themeController;
 
+  StreamSubscription<User?>? _authSubscription;
+
+  User? _currentUser;
+  bool _isSigningIn = false;
+
   bool _notificationsEnabled = false;
   bool _isLoadingNotifications = true;
 
@@ -40,6 +47,11 @@ class _SettingsViewState extends State<SettingsView>
     super.initState();
 
     _themeController = Get.find<AppThemeController>();
+    _currentUser = AppAuthService.instance.currentUser;
+
+    _authSubscription = AppAuthService.instance.authStateChanges.listen(
+      _handleAuthStateChanged,
+    );
 
     WidgetsBinding.instance.addObserver(this);
 
@@ -49,6 +61,7 @@ class _SettingsViewState extends State<SettingsView>
 
   @override
   void dispose() {
+    _authSubscription?.cancel();
     WidgetsBinding.instance.removeObserver(this);
     super.dispose();
   }
@@ -59,6 +72,161 @@ class _SettingsViewState extends State<SettingsView>
       ) {
     if (state == AppLifecycleState.resumed) {
       _loadNotificationStatus();
+    }
+  }
+
+  void _handleAuthStateChanged(User? user) {
+    if (!mounted) {
+      return;
+    }
+
+    setState(() {
+      _currentUser = user;
+      _isSigningIn = false;
+    });
+  }
+
+  Future<void> _signInWithGoogle() async {
+    if (_isSigningIn) {
+      return;
+    }
+
+    setState(() {
+      _isSigningIn = true;
+    });
+
+    try {
+      await AppAuthService.instance.signInWithGoogle();
+
+      if (!mounted) {
+        return;
+      }
+
+      _showSnackBar(
+        'Signed in successfully.',
+        isError: false,
+      );
+    } on FirebaseAuthException catch (e) {
+      if (!mounted) {
+        return;
+      }
+
+      _showSnackBar(
+        _authErrorMessage(e),
+        isError: true,
+      );
+    } catch (e) {
+      if (!mounted) {
+        return;
+      }
+
+      _showSnackBar(
+        'Google Sign-In was not completed. Please try again.',
+        isError: true,
+      );
+    } finally {
+      if (!mounted) {
+        return;
+      }
+
+      setState(() {
+        _isSigningIn = false;
+      });
+    }
+  }
+
+  Future<void> _signOut() async {
+    if (_isSigningIn) {
+      return;
+    }
+
+    final shouldSignOut = await _showSignOutConfirmation();
+
+    if (!shouldSignOut || !mounted) {
+      return;
+    }
+
+    setState(() {
+      _isSigningIn = true;
+    });
+
+    try {
+      await AppAuthService.instance.signOut();
+
+      if (!mounted) {
+        return;
+      }
+
+      _showSnackBar(
+        'Signed out successfully.',
+        isError: false,
+      );
+    } catch (_) {
+      if (!mounted) {
+        return;
+      }
+
+      _showSnackBar(
+        'Unable to sign out. Please try again.',
+        isError: true,
+      );
+    } finally {
+      if (!mounted) {
+        return;
+      }
+
+      setState(() {
+        _isSigningIn = false;
+      });
+    }
+  }
+
+  Future<bool> _showSignOutConfirmation() async {
+    final colors = context.themeColors;
+
+    final result = await Get.dialog<bool>(
+      AlertDialog(
+        title: Text(
+          'Sign out?',
+          style: AppFont.style.copyWith(
+            fontSize: 20.sp,
+            fontWeight: FontWeight.w700,
+            color: colors.textPrimary,
+          ),
+        ),
+        content: Text(
+          'Your calls will remain on this device. Cloud sync will not be available until you sign in again.',
+          style: AppFont.style.copyWith(
+            fontSize: 14.sp,
+            color: colors.textSecondary,
+          ),
+        ),
+        actions: [
+          TextButton(
+            onPressed: () => Get.back(result: false),
+            child: const Text('Cancel'),
+          ),
+          FilledButton(
+            onPressed: () => Get.back(result: true),
+            child: const Text('Sign out'),
+          ),
+        ],
+      ),
+    );
+
+    return result ?? false;
+  }
+
+  String _authErrorMessage(FirebaseAuthException error) {
+    switch (error.code) {
+      case 'network-request-failed':
+        return 'No internet connection. Please try again.';
+      case 'account-exists-with-different-credential':
+        return 'This email is already linked to another sign-in method.';
+      case 'operation-not-allowed':
+        return 'Google Sign-In is not enabled for this app yet.';
+      default:
+        return 'Unable to sign in with Google. Please try again.';
     }
   }
 
@@ -366,6 +534,15 @@ class _SettingsViewState extends State<SettingsView>
 
           _buildSectionTitle(
             context,
+            'Account',
+          ),
+
+          _buildAccountSection(context),
+
+          SizedBox(height: 24.h),
+
+          _buildSectionTitle(
+            context,
             'Backup & Restore',
           ),
 
@@ -486,6 +663,67 @@ class _SettingsViewState extends State<SettingsView>
           ),
         ],
       ),
+    );
+  }
+
+  Widget _buildAccountSection(BuildContext context) {
+    final colors = context.themeColors;
+
+    if (_currentUser == null) {
+      return _buildSettingTile(
+        context,
+        icon: Icons.account_circle_outlined,
+        iconBackground: colors.primaryLight,
+        iconColor: Theme.of(context).colorScheme.primary,
+        title: 'Sign in with Google',
+        subtitle: _isSigningIn
+            ? 'Signing in...'
+            : 'Sync your account across devices later',
+        trailing: _isSigningIn
+            ? SizedBox(
+                width: 20.w,
+                height: 20.w,
+                child: CircularProgressIndicator(
+                  strokeWidth: 2,
+                  color: Theme.of(context).colorScheme.primary,
+                ),
+              )
+            : null,
+        onTap: _isSigningIn ? null : _signInWithGoogle,
+      );
+    }
+
+    final displayName = _currentUser!.displayName?.trim();
+    final email = _currentUser!.email?.trim();
+    final title = displayName != null && displayName.isNotEmpty
+        ? displayName
+        : 'Google Account';
+    final subtitle = email != null && email.isNotEmpty
+        ? email
+        : 'Signed in with Google';
+
+    return _buildSettingTile(
+      context,
+      icon: Icons.account_circle_rounded,
+      iconBackground: colors.successLight,
+      iconColor: colors.successDark,
+      title: title,
+      subtitle: subtitle,
+      trailing: _isSigningIn
+          ? SizedBox(
+              width: 20.w,
+              height: 20.w,
+              child: CircularProgressIndicator(
+                strokeWidth: 2,
+                color: colors.successDark,
+              ),
+            )
+          : Icon(
+              Icons.logout_rounded,
+              color: colors.textTertiary,
+              size: 22.sp,
+            ),
+      onTap: _isSigningIn ? null : _signOut,
     );
   }
 
