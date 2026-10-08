@@ -4,6 +4,7 @@ import 'package:flutter/material.dart';
 import 'package:get/get.dart';
 
 import '../../services/notification_service.dart';
+import '../../services/home_widget_service.dart';
 
 enum CallDateFilter {
   all,
@@ -75,6 +76,10 @@ class HomeController extends GetxController
       callListModel = await useCase.processOverdueCalls(calls);
 
       await NotificationService.instance.syncUpcomingCallReminders(
+        callListModel,
+      );
+
+      await HomeWidgetService.instance.updateUpcomingCalls(
         callListModel,
       );
     } catch (e) {
