@@ -1,11 +1,18 @@
+import 'dart:async';
+
 import '../../domain/entity/call_list_entity.dart';
 import '../../domain/repo/call_repo.dart';
+import '../../services/cloud_sync_service.dart';
 import '../data_source/local/call_local_datasource.dart';
 
 class CallRepoImpl implements CallRepo {
   final CallLocalDataSource _localDataSource;
+  final CloudSyncService _cloudSyncService;
 
-  CallRepoImpl(this._localDataSource);
+  CallRepoImpl(
+    this._localDataSource,
+    this._cloudSyncService,
+  );
 
   @override
   Future<List<CallListEntity>> getCallList() {
@@ -13,22 +20,26 @@ class CallRepoImpl implements CallRepo {
   }
 
   @override
-  Future<void> addCall(CallListEntity call) {
-    return _localDataSource.insertCall(call);
+  Future<void> addCall(CallListEntity call) async {
+    await _localDataSource.insertCall(call);
+    unawaited(_cloudSyncService.syncCall(call));
   }
 
   @override
-  Future<void> updateCall(CallListEntity call) {
-    return _localDataSource.updateCall(call);
+  Future<void> updateCall(CallListEntity call) async {
+    await _localDataSource.updateCall(call);
+    unawaited(_cloudSyncService.syncCall(call));
   }
 
   @override
-  Future<void> deleteCall(String id) {
-    return _localDataSource.deleteCall(id);
+  Future<void> deleteCall(String id) async {
+    await _localDataSource.deleteCall(id);
+    unawaited(_cloudSyncService.deleteCall(id));
   }
 
   @override
-  Future<void> replaceCalls(List<CallListEntity> calls) {
-    return _localDataSource.replaceCalls(calls);
+  Future<void> replaceCalls(List<CallListEntity> calls) async {
+    await _localDataSource.replaceCalls(calls);
+    unawaited(_cloudSyncService.syncAllCalls());
   }
 }
