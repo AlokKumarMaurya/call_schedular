@@ -76,6 +76,7 @@ class _MyAppState extends State<MyApp> with WidgetsBindingObserver {
   // Biometric dialogs can temporarily change lifecycle state, so we
   // intentionally do not use AppLifecycleState.inactive here.
   bool _wasInBackground = false;
+  bool _startupAuthenticationStarted = false;
 
   @override
   void initState() {
@@ -90,16 +91,38 @@ class _MyAppState extends State<MyApp> with WidgetsBindingObserver {
     WidgetsBinding.instance.addPostFrameCallback((_) {
       unawaited(_initializeNotifications());
       unawaited(Get.find<HomeWidgetService>().refresh());
-
-      final appLockService = Get.find<AppLockService>();
-      if (appLockService.isLocked.value) {
-        unawaited(appLockService.authenticate());
-      }
+      unawaited(_authenticateOnStartup());
 
       unawaited(
         AppUpdateService.instance.checkAndPrompt(),
       );
     });
+  }
+
+  Future<void> _authenticateOnStartup() async {
+    if (_startupAuthenticationStarted) {
+      return;
+    }
+
+    final appLockService = Get.find<AppLockService>();
+
+    if (!appLockService.enabled || !appLockService.isLocked.value) {
+      return;
+    }
+
+    _startupAuthenticationStarted = true;
+
+    // Give Android time to finish attaching the Flutter activity before
+    // opening the native authentication prompt.
+    await Future<void>.delayed(
+      const Duration(milliseconds: 400),
+    );
+
+    if (!mounted || !appLockService.isLocked.value) {
+      return;
+    }
+
+    await appLockService.authenticate();
   }
 
   Future<void> _initializeNotifications() async {
