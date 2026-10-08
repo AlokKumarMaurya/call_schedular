@@ -325,7 +325,6 @@ class _MyAppState extends State<MyApp> with WidgetsBindingObserver {
           ),
         ),
       ),
-    );
   }
 
   @override
@@ -366,7 +365,7 @@ class _MyAppState extends State<MyApp> with WidgetsBindingObserver {
                   : appTheme.scaffoldBackgroundColor,
               body: Stack(
                 children: [
-                  child,
+                  child ?? const SizedBox.shrink(),
                   if (appLockService.isLocked.value)
                     _buildAppLockOverlay(context, appLockService),
                 ],
