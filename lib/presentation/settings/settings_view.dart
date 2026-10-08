@@ -1,3 +1,5 @@
+import 'dart:async';
+
 import 'package:call_schedular/constants/app_const.dart';
 import 'package:call_schedular/services/app_auth_service.dart';
 import 'package:call_schedular/services/app_update_service.dart';
