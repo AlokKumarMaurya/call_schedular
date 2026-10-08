@@ -72,6 +72,11 @@ class MyApp extends StatefulWidget {
 class _MyAppState extends State<MyApp> with WidgetsBindingObserver {
   StreamSubscription<String>? _notificationSubscription;
 
+  // Only lock after the app was genuinely sent to the background.
+  // Biometric dialogs can temporarily change lifecycle state, so we
+  // intentionally do not use AppLifecycleState.inactive here.
+  bool _wasInBackground = false;
+
   @override
   void initState() {
     super.initState();
@@ -179,12 +184,29 @@ class _MyAppState extends State<MyApp> with WidgetsBindingObserver {
 
   @override
   void didChangeAppLifecycleState(AppLifecycleState state) {
+    if (state == AppLifecycleState.paused ||
+        state == AppLifecycleState.hidden) {
+      final appLockService = Get.find<AppLockService>();
+
+      // Do not treat the lifecycle changes caused by the biometric
+      // prompt itself as the user leaving the app.
+      if (!appLockService.isAuthenticating.value) {
+        _wasInBackground = true;
+      }
+
+      return;
+    }
+
     if (state == AppLifecycleState.resumed) {
       final appLockService = Get.find<AppLockService>();
 
-      if (appLockService.enabled) {
-        appLockService.lock();
-        unawaited(appLockService.authenticate());
+      if (_wasInBackground) {
+        _wasInBackground = false;
+
+        if (appLockService.enabled) {
+          appLockService.lock();
+          unawaited(appLockService.authenticate());
+        }
       }
 
       unawaited(
