@@ -365,7 +365,7 @@ class NotificationService {
     tz.TZDateTime.now(tz.local).add(duration);
 
     final notificationId =
-    _notificationId(callId);
+    _snoozeNotificationId(callId);
 
     final notificationDetails =
     _notificationDetails();
