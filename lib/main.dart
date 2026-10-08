@@ -7,6 +7,7 @@ import 'package:call_schedular/presentation/call_details/call_details_view.dart'
 import 'package:call_schedular/presentation/home/home_view.dart';
 import 'package:call_schedular/presentation/intro/intro_view.dart';
 import 'package:call_schedular/services/app_crash_reporter.dart';
+import 'package:call_schedular/services/app_lock_service.dart';
 import 'package:call_schedular/services/app_update_service.dart';
 import 'package:call_schedular/services/cloud_sync_service.dart';
 import 'package:call_schedular/services/notification_service.dart';
@@ -59,6 +60,7 @@ Future<void> main() async {
     );
 
     AppDI.init();
+    await Get.find<AppLockService>().initialize();
   } catch (e, stackTrace) {
     debugPrint(
       'App startup initialization failed: $e',
@@ -122,6 +124,9 @@ class _MyAppState extends State<MyApp> with WidgetsBindingObserver {
     WidgetsBinding.instance.addPostFrameCallback((_) {
       unawaited(_initializeNotifications());
       unawaited(Get.find<HomeWidgetService>().refresh());
+      if (Get.find<AppLockService>().isLocked.value) {
+        unawaited(Get.find<AppLockService>().authenticate());
+      }
 
       /*
        * App update checking is intentionally started after the
@@ -241,6 +246,12 @@ class _MyAppState extends State<MyApp> with WidgetsBindingObserver {
   @override
   void didChangeAppLifecycleState(AppLifecycleState state) {
     if (state == AppLifecycleState.resumed) {
+      final appLockService = Get.find<AppLockService>();
+      if (appLockService.enabled) {
+        appLockService.lock();
+        unawaited(appLockService.authenticate());
+      }
+
       unawaited(Get.find<CloudSyncService>().retryPendingSync());
       unawaited(Get.find<HomeWidgetService>().refresh());
     }
@@ -254,6 +265,69 @@ class _MyAppState extends State<MyApp> with WidgetsBindingObserver {
     AppUpdateService.instance.dispose();
 
     super.dispose();
+  }
+
+  Widget _buildAppLockOverlay(
+      BuildContext context,
+      AppLockService appLockService,
+      ) {
+    final isAuthenticating = appLockService.isAuthenticating.value;
+
+    return Positioned.fill(
+      child: AbsorbPointer(
+        absorbing: true,
+        child: ColoredBox(
+          color: Theme.of(context).scaffoldBackgroundColor,
+          child: SafeArea(
+            child: Center(
+              child: Padding(
+                padding: const EdgeInsets.all(32),
+                child: Column(
+                  mainAxisSize: MainAxisSize.min,
+                  children: [
+                    Icon(
+                      Icons.lock_rounded,
+                      size: 64,
+                      color: Theme.of(context).colorScheme.primary,
+                    ),
+                    const SizedBox(height: 20),
+                    Text(
+                      'Callmate is locked',
+                      style: Theme.of(context).textTheme.headlineSmall,
+                      textAlign: TextAlign.center,
+                    ),
+                    const SizedBox(height: 8),
+                    Text(
+                      'Authenticate with your device to continue.',
+                      style: Theme.of(context).textTheme.bodyMedium,
+                      textAlign: TextAlign.center,
+                    ),
+                    const SizedBox(height: 24),
+                    FilledButton.icon(
+                      onPressed: isAuthenticating
+                          ? null
+                          : () => unawaited(appLockService.authenticate()),
+                      icon: isAuthenticating
+                          ? const SizedBox(
+                              width: 18,
+                              height: 18,
+                              child: CircularProgressIndicator(strokeWidth: 2),
+                            )
+                          : const Icon(Icons.fingerprint_rounded),
+                      label: Text(
+                        isAuthenticating
+                            ? 'Authenticating...'
+                            : 'Unlock Callmate',
+                      ),
+                    ),
+                  ],
+                ),
+              ),
+            ),
+          ),
+        ),
+      ),
+    );
   }
 
   @override
@@ -276,6 +350,7 @@ class _MyAppState extends State<MyApp> with WidgetsBindingObserver {
       builder: (context, child) {
         final themeController =
         Get.find<AppThemeController>();
+        final appLockService = Get.find<AppLockService>();
 
         return Obx(
               () => GetMaterialApp(
@@ -291,7 +366,13 @@ class _MyAppState extends State<MyApp> with WidgetsBindingObserver {
                   ThemeMode.dark
                   ? appDarkTheme.scaffoldBackgroundColor
                   : appTheme.scaffoldBackgroundColor,
-              body: child,
+              body: Stack(
+                children: [
+                  child,
+                  if (appLockService.isLocked.value)
+                    _buildAppLockOverlay(context, appLockService),
+                ],
+              ),
             ),
           ),
         );
