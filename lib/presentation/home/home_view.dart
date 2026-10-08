@@ -422,83 +422,451 @@ class HomeView extends StatelessWidget {
     final colors = context.themeColors;
     final colorScheme = Theme.of(context).colorScheme;
 
-    return SizedBox(
-      height: 44.h,
-      child: AppGlassContainer(
-        padding: EdgeInsets.zero,
-        borderRadius: BorderRadius.circular(15.r),
-        blurSigma: 12,
-        opacity: 0.44,
-        tintColor: colors.primaryLight,
-        border: Border.all(
-          color: Colors.white.withValues(
-            alpha: Theme.of(context).brightness == Brightness.dark
-                ? 0.16
-                : 0.80,
-          ),
-          width: 1,
-        ),
-        boxShadow: [
-          BoxShadow(
-            color: colorScheme.primary.withValues(alpha: 0.045),
-            blurRadius: 12,
-            offset: const Offset(0, 3),
-          ),
-        ],
-        child: TextField(
-          controller: controller.searchController,
-          onChanged: controller.setSearchQuery,
-          textInputAction: TextInputAction.search,
-          decoration: InputDecoration(
-            hintText: 'Search contacts or calls...',
-            prefixIcon: Icon(
-              Icons.search_rounded,
-              color: colors.textSecondary,
-              size: 20.sp,
-            ),
-            suffixIcon: controller.searchQuery.isNotEmpty
-                ? IconButton(
-              onPressed: controller.clearSearch,
-              padding: EdgeInsets.zero,
-              icon: Icon(
-                Icons.clear_rounded,
-                color: colors.textTertiary,
-                size: 18.sp,
+    return Column(
+      children: [
+        SizedBox(
+          height: 44.h,
+          child: AppGlassContainer(
+            padding: EdgeInsets.zero,
+            borderRadius: BorderRadius.circular(15.r),
+            blurSigma: 12,
+            opacity: 0.44,
+            tintColor: colors.primaryLight,
+            border: Border.all(
+              color: Colors.white.withValues(
+                alpha: Theme.of(context).brightness == Brightness.dark
+                    ? 0.16
+                    : 0.80,
               ),
-            )
-                : null,
-            filled: false,
-            fillColor: Colors.transparent,
-            contentPadding: EdgeInsets.symmetric(
-              horizontal: 12.w,
+              width: 1,
             ),
-            border: OutlineInputBorder(
-              borderRadius: BorderRadius.circular(15.r),
-              borderSide: BorderSide.none,
-            ),
-            enabledBorder: OutlineInputBorder(
-              borderRadius: BorderRadius.circular(15.r),
-              borderSide: BorderSide.none,
-            ),
-            focusedBorder: OutlineInputBorder(
-              borderRadius: BorderRadius.circular(15.r),
-              borderSide: BorderSide(
-                color: colorScheme.primary.withValues(
-                  alpha: 0.28,
+            boxShadow: [
+              BoxShadow(
+                color: colorScheme.primary.withValues(alpha: 0.045),
+                blurRadius: 12,
+                offset: const Offset(0, 3),
+              ),
+            ],
+            child: TextField(
+              controller: controller.searchController,
+              onChanged: controller.setSearchQuery,
+              textInputAction: TextInputAction.search,
+              decoration: InputDecoration(
+                hintText: 'Search contacts or calls...',
+                prefixIcon: Icon(
+                  Icons.search_rounded,
+                  color: colors.textSecondary,
+                  size: 20.sp,
                 ),
-                width: 1,
+                suffixIcon: controller.searchQuery.isNotEmpty
+                    ? IconButton(
+                        onPressed: controller.clearSearch,
+                        padding: EdgeInsets.zero,
+                        icon: Icon(
+                          Icons.clear_rounded,
+                          color: colors.textTertiary,
+                          size: 18.sp,
+                        ),
+                      )
+                    : null,
+                filled: false,
+                fillColor: Colors.transparent,
+                contentPadding: EdgeInsets.symmetric(
+                  horizontal: 12.w,
+                ),
+                border: OutlineInputBorder(
+                  borderRadius: BorderRadius.circular(15.r),
+                  borderSide: BorderSide.none,
+                ),
+                enabledBorder: OutlineInputBorder(
+                  borderRadius: BorderRadius.circular(15.r),
+                  borderSide: BorderSide.none,
+                ),
+                focusedBorder: OutlineInputBorder(
+                  borderRadius: BorderRadius.circular(15.r),
+                  borderSide: BorderSide(
+                    color: colorScheme.primary.withValues(alpha: 0.28),
+                    width: 1,
+                  ),
+                ),
+              ),
+              style: AppFont.style.copyWith(
+                fontSize: 13.sp,
+                fontWeight: FontWeight.w500,
+                color: colors.textPrimary,
               ),
             ),
           ),
-          style: AppFont.style.copyWith(
-            fontSize: 13.sp,
-            fontWeight: FontWeight.w500,
-            color: colors.textPrimary,
+        ),
+        SizedBox(height: 8.h),
+        Row(
+          children: [
+            Expanded(
+              child: _buildFilterButton(
+                context: context,
+                icon: Icons.calendar_today_outlined,
+                label: controller.dateFilterLabel,
+                isActive: controller.dateFilter != CallDateFilter.all,
+                onTap: () => _showDateFilterSheet(
+                  context,
+                  controller,
+                ),
+              ),
+            ),
+            SizedBox(width: 8.w),
+            Expanded(
+              child: _buildFilterButton(
+                context: context,
+                icon: Icons.repeat_rounded,
+                label: controller.recurrenceFilterLabel,
+                isActive: controller.recurrenceFilter !=
+                    CallRecurrenceFilter.all,
+                onTap: () => _showRecurrenceFilterSheet(
+                  context,
+                  controller,
+                ),
+              ),
+            ),
+            if (controller.hasSearchFilters) ...[
+              SizedBox(width: 8.w),
+              _buildClearFilterButton(
+                context,
+                controller,
+              ),
+            ],
+          ],
+        ),
+      ],
+    );
+  }
+
+  Widget _buildFilterButton({
+    required BuildContext context,
+    required IconData icon,
+    required String label,
+    required bool isActive,
+    required VoidCallback onTap,
+  }) {
+    final colors = context.themeColors;
+    final colorScheme = Theme.of(context).colorScheme;
+
+    return Material(
+      color: isActive ? colors.primaryLight : colors.surface,
+      borderRadius: BorderRadius.circular(12.r),
+      child: InkWell(
+        onTap: onTap,
+        borderRadius: BorderRadius.circular(12.r),
+        child: Container(
+          height: 38.h,
+          padding: EdgeInsets.symmetric(horizontal: 10.w),
+          decoration: BoxDecoration(
+            borderRadius: BorderRadius.circular(12.r),
+            border: Border.all(
+              color: isActive ? colorScheme.primary : colors.border,
+            ),
+          ),
+          child: Row(
+            mainAxisAlignment: MainAxisAlignment.center,
+            children: [
+              Icon(
+                icon,
+                size: 15.sp,
+                color: isActive
+                    ? colorScheme.primary
+                    : colors.textSecondary,
+              ),
+              SizedBox(width: 6.w),
+              Flexible(
+                child: Text(
+                  label,
+                  maxLines: 1,
+                  overflow: TextOverflow.ellipsis,
+                  style: AppFont.style.copyWith(
+                    fontSize: 11.sp,
+                    fontWeight: FontWeight.w600,
+                    color: isActive
+                        ? colorScheme.primary
+                        : colors.textSecondary,
+                  ),
+                ),
+              ),
+              SizedBox(width: 3.w),
+              Icon(
+                Icons.keyboard_arrow_down_rounded,
+                size: 16.sp,
+                color: colors.textTertiary,
+              ),
+            ],
           ),
         ),
       ),
     );
   }
+
+  Widget _buildClearFilterButton(
+      BuildContext context,
+      HomeController controller,
+      ) {
+    final colors = context.themeColors;
+
+    return Material(
+      color: colors.dangerLight,
+      shape: const CircleBorder(),
+      child: InkWell(
+        onTap: controller.clearSearchFilters,
+        customBorder: const CircleBorder(),
+        child: SizedBox(
+          width: 38.w,
+          height: 38.w,
+          child: Icon(
+            Icons.clear_rounded,
+            size: 17.sp,
+            color: colors.dangerDark,
+          ),
+        ),
+      ),
+    );
+  }
+
+  Future<void> _showDateFilterSheet(
+      BuildContext context,
+      HomeController controller,
+      ) async {
+    final selected = await showModalBottomSheet<CallDateFilter>(
+      context: context,
+      showDragHandle: true,
+      backgroundColor: context.themeColors.surface,
+      builder: (sheetContext) {
+        return SafeArea(
+          child: Padding(
+            padding: EdgeInsets.fromLTRB(16.w, 4.h, 16.w, 16.h),
+            child: Column(
+              mainAxisSize: MainAxisSize.min,
+              crossAxisAlignment: CrossAxisAlignment.start,
+              children: [
+                Text(
+                  'Filter by date',
+                  style: AppFont.style.copyWith(
+                    fontSize: 18.sp,
+                    fontWeight: FontWeight.w700,
+                    color: context.themeColors.textPrimary,
+                  ),
+                ),
+                SizedBox(height: 12.h),
+                _buildFilterOption(
+                  context: sheetContext,
+                  icon: Icons.all_inclusive_rounded,
+                  title: 'Any date',
+                  selected: controller.dateFilter == CallDateFilter.all,
+                  onTap: () => Navigator.pop(
+                    sheetContext,
+                    CallDateFilter.all,
+                  ),
+                ),
+                _buildFilterOption(
+                  context: sheetContext,
+                  icon: Icons.today_rounded,
+                  title: 'Today',
+                  selected: controller.dateFilter == CallDateFilter.today,
+                  onTap: () => Navigator.pop(
+                    sheetContext,
+                    CallDateFilter.today,
+                  ),
+                ),
+                _buildFilterOption(
+                  context: sheetContext,
+                  icon: Icons.event_rounded,
+                  title: 'Tomorrow',
+                  selected:
+                      controller.dateFilter == CallDateFilter.tomorrow,
+                  onTap: () => Navigator.pop(
+                    sheetContext,
+                    CallDateFilter.tomorrow,
+                  ),
+                ),
+                _buildFilterOption(
+                  context: sheetContext,
+                  icon: Icons.date_range_rounded,
+                  title: 'This week',
+                  selected:
+                      controller.dateFilter == CallDateFilter.thisWeek,
+                  onTap: () => Navigator.pop(
+                    sheetContext,
+                    CallDateFilter.thisWeek,
+                  ),
+                ),
+                _buildFilterOption(
+                  context: sheetContext,
+                  icon: Icons.calendar_month_rounded,
+                  title: 'Custom date',
+                  selected:
+                      controller.dateFilter == CallDateFilter.custom,
+                  onTap: () => Navigator.pop(
+                    sheetContext,
+                    CallDateFilter.custom,
+                  ),
+                ),
+              ],
+            ),
+          ),
+        );
+      },
+    );
+
+    if (!context.mounted || selected == null) {
+      return;
+    }
+
+    if (selected == CallDateFilter.custom) {
+      final pickedDate = await showDatePicker(
+        context: context,
+        initialDate: controller.customFilterDate ?? DateTime.now(),
+        firstDate: DateTime(2000),
+        lastDate: DateTime(2100),
+      );
+
+      if (pickedDate == null) {
+        return;
+      }
+
+      controller.setDateFilter(
+        CallDateFilter.custom,
+        customDate: pickedDate,
+      );
+      return;
+    }
+
+    controller.setDateFilter(selected);
+  }
+
+  Future<void> _showRecurrenceFilterSheet(
+      BuildContext context,
+      HomeController controller,
+      ) async {
+    final selected =
+        await showModalBottomSheet<CallRecurrenceFilter>(
+      context: context,
+      showDragHandle: true,
+      backgroundColor: context.themeColors.surface,
+      builder: (sheetContext) {
+        return SafeArea(
+          child: Padding(
+            padding: EdgeInsets.fromLTRB(16.w, 4.h, 16.w, 16.h),
+            child: Column(
+              mainAxisSize: MainAxisSize.min,
+              crossAxisAlignment: CrossAxisAlignment.start,
+              children: [
+                Text(
+                  'Filter by recurrence',
+                  style: AppFont.style.copyWith(
+                    fontSize: 18.sp,
+                    fontWeight: FontWeight.w700,
+                    color: context.themeColors.textPrimary,
+                  ),
+                ),
+                SizedBox(height: 12.h),
+                _buildFilterOption(
+                  context: sheetContext,
+                  icon: Icons.all_inclusive_rounded,
+                  title: 'All calls',
+                  selected:
+                      controller.recurrenceFilter ==
+                          CallRecurrenceFilter.all,
+                  onTap: () => Navigator.pop(
+                    sheetContext,
+                    CallRecurrenceFilter.all,
+                  ),
+                ),
+                _buildFilterOption(
+                  context: sheetContext,
+                  icon: Icons.repeat_rounded,
+                  title: 'Recurring',
+                  selected:
+                      controller.recurrenceFilter ==
+                          CallRecurrenceFilter.recurring,
+                  onTap: () => Navigator.pop(
+                    sheetContext,
+                    CallRecurrenceFilter.recurring,
+                  ),
+                ),
+                _buildFilterOption(
+                  context: sheetContext,
+                  icon: Icons.looks_one_outlined,
+                  title: 'One-time',
+                  selected:
+                      controller.recurrenceFilter ==
+                          CallRecurrenceFilter.nonRecurring,
+                  onTap: () => Navigator.pop(
+                    sheetContext,
+                    CallRecurrenceFilter.nonRecurring,
+                  ),
+                ),
+              ],
+            ),
+          ),
+        );
+      },
+    );
+
+    if (selected != null) {
+      controller.setRecurrenceFilter(selected);
+    }
+  }
+
+  Widget _buildFilterOption({
+    required BuildContext context,
+    required IconData icon,
+    required String title,
+    required bool selected,
+    required VoidCallback onTap,
+  }) {
+    final colors = context.themeColors;
+    final colorScheme = Theme.of(context).colorScheme;
+
+    return Material(
+      color: selected ? colors.primaryLight : Colors.transparent,
+      borderRadius: BorderRadius.circular(12.r),
+      child: InkWell(
+        onTap: onTap,
+        borderRadius: BorderRadius.circular(12.r),
+        child: Padding(
+          padding: EdgeInsets.symmetric(
+            horizontal: 12.w,
+            vertical: 11.h,
+          ),
+          child: Row(
+            children: [
+              Icon(
+                icon,
+                size: 20.sp,
+                color: selected
+                    ? colorScheme.primary
+                    : colors.textSecondary,
+              ),
+              SizedBox(width: 12.w),
+              Expanded(
+                child: Text(
+                  title,
+                  style: AppFont.style.copyWith(
+                    fontSize: 13.sp,
+                    fontWeight: FontWeight.w600,
+                    color: colors.textPrimary,
+                  ),
+                ),
+              ),
+              if (selected)
+                Icon(
+                  Icons.check_rounded,
+                  size: 20.sp,
+                  color: colorScheme.primary,
+                ),
+            ],
+          ),
+        ),
+      ),
+    );
+  }
+
 }
 
 class CallRecordTile extends StatelessWidget {
