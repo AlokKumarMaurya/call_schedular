@@ -133,6 +133,8 @@ class _CallDetailsViewState
                     _buildScheduleInfo(context),
                     SizedBox(height: 12.h),
                     _buildRepeatCard(context),
+                    SizedBox(height: 12.h),
+                    _buildReminderCard(context),
                     SizedBox(height: 24.h),
                     _buildSectionTitle(
                       context,
@@ -459,6 +461,93 @@ class _CallDetailsViewState
         ],
       ),
     );
+  }
+
+  Widget _buildReminderCard(
+      BuildContext context,
+      ) {
+    final colors = context.themeColors;
+    final colorScheme = Theme.of(context).colorScheme;
+    final reminders = List<int>.from(
+      _call.reminderMinutesBefore,
+    )..sort();
+
+    return Container(
+      width: double.infinity,
+      padding: EdgeInsets.symmetric(
+        horizontal: 14.w,
+        vertical: 14.h,
+      ),
+      decoration: BoxDecoration(
+        color: colors.surface,
+        borderRadius: BorderRadius.circular(16.r),
+        border: Border.all(
+          color: colors.border,
+        ),
+      ),
+      child: Row(
+        children: [
+          Container(
+            width: 38.w,
+            height: 38.w,
+            decoration: BoxDecoration(
+              color: colors.primaryLight,
+              borderRadius: BorderRadius.circular(11.r),
+            ),
+            child: Icon(
+              Icons.notifications_none_rounded,
+              size: 20.sp,
+              color: colorScheme.primary,
+            ),
+          ),
+          SizedBox(width: 12.w),
+          Expanded(
+            child: Column(
+              crossAxisAlignment: CrossAxisAlignment.start,
+              children: [
+                Text(
+                  'Reminders',
+                  style: AppFont.style.copyWith(
+                    fontSize: 12.sp,
+                    fontWeight: FontWeight.w500,
+                    color: colors.textTertiary,
+                  ),
+                ),
+                SizedBox(height: 3.h),
+                Text(
+                  reminders.map(_formatReminder).join(', '),
+                  style: AppFont.style.copyWith(
+                    fontSize: 14.sp,
+                    fontWeight: FontWeight.w600,
+                    color: colors.textPrimary,
+                  ),
+                ),
+              ],
+            ),
+          ),
+        ],
+      ),
+    );
+  }
+
+  String _formatReminder(int minutes) {
+    if (minutes == 0) {
+      return 'At call time';
+    }
+
+    if (minutes < 60) {
+      return '$minutes min before';
+    }
+
+    if (minutes == 60) {
+      return '1 hour before';
+    }
+
+    if (minutes == 1440) {
+      return '1 day before';
+    }
+
+    return '${minutes ~/ 60} hours before';
   }
 
   Widget _buildNotesCard(

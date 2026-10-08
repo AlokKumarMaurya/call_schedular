@@ -6,6 +6,7 @@ class CallListEntity {
   final CallStatusEntity status;
   final String? notes;
   final String repeat;
+  final List<int> reminderMinutesBefore;
 
   const CallListEntity({
     required this.id,
@@ -15,10 +16,17 @@ class CallListEntity {
     this.status = CallStatusEntity.upcoming,
     this.notes,
     this.repeat = 'Does not repeat',
+    this.reminderMinutesBefore = const [0],
   });
 
   String get initial =>
       contactName.isNotEmpty ? contactName[0].toUpperCase() : '?';
+
+  List<int> get sortedReminderMinutesBefore {
+    final reminders = List<int>.from(reminderMinutesBefore);
+    reminders.sort();
+    return reminders;
+  }
 
   bool get isToday {
     final now = DateTime.now();
@@ -160,6 +168,7 @@ class CallListEntity {
       status: CallStatusEntity.upcoming,
       notes: notes,
       repeat: repeat,
+      reminderMinutesBefore: reminderMinutesBefore,
     );
   }
 
@@ -171,6 +180,7 @@ class CallListEntity {
     CallStatusEntity? status,
     String? notes,
     String? repeat,
+    List<int>? reminderMinutesBefore,
   }) {
     return CallListEntity(
       id: id ?? this.id,
@@ -180,6 +190,8 @@ class CallListEntity {
       status: status ?? this.status,
       notes: notes ?? this.notes,
       repeat: repeat ?? this.repeat,
+      reminderMinutesBefore:
+          reminderMinutesBefore ?? this.reminderMinutesBefore,
     );
   }
 }

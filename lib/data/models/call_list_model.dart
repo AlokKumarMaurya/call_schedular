@@ -10,6 +10,7 @@ class CallListModel {
   final CallStatus status;
   final String? notes;
   final String repeat;
+  final List<int> reminderMinutesBefore;
 
   const CallListModel({
     required this.id,
@@ -19,6 +20,7 @@ class CallListModel {
     this.status = CallStatus.upcoming,
     this.notes,
     this.repeat = 'Does not repeat',
+    this.reminderMinutesBefore = const [0],
   });
 
   /// Convert domain entity to data model
@@ -34,6 +36,7 @@ class CallListModel {
       ),
       notes: entity.notes,
       repeat: entity.repeat,
+      reminderMinutesBefore: entity.reminderMinutesBefore,
     );
   }
 
@@ -52,6 +55,9 @@ class CallListModel {
       ),
       notes: map['notes'] as String?,
       repeat: map['repeat'] as String? ?? 'Does not repeat',
+      reminderMinutesBefore: _parseReminders(
+        map['reminder_minutes_before'] as String?,
+      ),
     );
   }
 
@@ -65,17 +71,37 @@ class CallListModel {
       'status': status.name,
       'notes': notes,
       'repeat': repeat,
+      'reminder_minutes_before': reminderMinutesBefore.join(','),
     };
   }
 
   /// Convert data model to domain entity
   CallListEntity toEntity() => CallListEntity(
-    id: id,
-    contactName: contactName,
-    phoneNumber: phoneNumber,
-    scheduledAt: scheduledAt,
-    status: CallStatusEntity.fromString(status.name),
-    notes: notes,
-    repeat: repeat,
-  );
+        id: id,
+        contactName: contactName,
+        phoneNumber: phoneNumber,
+        scheduledAt: scheduledAt,
+        status: CallStatusEntity.fromString(status.name),
+        notes: notes,
+        repeat: repeat,
+        reminderMinutesBefore: reminderMinutesBefore,
+      );
+
+  static List<int> _parseReminders(String? value) {
+    if (value == null || value.trim().isEmpty) {
+      return const [0];
+    }
+
+    final reminders = value
+        .split(',')
+        .map((item) => int.tryParse(item.trim()))
+        .whereType<int>()
+        .where((minutes) => minutes >= 0)
+        .toSet()
+        .toList();
+
+    reminders.sort();
+
+    return reminders.isEmpty ? const [0] : reminders;
+  }
 }

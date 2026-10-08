@@ -33,6 +33,7 @@ Date: ${_formatDate(call.scheduledAt)}
 Time: ${_formatTime(call.scheduledAt)}
 Status: $status
 Repeat: $repeat
+Reminders: ${_formatReminders(call.reminderMinutesBefore)}
 Notes: $notes
 ''';
 
@@ -40,6 +41,30 @@ Notes: $notes
       text,
       subject: 'Call details - $contactName',
     );
+  }
+
+  String _formatReminders(List<int> reminders) {
+    final sorted = List<int>.from(reminders)..sort();
+
+    return sorted.map((minutes) {
+      if (minutes == 0) {
+        return 'At call time';
+      }
+
+      if (minutes < 60) {
+        return '$minutes minutes before';
+      }
+
+      if (minutes == 60) {
+        return '1 hour before';
+      }
+
+      if (minutes == 1440) {
+        return '1 day before';
+      }
+
+      return '${minutes ~/ 60} hours before';
+    }).join(', ');
   }
 
   String _formatStatus(CallStatusEntity status) {

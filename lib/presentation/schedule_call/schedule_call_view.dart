@@ -86,6 +86,14 @@ class ScheduleCallView extends StatelessWidget {
 
                           SizedBox(height: 22.h),
 
+                          _buildSectionTitle(context, 'Reminders'),
+
+                          SizedBox(height: 10.h),
+
+                          _buildReminderSection(context, controller),
+
+                          SizedBox(height: 22.h),
+
                           _buildSectionTitle(context, 'Repeat'),
 
                           SizedBox(height: 10.h),
@@ -281,6 +289,80 @@ class ScheduleCallView extends StatelessWidget {
                   fontWeight: FontWeight.w700,
                   color: colors.textPrimary,
                 ),
+              ),
+            ],
+          ),
+        ),
+      ),
+    );
+  }
+
+  Widget _buildReminderSection(
+    BuildContext context,
+    ScheduleCallController controller,
+  ) {
+    final colors = context.themeColors;
+    final colorScheme = Theme.of(context).colorScheme;
+
+    return Material(
+      color: colors.surface,
+      borderRadius: BorderRadius.circular(16.r),
+      child: InkWell(
+        onTap: () => controller.selectReminders(context),
+        borderRadius: BorderRadius.circular(16.r),
+        child: Container(
+          padding: EdgeInsets.symmetric(
+            horizontal: 14.w,
+            vertical: 14.h,
+          ),
+          decoration: BoxDecoration(
+            borderRadius: BorderRadius.circular(16.r),
+            border: Border.all(color: colors.border),
+          ),
+          child: Row(
+            children: [
+              Container(
+                width: 38.w,
+                height: 38.w,
+                decoration: BoxDecoration(
+                  color: colors.primaryLight,
+                  borderRadius: BorderRadius.circular(11.r),
+                ),
+                child: Icon(
+                  Icons.notifications_none_rounded,
+                  size: 20.sp,
+                  color: colorScheme.primary,
+                ),
+              ),
+              SizedBox(width: 12.w),
+              Expanded(
+                child: Column(
+                  crossAxisAlignment: CrossAxisAlignment.start,
+                  children: [
+                    Text(
+                      'Reminders',
+                      style: AppFont.style.copyWith(
+                        fontSize: 13.sp,
+                        fontWeight: FontWeight.w500,
+                        color: colors.textTertiary,
+                      ),
+                    ),
+                    SizedBox(height: 3.h),
+                    Text(
+                      controller.remindersSummary,
+                      style: AppFont.style.copyWith(
+                        fontSize: 14.sp,
+                        fontWeight: FontWeight.w600,
+                        color: colors.textPrimary,
+                      ),
+                    ),
+                  ],
+                ),
+              ),
+              Icon(
+                Icons.chevron_right_rounded,
+                size: 22.sp,
+                color: colors.textSecondary,
               ),
             ],
           ),

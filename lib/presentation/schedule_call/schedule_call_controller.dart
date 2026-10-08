@@ -24,6 +24,16 @@ class ScheduleCallController extends GetxController {
 
   String selectedRepeat = 'Does not repeat';
 
+  List<int> selectedReminderMinutesBefore = const [0];
+
+  static const Map<int, String> reminderOptions = {
+    0: 'At call time',
+    15: '15 minutes before',
+    30: '30 minutes before',
+    60: '1 hour before',
+    1440: '1 day before',
+  };
+
   final FlutterNativeContactPicker _contactPicker =
       FlutterNativeContactPicker();
 
@@ -53,6 +63,11 @@ class ScheduleCallController extends GetxController {
       selectedTime = TimeOfDay.fromDateTime(call!.scheduledAt);
 
       selectedRepeat = call!.repeat;
+      selectedReminderMinutesBefore =
+          List<int>.from(call!.reminderMinutesBefore);
+      if (selectedReminderMinutesBefore.isEmpty) {
+        selectedReminderMinutesBefore = const [0];
+      }
     }
   }
 
@@ -242,6 +257,165 @@ class ScheduleCallController extends GetxController {
     }
   }
 
+  String get remindersSummary {
+    final selected = List<int>.from(
+      selectedReminderMinutesBefore,
+    )..sort();
+
+    if (selected.length == 1) {
+      return reminderOptions[selected.first] ?? 'Custom reminder';
+    }
+
+    return '${selected.length} reminders selected';
+  }
+
+  Future<void> selectReminders(BuildContext context) async {
+    final colors = context.themeColors;
+    final colorScheme = Theme.of(context).colorScheme;
+
+    final selected = Set<int>.from(
+      selectedReminderMinutesBefore,
+    );
+
+    await showModalBottomSheet<void>(
+      context: context,
+      backgroundColor: colors.surface,
+      barrierColor: Colors.black.withValues(alpha: 0.45),
+      shape: const RoundedRectangleBorder(
+        borderRadius: BorderRadius.vertical(
+          top: Radius.circular(24),
+        ),
+      ),
+      builder: (context) {
+        final sheetColors = context.themeColors;
+        final sheetColorScheme = Theme.of(context).colorScheme;
+
+        return SafeArea(
+          child: StatefulBuilder(
+            builder: (context, setSheetState) {
+              return Padding(
+                padding: const EdgeInsets.fromLTRB(20, 20, 20, 12),
+                child: Column(
+                  mainAxisSize: MainAxisSize.min,
+                  crossAxisAlignment: CrossAxisAlignment.start,
+                  children: [
+                    Row(
+                      children: [
+                        Expanded(
+                          child: Text(
+                            'Reminders',
+                            style: TextStyle(
+                              fontSize: 20,
+                              fontWeight: FontWeight.w700,
+                              color: sheetColors.textPrimary,
+                            ),
+                          ),
+                        ),
+                        IconButton(
+                          onPressed: () => Navigator.pop(context),
+                          icon: Icon(
+                            Icons.close_rounded,
+                            color: sheetColors.textSecondary,
+                          ),
+                        ),
+                      ],
+                    ),
+                    const SizedBox(height: 8),
+                    Text(
+                      'Choose when Callmate should remind you about this call.',
+                      style: TextStyle(
+                        fontSize: 13,
+                        color: sheetColors.textTertiary,
+                      ),
+                    ),
+                    const SizedBox(height: 12),
+                    Flexible(
+                      child: SingleChildScrollView(
+                        child: Column(
+                          children: [
+                            ...reminderOptions.entries.map((entry) {
+                      final isSelected = selected.contains(entry.key);
+
+                      return Container(
+                        margin: const EdgeInsets.only(bottom: 6),
+                        child: Material(
+                          color: isSelected
+                              ? sheetColors.primaryLight
+                              : Colors.transparent,
+                          shape: RoundedRectangleBorder(
+                            borderRadius: BorderRadius.circular(14),
+                            side: BorderSide(
+                              color: isSelected
+                                  ? sheetColorScheme.primary
+                                      .withValues(alpha: 0.18)
+                                  : sheetColors.border,
+                            ),
+                          ),
+                          clipBehavior: Clip.antiAlias,
+                          child: ListTile(
+                            contentPadding: const EdgeInsets.symmetric(
+                              horizontal: 14,
+                            ),
+                          title: Text(
+                            entry.value,
+                            style: TextStyle(
+                              fontSize: 14,
+                              fontWeight: isSelected
+                                  ? FontWeight.w600
+                                  : FontWeight.w500,
+                              color: sheetColors.textPrimary,
+                            ),
+                          ),
+                          trailing: Icon(
+                            isSelected
+                                ? Icons.check_circle_rounded
+                                : Icons.circle_outlined,
+                            color: isSelected
+                                ? sheetColorScheme.primary
+                                : sheetColors.textDisabled,
+                          ),
+                          onTap: () {
+                            setSheetState(() {
+                              if (isSelected) {
+                                if (selected.length > 1) {
+                                  selected.remove(entry.key);
+                                }
+                              } else {
+                                selected.add(entry.key);
+                              }
+                            });
+                            },
+                          ),
+                        ),
+                      );
+                            }),
+                          ],
+                        ),
+                      ),
+                    ),
+                    const SizedBox(height: 8),
+                    SizedBox(
+                      width: double.infinity,
+                      child: FilledButton(
+                        onPressed: () {
+                          selectedReminderMinutesBefore =
+                              selected.toList()..sort();
+                          update();
+                          Navigator.pop(context);
+                        },
+                        child: const Text('Done'),
+                      ),
+                    ),
+                  ],
+                ),
+              );
+            },
+          ),
+        );
+      },
+    );
+  }
+
   String? validatePhoneNumber(String? value) {
     if (value == null || value.trim().isEmpty) {
       return 'Please enter phone number';
@@ -289,6 +463,8 @@ class ScheduleCallController extends GetxController {
           ? null
           : notesController.text.trim(),
       repeat: selectedRepeat,
+      reminderMinutesBefore:
+          List<int>.from(selectedReminderMinutesBefore)..sort(),
     );
   }
 

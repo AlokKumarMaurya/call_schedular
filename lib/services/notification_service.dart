@@ -244,91 +244,117 @@ class NotificationService {
   Future<void> scheduleCallReminder(
       CallListEntity call,
       ) async {
-    final scheduledDate = tz.TZDateTime(
-      tz.local,
-      call.scheduledAt.year,
-      call.scheduledAt.month,
-      call.scheduledAt.day,
-      call.scheduledAt.hour,
-      call.scheduledAt.minute,
-    );
-
-    if (!scheduledDate.isAfter(
-      tz.TZDateTime.now(tz.local),
-    )) {
-      return;
-    }
-
-    final notificationId =
-    _notificationId(call.id);
-
-    final contactName =
-    call.contactName.trim().isEmpty
+    final now = tz.TZDateTime.now(tz.local);
+    final contactName = call.contactName.trim().isEmpty
         ? 'Unknown Contact'
         : call.contactName.trim();
 
-    final phoneNumber =
-    call.phoneNumber.trim();
-
-    final notificationDetails =
-    _notificationDetails();
+    final phoneNumber = call.phoneNumber.trim();
+    final notificationDetails = _notificationDetails();
 
     final androidPlugin = _notifications
         .resolvePlatformSpecificImplementation<
         AndroidFlutterLocalNotificationsPlugin>();
 
     final canScheduleExact =
-        await androidPlugin?.canScheduleExactNotifications() ??
-            false;
+        await androidPlugin?.canScheduleExactNotifications() ?? false;
 
     final scheduleMode = canScheduleExact
         ? AndroidScheduleMode.exactAllowWhileIdle
         : AndroidScheduleMode.inexactAllowWhileIdle;
 
-    try {
-      await _notifications.zonedSchedule(
-        id: notificationId,
-        title: 'Call $contactName',
-        body: phoneNumber.isEmpty
-            ? 'You have a scheduled call.'
-            : 'Scheduled call with $contactName • $phoneNumber',
-        scheduledDate: scheduledDate,
-        notificationDetails: notificationDetails,
-        androidScheduleMode: scheduleMode,
-        payload: call.id,
+    for (final minutesBefore in call.sortedReminderMinutesBefore) {
+      final scheduledDate = tz.TZDateTime(
+        tz.local,
+        call.scheduledAt.year,
+        call.scheduledAt.month,
+        call.scheduledAt.day,
+        call.scheduledAt.hour,
+        call.scheduledAt.minute,
+      ).subtract(Duration(minutes: minutesBefore));
+
+      if (!scheduledDate.isAfter(now)) {
+        continue;
+      }
+
+      final notificationId = _reminderNotificationId(
+        call.id,
+        minutesBefore,
       );
 
-      AppCrashReporter.instance.log(
-        'Scheduled call reminder using '
-            '${canScheduleExact ? 'exact' : 'inexact'} alarm',
-      );
+      final reminderLabel = _reminderLabel(minutesBefore);
 
-      await AppCrashReporter.instance.setKey(
-        'notification_schedule_mode',
-        canScheduleExact ? 'exact' : 'inexact',
-      );
-    } catch (e, stackTrace) {
-      debugPrint(
-        'Failed to schedule call reminder: $e',
-      );
+      try {
+        await _notifications.zonedSchedule(
+          id: notificationId,
+          title: 'Call $contactName',
+          body: minutesBefore == 0
+              ? phoneNumber.isEmpty
+                  ? 'You have a scheduled call.'
+                  : 'Scheduled call with $contactName • $phoneNumber'
+              : phoneNumber.isEmpty
+                  ? '$reminderLabel: scheduled call.'
+                  : '$reminderLabel: call with $contactName • $phoneNumber',
+          scheduledDate: scheduledDate,
+          notificationDetails: notificationDetails,
+          androidScheduleMode: scheduleMode,
+          payload: call.id,
+        );
+      } catch (e, stackTrace) {
+        debugPrint(
+          'Failed to schedule call reminder: $e',
+        );
 
-      debugPrintStack(
-        stackTrace: stackTrace,
-      );
+        debugPrintStack(
+          stackTrace: stackTrace,
+        );
 
-      await AppCrashReporter.instance.recordError(
-        e,
-        stackTrace,
-        reason: 'Failed to schedule call reminder',
-        information: [
-          'callId: ${call.id}',
-          'scheduledAt: ${call.scheduledAt}',
-          'scheduleMode: ${canScheduleExact ? 'exact' : 'inexact'}',
-        ],
-      );
+        await AppCrashReporter.instance.recordError(
+          e,
+          stackTrace,
+          reason: 'Failed to schedule call reminder',
+          information: [
+            'callId: ${call.id}',
+            'scheduledAt: $scheduledDate',
+            'minutesBefore: $minutesBefore',
+            'scheduleMode: ${canScheduleExact ? 'exact' : 'inexact'}',
+          ],
+        );
 
-      rethrow;
+        rethrow;
+      }
     }
+
+    AppCrashReporter.instance.log(
+      'Scheduled ${call.sortedReminderMinutesBefore.length} call reminder(s) '
+      'using ${canScheduleExact ? 'exact' : 'inexact'} alarm',
+    );
+
+    await AppCrashReporter.instance.setKey(
+      'notification_schedule_mode',
+      canScheduleExact ? 'exact' : 'inexact',
+    );
+  }
+
+  String _reminderLabel(int minutesBefore) {
+    if (minutesBefore == 0) {
+      return 'At call time';
+    }
+
+    if (minutesBefore < 60) {
+      return '$minutesBefore minutes before';
+    }
+
+    if (minutesBefore == 60) {
+      return '1 hour before';
+    }
+
+    if (minutesBefore == 1440) {
+      return '1 day before';
+    }
+
+    final hours = minutesBefore ~/ 60;
+    return '$hours hours before';
   }
 
   Future<void> _scheduleSnoozedNotification({
@@ -339,7 +365,7 @@ class NotificationService {
     tz.TZDateTime.now(tz.local).add(duration);
 
     final notificationId =
-    _notificationId(callId);
+    _snoozeNotificationId(callId);
 
     final notificationDetails =
     _notificationDetails();
@@ -393,11 +419,21 @@ class NotificationService {
   Future<void> cancelCallReminder(
       CallListEntity call,
       ) async {
-    final notificationId =
-    _notificationId(call.id);
+    await _notifications.cancel(
+      id: _notificationId(call.id),
+    );
+
+    for (final minutesBefore in call.sortedReminderMinutesBefore) {
+      await _notifications.cancel(
+        id: _reminderNotificationId(
+          call.id,
+          minutesBefore,
+        ),
+      );
+    }
 
     await _notifications.cancel(
-      id: notificationId,
+      id: _snoozeNotificationId(call.id),
     );
   }
 
@@ -405,6 +441,29 @@ class NotificationService {
     var hash = 0;
 
     for (final unit in callId.codeUnits) {
+      hash = (hash * 31 + unit) & 0x7fffffff;
+    }
+
+    return hash;
+  }
+
+  int _reminderNotificationId(
+      String callId,
+      int minutesBefore,
+      ) {
+    var hash = 17;
+
+    for (final unit in '$callId:$minutesBefore'.codeUnits) {
+      hash = (hash * 31 + unit) & 0x7fffffff;
+    }
+
+    return hash;
+  }
+
+  int _snoozeNotificationId(String callId) {
+    var hash = 23;
+
+    for (final unit in '$callId:snooze'.codeUnits) {
       hash = (hash * 31 + unit) & 0x7fffffff;
     }
 
@@ -552,7 +611,7 @@ Future<void> notificationTapBackground(
     );
 
     await notifications.zonedSchedule(
-      id: _backgroundNotificationId(callId),
+      id: _backgroundSnoozeNotificationId(callId),
       title: 'Call reminder',
       body: 'Your snoozed call reminder is ready.',
       scheduledDate:
@@ -569,10 +628,10 @@ Future<void> notificationTapBackground(
   }
 }
 
-int _backgroundNotificationId(String callId) {
-  var hash = 0;
+int _backgroundSnoozeNotificationId(String callId) {
+  var hash = 23;
 
-  for (final unit in callId.codeUnits) {
+  for (final unit in '$callId:snooze'.codeUnits) {
     hash = (hash * 31 + unit) & 0x7fffffff;
   }
 
