@@ -102,7 +102,6 @@ class _MyAppState extends State<MyApp> with WidgetsBindingObserver {
   void initState() {
     super.initState();
     WidgetsBinding.instance.addObserver(this);
-    WidgetsBinding.instance.addObserver(this);
 
     /*
      * Listen for notification taps as soon as the Flutter app
@@ -243,19 +242,12 @@ class _MyAppState extends State<MyApp> with WidgetsBindingObserver {
   void didChangeAppLifecycleState(AppLifecycleState state) {
     if (state == AppLifecycleState.resumed) {
       unawaited(Get.find<CloudSyncService>().retryPendingSync());
-    }
-  }
-
-  @override
-  void didChangeAppLifecycleState(AppLifecycleState state) {
-    if (state == AppLifecycleState.resumed) {
       unawaited(Get.find<HomeWidgetService>().refresh());
     }
   }
 
   @override
   void dispose() {
-    WidgetsBinding.instance.removeObserver(this);
     WidgetsBinding.instance.removeObserver(this);
     _notificationSubscription?.cancel();
 
