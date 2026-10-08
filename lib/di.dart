@@ -47,6 +47,7 @@ class AppDI {
       () => CallRepoImpl(
         Get.find<CallLocalDataSource>(),
         Get.find<CloudSyncService>(),
+        Get.find<HomeWidgetService>(),
       ),
     );
   }
