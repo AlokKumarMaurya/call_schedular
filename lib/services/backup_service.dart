@@ -180,6 +180,7 @@ class BackupService {
       'status': call.status.name,
       'notes': call.notes,
       'repeat': call.repeat,
+      'reminderMinutesBefore': call.reminderMinutesBefore,
     };
   }
 
@@ -242,6 +243,9 @@ class BackupService {
             ? map['repeat'] as String
             : 'Does not repeat';
 
+        final reminderMinutesBefore =
+            _parseReminderMinutes(map['reminderMinutesBefore']);
+
         final notes = map['notes'] is String
             ? map['notes'] as String?
             : null;
@@ -272,6 +276,7 @@ class BackupService {
             status: status,
             notes: notes,
             repeat: repeat,
+            reminderMinutesBefore: reminderMinutesBefore,
           ),
         );
       }
@@ -282,6 +287,23 @@ class BackupService {
     }
 
     return calls;
+  }
+
+  List<int> _parseReminderMinutes(dynamic value) {
+    if (value is! List) {
+      return const [0];
+    }
+
+    final reminders = value
+        .whereType<num>()
+        .map((minutes) => minutes.toInt())
+        .where((minutes) => minutes >= 0)
+        .toSet()
+        .toList();
+
+    reminders.sort();
+
+    return reminders.isEmpty ? const [0] : reminders;
   }
 
   String _requiredString(
