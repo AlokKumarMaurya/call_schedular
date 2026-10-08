@@ -11,8 +11,19 @@ class AppLockService extends GetxService {
   final RxBool isAuthenticating = false.obs;
 
   bool _initialized = false;
+  DateTime? _lastAuthenticationCompletedAt;
 
   bool get enabled => isEnabled.value;
+
+  bool get recentlyAuthenticated {
+    final completedAt = _lastAuthenticationCompletedAt;
+
+    if (completedAt == null) {
+      return false;
+    }
+
+    return DateTime.now().difference(completedAt).inMilliseconds < 1500;
+  }
 
   Future<void> initialize() async {
     if (_initialized) {
@@ -91,6 +102,7 @@ class AppLockService extends GetxService {
       return false;
     } finally {
       isAuthenticating.value = false;
+      _lastAuthenticationCompletedAt = DateTime.now();
     }
   }
 
