@@ -23,12 +23,14 @@ dependencies:
   flutter_timezone: ^5.1.1
   package_info_plus: ^10.2.2
   flutter_native_splash: ^2.4.8
+  in_app_update: ^5.0.0
 
 dev_dependencies:
   flutter_test:
     sdk: flutter
   flutter_lints: ^6.0.0
   flutter_launcher_icons: ^0.14.4
+
 flutter:
   uses-material-design: true
 
@@ -41,13 +43,12 @@ flutter_launcher_icons:
   ios: false
 
 flutter_native_splash:
-  color: "#ffffff"               # Background color (Light mode)
-  image: assets/icon/splash_screen.png  # Path to your splash icon
-  color_dark: "#121212"          # Dark mode background (Optional)
-  image_dark: assets/icon/splash_screen.png # Dark mode icon (Optional)
+  color: "#ffffff"
+  image: assets/icon/splash_screen.png
+  color_dark: "#121212"
+  image_dark: assets/icon/splash_screen.png
   fullscreen: true
 
-  # Android 12+ specific settings (Required for Android 12 compliance)
   android_12:
     image: assets/icon/splash_screen.png
     color: "#ffffff"

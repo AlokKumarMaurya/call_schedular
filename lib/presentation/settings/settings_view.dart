@@ -1,4 +1,5 @@
 import 'package:call_schedular/constants/app_const.dart';
+import 'package:call_schedular/services/app_update_service.dart';
 import 'package:call_schedular/services/notification_service.dart';
 import 'package:call_schedular/theme/app_font.dart';
 import 'package:call_schedular/theme/app_theme_colors.dart';
@@ -23,6 +24,8 @@ class _SettingsViewState extends State<SettingsView>
 
   bool _notificationsEnabled = false;
   bool _isLoadingNotifications = true;
+
+  bool _isCheckingForUpdate = false;
 
   String _appVersion = '';
   String _buildNumber = '';
@@ -83,6 +86,28 @@ class _SettingsViewState extends State<SettingsView>
     await NotificationService.instance.openNotificationSettings();
   }
 
+  Future<void> _checkForUpdates() async {
+    if (_isCheckingForUpdate) {
+      return;
+    }
+
+    setState(() {
+      _isCheckingForUpdate = true;
+    });
+
+    try {
+      await AppUpdateService.instance.checkAndPromptManually();
+    } finally {
+      if (!mounted) {
+        return;
+      }
+
+      setState(() {
+        _isCheckingForUpdate = false;
+      });
+    }
+  }
+
   @override
   Widget build(BuildContext context) {
     final colors = context.themeColors;
@@ -95,7 +120,11 @@ class _SettingsViewState extends State<SettingsView>
         scrolledUnderElevation: 0,
         leadingWidth: 62.w,
         leading: Padding(
-          padding: EdgeInsets.only(left: 12.w, top: 4.h, bottom: 2.h),
+          padding: EdgeInsets.only(
+            left: 12.w,
+            top: 4.h,
+            bottom: 2.h,
+          ),
           child: AppGlassIconButton(
             icon: Icons.arrow_back_ios_new_rounded,
             tooltip: 'Back',
@@ -112,25 +141,40 @@ class _SettingsViewState extends State<SettingsView>
         ),
       ),
       body: ListView(
-        padding: EdgeInsets.fromLTRB(16.w, 8.h, 16.w, 24.h),
+        padding: EdgeInsets.fromLTRB(
+          16.w,
+          8.h,
+          16.w,
+          24.h,
+        ),
         children: [
-          _buildSectionTitle(context, 'Appearance'),
+          _buildSectionTitle(
+            context,
+            'Appearance',
+          ),
 
           Obx(
-            () => _buildSettingTile(
+                () => _buildSettingTile(
               context,
-              icon: _themeModeIcon(_themeController.themeMode.value),
+              icon: _themeModeIcon(
+                _themeController.themeMode.value,
+              ),
               iconBackground: colors.primaryLight,
               iconColor: Theme.of(context).colorScheme.primary,
               title: 'Appearance',
-              subtitle: _themeModeLabel(_themeController.themeMode.value),
+              subtitle: _themeModeLabel(
+                _themeController.themeMode.value,
+              ),
               onTap: _showAppearanceSheet,
             ),
           ),
 
           SizedBox(height: 24.h),
 
-          _buildSectionTitle(context, 'Notifications'),
+          _buildSectionTitle(
+            context,
+            'Notifications',
+          ),
 
           _buildSettingTile(
             context,
@@ -148,7 +192,41 @@ class _SettingsViewState extends State<SettingsView>
 
           SizedBox(height: 24.h),
 
-          _buildSectionTitle(context, 'About'),
+          _buildSectionTitle(
+            context,
+            'App Updates',
+          ),
+
+          _buildSettingTile(
+            context,
+            icon: Icons.system_update_rounded,
+            iconBackground: colors.orangeLight,
+            iconColor: colors.orangeDark,
+            title: 'Check for Updates',
+            subtitle: _isCheckingForUpdate
+                ? 'Checking Google Play...'
+                : 'Check for the latest version',
+            trailing: _isCheckingForUpdate
+                ? SizedBox(
+              width: 20.w,
+              height: 20.w,
+              child: CircularProgressIndicator(
+                strokeWidth: 2,
+                color: colors.orangeDark,
+              ),
+            )
+                : null,
+            onTap: _isCheckingForUpdate
+                ? null
+                : _checkForUpdates,
+          ),
+
+          SizedBox(height: 24.h),
+
+          _buildSectionTitle(
+            context,
+            'About',
+          ),
 
           _buildSettingTile(
             context,
@@ -162,7 +240,10 @@ class _SettingsViewState extends State<SettingsView>
 
           SizedBox(height: 24.h),
 
-          _buildSectionTitle(context, 'App Information'),
+          _buildSectionTitle(
+            context,
+            'App Information',
+          ),
 
           _buildSettingTile(
             context,
@@ -178,11 +259,17 @@ class _SettingsViewState extends State<SettingsView>
     );
   }
 
-  Widget _buildSectionTitle(BuildContext context, String title) {
+  Widget _buildSectionTitle(
+      BuildContext context,
+      String title,
+      ) {
     final colors = context.themeColors;
 
     return Padding(
-      padding: EdgeInsets.only(left: 4.w, bottom: 8.h),
+      padding: EdgeInsets.only(
+        left: 4.w,
+        bottom: 8.h,
+      ),
       child: Text(
         title,
         style: AppFont.style.copyWith(
@@ -195,21 +282,24 @@ class _SettingsViewState extends State<SettingsView>
   }
 
   Widget _buildSettingTile(
-    BuildContext context, {
-    required IconData icon,
-    required Color iconBackground,
-    required Color iconColor,
-    required String title,
-    required String subtitle,
-    required VoidCallback onTap,
-  }) {
+      BuildContext context, {
+        required IconData icon,
+        required Color iconBackground,
+        required Color iconColor,
+        required String title,
+        required String subtitle,
+        required VoidCallback? onTap,
+        Widget? trailing,
+      }) {
     final colors = context.themeColors;
 
     return Container(
       decoration: BoxDecoration(
         color: colors.surface,
         borderRadius: BorderRadius.circular(18.r),
-        border: Border.all(color: colors.border),
+        border: Border.all(
+          color: colors.border,
+        ),
         boxShadow: [
           BoxShadow(
             color: colors.shadow,
@@ -235,14 +325,19 @@ class _SettingsViewState extends State<SettingsView>
                     color: iconBackground,
                     borderRadius: BorderRadius.circular(13.r),
                   ),
-                  child: Icon(icon, color: iconColor, size: 22.sp),
+                  child: Icon(
+                    icon,
+                    color: iconColor,
+                    size: 22.sp,
+                  ),
                 ),
 
                 SizedBox(width: 14.w),
 
                 Expanded(
                   child: Column(
-                    crossAxisAlignment: CrossAxisAlignment.start,
+                    crossAxisAlignment:
+                    CrossAxisAlignment.start,
                     children: [
                       Text(
                         title,
@@ -270,11 +365,12 @@ class _SettingsViewState extends State<SettingsView>
 
                 SizedBox(width: 8.w),
 
-                Icon(
-                  Icons.chevron_right_rounded,
-                  color: colors.textTertiary,
-                  size: 22.sp,
-                ),
+                trailing ??
+                    Icon(
+                      Icons.chevron_right_rounded,
+                      color: colors.textTertiary,
+                      size: 22.sp,
+                    ),
               ],
             ),
           ),
@@ -292,8 +388,12 @@ class _SettingsViewState extends State<SettingsView>
         child: Container(
           decoration: BoxDecoration(
             color: colors.surface,
-            borderRadius: BorderRadius.vertical(top: Radius.circular(28.r)),
-            border: Border.all(color: colors.border),
+            borderRadius: BorderRadius.vertical(
+              top: Radius.circular(28.r),
+            ),
+            border: Border.all(
+              color: colors.border,
+            ),
             boxShadow: [
               BoxShadow(
                 color: colors.shadow,
@@ -302,9 +402,15 @@ class _SettingsViewState extends State<SettingsView>
               ),
             ],
           ),
-          padding: EdgeInsets.fromLTRB(20.w, 12.h, 20.w, 20.h),
+          padding: EdgeInsets.fromLTRB(
+            20.w,
+            12.h,
+            20.w,
+            20.h,
+          ),
           child: Obx(() {
-            final selectedMode = _themeController.themeMode.value;
+            final selectedMode =
+                _themeController.themeMode.value;
 
             return Column(
               mainAxisSize: MainAxisSize.min,
@@ -314,7 +420,8 @@ class _SettingsViewState extends State<SettingsView>
                   height: 4.h,
                   decoration: BoxDecoration(
                     color: colors.border,
-                    borderRadius: BorderRadius.circular(10.r),
+                    borderRadius:
+                    BorderRadius.circular(10.r),
                   ),
                 ),
 
@@ -352,7 +459,8 @@ class _SettingsViewState extends State<SettingsView>
                   mode: ThemeMode.system,
                   icon: Icons.brightness_auto_rounded,
                   title: 'System',
-                  subtitle: 'Follow your device appearance',
+                  subtitle:
+                  'Follow your device appearance',
                   selectedMode: selectedMode,
                 ),
 
@@ -363,7 +471,8 @@ class _SettingsViewState extends State<SettingsView>
                   mode: ThemeMode.light,
                   icon: Icons.light_mode_rounded,
                   title: 'Light',
-                  subtitle: 'Use the light appearance',
+                  subtitle:
+                  'Use the light appearance',
                   selectedMode: selectedMode,
                 ),
 
@@ -374,7 +483,8 @@ class _SettingsViewState extends State<SettingsView>
                   mode: ThemeMode.dark,
                   icon: Icons.dark_mode_rounded,
                   title: 'Dark',
-                  subtitle: 'Use the dark appearance',
+                  subtitle:
+                  'Use the dark appearance',
                   selectedMode: selectedMode,
                 ),
               ],
@@ -388,13 +498,13 @@ class _SettingsViewState extends State<SettingsView>
   }
 
   Widget _buildThemeOption(
-    BuildContext context, {
-    required ThemeMode mode,
-    required IconData icon,
-    required String title,
-    required String subtitle,
-    required ThemeMode selectedMode,
-  }) {
+      BuildContext context, {
+        required ThemeMode mode,
+        required IconData icon,
+        required String title,
+        required String subtitle,
+        required ThemeMode selectedMode,
+      }) {
     final colors = context.themeColors;
     final colorScheme = Theme.of(context).colorScheme;
 
@@ -410,13 +520,21 @@ class _SettingsViewState extends State<SettingsView>
         borderRadius: BorderRadius.circular(16.r),
         child: AnimatedContainer(
           duration: const Duration(milliseconds: 180),
-          padding: EdgeInsets.symmetric(horizontal: 14.w, vertical: 12.h),
+          padding: EdgeInsets.symmetric(
+            horizontal: 14.w,
+            vertical: 12.h,
+          ),
           decoration: BoxDecoration(
-            color: isSelected ? colors.primaryLight : colors.surfaceElevated,
-            borderRadius: BorderRadius.circular(16.r),
+            color: isSelected
+                ? colors.primaryLight
+                : colors.surfaceElevated,
+            borderRadius:
+            BorderRadius.circular(16.r),
             border: Border.all(
               color: isSelected
-                  ? colorScheme.primary.withValues(alpha: 0.35)
+                  ? colorScheme.primary.withValues(
+                alpha: 0.35,
+              )
                   : colors.border,
             ),
           ),
@@ -427,9 +545,12 @@ class _SettingsViewState extends State<SettingsView>
                 height: 42.w,
                 decoration: BoxDecoration(
                   color: isSelected
-                      ? colorScheme.primary.withValues(alpha: 0.12)
+                      ? colorScheme.primary.withValues(
+                    alpha: 0.12,
+                  )
                       : colors.surface,
-                  borderRadius: BorderRadius.circular(12.r),
+                  borderRadius:
+                  BorderRadius.circular(12.r),
                 ),
                 child: Icon(
                   icon,
@@ -444,7 +565,8 @@ class _SettingsViewState extends State<SettingsView>
 
               Expanded(
                 child: Column(
-                  crossAxisAlignment: CrossAxisAlignment.start,
+                  crossAxisAlignment:
+                  CrossAxisAlignment.start,
                   children: [
                     Text(
                       title,
@@ -471,27 +593,32 @@ class _SettingsViewState extends State<SettingsView>
               SizedBox(width: 8.w),
 
               AnimatedContainer(
-                duration: const Duration(milliseconds: 180),
+                duration:
+                const Duration(milliseconds: 180),
                 width: 22.w,
                 height: 22.w,
                 decoration: BoxDecoration(
                   shape: BoxShape.circle,
                   border: Border.all(
-                    color: isSelected ? colorScheme.primary : colors.border,
+                    color: isSelected
+                        ? colorScheme.primary
+                        : colors.border,
                     width: 2,
                   ),
                 ),
                 child: isSelected
                     ? Center(
-                        child: Container(
-                          width: 10.w,
-                          height: 10.w,
-                          decoration: BoxDecoration(
-                            shape: BoxShape.circle,
-                            color: colorScheme.primary,
-                          ),
-                        ),
-                      )
+                  child: Container(
+                    width: 10.w,
+                    height: 10.w,
+                    decoration:
+                    BoxDecoration(
+                      shape: BoxShape.circle,
+                      color:
+                      colorScheme.primary,
+                    ),
+                  ),
+                )
                     : null,
               ),
             ],
@@ -543,7 +670,8 @@ class _SettingsViewState extends State<SettingsView>
         ),
         content: Column(
           mainAxisSize: MainAxisSize.min,
-          crossAxisAlignment: CrossAxisAlignment.start,
+          crossAxisAlignment:
+          CrossAxisAlignment.start,
           children: [
             Text(
               'A simple app to schedule and manage your calls.',
@@ -606,17 +734,30 @@ class _SettingsViewState extends State<SettingsView>
         ),
         content: Column(
           mainAxisSize: MainAxisSize.min,
-          crossAxisAlignment: CrossAxisAlignment.start,
+          crossAxisAlignment:
+          CrossAxisAlignment.start,
           children: [
-            _buildInfoRow(context, 'App Name', AppConst.appName),
+            _buildInfoRow(
+              context,
+              'App Name',
+              AppConst.appName,
+            ),
 
             SizedBox(height: 12.h),
 
-            _buildInfoRow(context, 'Version', _appVersion),
+            _buildInfoRow(
+              context,
+              'Version',
+              _appVersion,
+            ),
 
             SizedBox(height: 12.h),
 
-            _buildInfoRow(context, 'Build', _buildNumber),
+            _buildInfoRow(
+              context,
+              'Build',
+              _buildNumber,
+            ),
           ],
         ),
         actions: [
@@ -635,11 +776,16 @@ class _SettingsViewState extends State<SettingsView>
     );
   }
 
-  Widget _buildInfoRow(BuildContext context, String label, String value) {
+  Widget _buildInfoRow(
+      BuildContext context,
+      String label,
+      String value,
+      ) {
     final colors = context.themeColors;
 
     return Row(
-      crossAxisAlignment: CrossAxisAlignment.start,
+      crossAxisAlignment:
+      CrossAxisAlignment.start,
       children: [
         SizedBox(
           width: 80.w,
@@ -654,7 +800,9 @@ class _SettingsViewState extends State<SettingsView>
         ),
         Expanded(
           child: Text(
-            value.isEmpty ? 'Loading...' : value,
+            value.isEmpty
+                ? 'Loading...'
+                : value,
             style: AppFont.style.copyWith(
               fontSize: 13.sp,
               color: colors.textPrimary,
