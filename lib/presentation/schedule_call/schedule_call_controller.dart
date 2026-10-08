@@ -350,10 +350,16 @@ class ScheduleCallController extends GetxController {
                                 : sheetColors.border,
                           ),
                         ),
-                        child: ListTile(
-                          contentPadding: const EdgeInsets.symmetric(
-                            horizontal: 14,
-                          ),
+                        child: Material(
+                          color: isSelected
+                              ? sheetColors.primaryLight
+                              : Colors.transparent,
+                          borderRadius: BorderRadius.circular(14),
+                          clipBehavior: Clip.antiAlias,
+                          child: ListTile(
+                            contentPadding: const EdgeInsets.symmetric(
+                              horizontal: 14,
+                            ),
                           title: Text(
                             entry.value,
                             style: TextStyle(
@@ -382,7 +388,8 @@ class ScheduleCallController extends GetxController {
                                 selected.add(entry.key);
                               }
                             });
-                          },
+                            },
+                          ),
                         ),
                       );
                             }),
