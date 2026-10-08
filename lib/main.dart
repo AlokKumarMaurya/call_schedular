@@ -77,6 +77,7 @@ class _MyAppState extends State<MyApp> with WidgetsBindingObserver {
   // intentionally do not use AppLifecycleState.inactive here.
   bool _wasInBackground = false;
   bool _startupAuthenticationStarted = false;
+  bool _startupAuthenticationCompleted = false;
 
   @override
   void initState() {
@@ -122,7 +123,12 @@ class _MyAppState extends State<MyApp> with WidgetsBindingObserver {
       return;
     }
 
-    await appLockService.authenticate();
+    try {
+      await appLockService.authenticate();
+    } finally {
+      _startupAuthenticationCompleted = true;
+      _wasInBackground = false;
+    }
   }
 
   Future<void> _initializeNotifications() async {
@@ -213,7 +219,9 @@ class _MyAppState extends State<MyApp> with WidgetsBindingObserver {
 
       // Do not treat the lifecycle changes caused by the biometric
       // prompt itself as the user leaving the app.
-      if (!appLockService.isAuthenticating.value) {
+      if (_startupAuthenticationCompleted &&
+          !appLockService.isAuthenticating.value &&
+          !appLockService.recentlyAuthenticated) {
         _wasInBackground = true;
       }
 
@@ -223,7 +231,10 @@ class _MyAppState extends State<MyApp> with WidgetsBindingObserver {
     if (state == AppLifecycleState.resumed) {
       final appLockService = Get.find<AppLockService>();
 
-      if (_wasInBackground) {
+      if (_startupAuthenticationCompleted &&
+          _wasInBackground &&
+          !appLockService.isAuthenticating.value &&
+          !appLockService.recentlyAuthenticated) {
         _wasInBackground = false;
 
         if (appLockService.enabled) {
