@@ -14,6 +14,7 @@ import '../../services/notification_service.dart';
 import '../../theme/app_theme_colors.dart';
 import '../call_details/call_details_view.dart';
 import '../schedule_call/schedule_call_view.dart';
+import '../statistics/call_statistics_view.dart';
 import '../settings/settings_view.dart';
 
 class HomeView extends StatelessWidget {
@@ -153,6 +154,18 @@ class HomeView extends StatelessWidget {
         ),
 
         SizedBox(width: 10.w),
+
+        AppGlassIconButton(
+          icon: Icons.insights_rounded,
+          tooltip: 'Call Statistics',
+          size: 40,
+          iconSize: 20,
+          onPressed: () {
+            Get.to(() => const CallStatisticsView());
+          },
+        ),
+
+        SizedBox(width: 8.w),
 
         AppGlassIconButton(
           icon: Icons.settings_outlined,
