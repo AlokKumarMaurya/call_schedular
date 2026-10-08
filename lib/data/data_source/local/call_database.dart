@@ -7,7 +7,7 @@ class CallDatabase {
   static final CallDatabase instance = CallDatabase._();
 
   static const String _databaseName = 'call_scheduler.db';
-  static const int _databaseVersion = 3;
+  static const int _databaseVersion = 4;
   static const String tableName = 'scheduled_calls';
 
   Database? _database;
@@ -39,8 +39,28 @@ class CallDatabase {
             reminder_minutes_before TEXT NOT NULL DEFAULT '0'
           )
         ''');
+        await db.execute('''
+          CREATE TABLE sync_outbox (
+            id INTEGER PRIMARY KEY AUTOINCREMENT,
+            call_id TEXT NOT NULL,
+            operation TEXT NOT NULL,
+            payload TEXT,
+            updated_at INTEGER NOT NULL
+          )
+        ''');
       },
       onUpgrade: (db, oldVersion, newVersion) async {
+        if (oldVersion < 4) {
+          await db.execute('''
+            CREATE TABLE sync_outbox (
+              id INTEGER PRIMARY KEY AUTOINCREMENT,
+              call_id TEXT NOT NULL,
+              operation TEXT NOT NULL,
+              payload TEXT,
+              updated_at INTEGER NOT NULL
+            )
+          ''');
+        }
         if (oldVersion < 2) {
           await db.execute('''
             ALTER TABLE $tableName
