@@ -6,10 +6,12 @@ import 'package:call_schedular/services/cloud_sync_service.dart';
 class CallRepoImpl implements CallRepo {
   final CallLocalDataSource _localDataSource;
   final CloudSyncService _cloudSyncService;
+  final HomeWidgetService _homeWidgetService;
 
   CallRepoImpl(
     this._localDataSource,
     this._cloudSyncService,
+    this._homeWidgetService,
   );
 
   @override
