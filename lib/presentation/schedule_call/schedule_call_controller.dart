@@ -42,8 +42,20 @@ class ScheduleCallController extends GetxController {
   final List<String> repeatOptions = [
     'Does not repeat',
     'Every day',
+    'Every weekday',
+    'Every weekend',
+    'Every Monday',
+    'Every Tuesday',
+    'Every Wednesday',
+    'Every Thursday',
+    'Every Friday',
+    'Every Saturday',
+    'Every Sunday',
+    'Every 2 days',
     'Every week',
+    'Every 2 weeks',
     'Every month',
+    'Every 2 months',
     'Every year',
   ];
 
@@ -199,6 +211,11 @@ class ScheduleCallController extends GetxController {
 
                 const SizedBox(height: 12),
 
+                Flexible(
+                  child: SingleChildScrollView(
+                    child: Column(
+                      mainAxisSize: MainAxisSize.min,
+                      children: [
                 ...repeatOptions.map((option) {
                   final isSelected = selectedRepeat == option;
 
@@ -244,6 +261,10 @@ class ScheduleCallController extends GetxController {
                     ),
                   );
                 }),
+                      ],
+                    ),
+                  ),
+                ),
               ],
             ),
           ),
