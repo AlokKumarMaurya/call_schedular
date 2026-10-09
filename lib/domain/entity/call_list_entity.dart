@@ -77,25 +77,67 @@ class CallListEntity {
   DateTime get nextOccurrenceDate {
     switch (repeat) {
       case 'Every day':
-        return scheduledAt.add(
-          const Duration(days: 1),
-        );
-
+        return scheduledAt.add(const Duration(days: 1));
+      case 'Every 2 days':
+        return scheduledAt.add(const Duration(days: 2));
       case 'Every week':
-        return scheduledAt.add(
-          const Duration(days: 7),
-        );
-
+        return scheduledAt.add(const Duration(days: 7));
+      case 'Every 2 weeks':
+        return scheduledAt.add(const Duration(days: 14));
       case 'Every month':
         return _addMonths(scheduledAt, 1);
-
+      case 'Every 2 months':
+        return _addMonths(scheduledAt, 2);
       case 'Every year':
         return _addYears(scheduledAt, 1);
-
+      case 'Every weekday':
+        return _nextWeekday(scheduledAt);
+      case 'Every weekend':
+        return _nextWeekendDay(scheduledAt);
+      case 'Every Monday':
+        return _nextNamedWeekday(scheduledAt, DateTime.monday);
+      case 'Every Tuesday':
+        return _nextNamedWeekday(scheduledAt, DateTime.tuesday);
+      case 'Every Wednesday':
+        return _nextNamedWeekday(scheduledAt, DateTime.wednesday);
+      case 'Every Thursday':
+        return _nextNamedWeekday(scheduledAt, DateTime.thursday);
+      case 'Every Friday':
+        return _nextNamedWeekday(scheduledAt, DateTime.friday);
+      case 'Every Saturday':
+        return _nextNamedWeekday(scheduledAt, DateTime.saturday);
+      case 'Every Sunday':
+        return _nextNamedWeekday(scheduledAt, DateTime.sunday);
       case 'Does not repeat':
       default:
         return scheduledAt;
     }
+  }
+
+  DateTime _nextNamedWeekday(DateTime date, int weekday) {
+    var daysUntil = (weekday - date.weekday) % 7;
+    if (daysUntil == 0) {
+      daysUntil = 7;
+    }
+    return date.add(Duration(days: daysUntil));
+  }
+
+  DateTime _nextWeekday(DateTime date) {
+    var next = date.add(const Duration(days: 1));
+    while (next.weekday == DateTime.saturday ||
+        next.weekday == DateTime.sunday) {
+      next = next.add(const Duration(days: 1));
+    }
+    return next;
+  }
+
+  DateTime _nextWeekendDay(DateTime date) {
+    var next = date.add(const Duration(days: 1));
+    while (next.weekday != DateTime.saturday &&
+        next.weekday != DateTime.sunday) {
+      next = next.add(const Duration(days: 1));
+    }
+    return next;
   }
 
   DateTime _addMonths(
