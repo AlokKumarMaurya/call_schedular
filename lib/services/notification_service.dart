@@ -8,6 +8,12 @@ import 'package:flutter_timezone/flutter_timezone.dart';
 import 'package:timezone/data/latest.dart' as tz;
 import 'package:timezone/timezone.dart' as tz;
 
+// Older Android devices may report India's legacy IANA timezone ID.
+ // The timezone database bundled with the app uses the canonical ID.
+String _canonicalTimezoneIdentifier(String identifier) {
+  return identifier == 'Asia/Calcutta' ? 'Asia/Kolkata' : identifier;
+}
+
 class NotificationService {
   NotificationService._();
 
@@ -48,8 +54,9 @@ class NotificationService {
       final timezoneInfo =
       await FlutterTimezone.getLocalTimezone();
 
-      final location =
-      tz.getLocation(timezoneInfo.identifier);
+      final location = tz.getLocation(
+        _canonicalTimezoneIdentifier(timezoneInfo.identifier),
+      );
 
       tz.setLocalLocation(location);
 
@@ -572,8 +579,9 @@ Future<void> notificationTapBackground(
     final timezoneInfo =
     await FlutterTimezone.getLocalTimezone();
 
-    final location =
-    tz.getLocation(timezoneInfo.identifier);
+    final location = tz.getLocation(
+      _canonicalTimezoneIdentifier(timezoneInfo.identifier),
+    );
 
     tz.setLocalLocation(location);
 
