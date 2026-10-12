@@ -53,8 +53,10 @@ class NotificationService {
 
       tz.setLocalLocation(location);
 
+      // Use a dedicated drawable resource name without an Android resource
+      // prefix. The receiver resolves this name again for scheduled alerts.
       const androidSettings = AndroidInitializationSettings(
-        '@mipmap/ic_launcher',
+        'ic_notification',
       );
 
       const initializationSettings = InitializationSettings(
@@ -389,6 +391,7 @@ class NotificationService {
         'Call Reminders',
         channelDescription:
         'Reminders for scheduled calls',
+        icon: 'ic_notification',
         importance: Importance.high,
         priority: Priority.high,
         category: AndroidNotificationCategory.reminder,
@@ -584,6 +587,7 @@ Future<void> notificationTapBackground(
         'Call Reminders',
         channelDescription:
         'Reminders for scheduled calls',
+        icon: 'ic_notification',
         importance: Importance.high,
         priority: Priority.high,
         category: AndroidNotificationCategory.reminder,
