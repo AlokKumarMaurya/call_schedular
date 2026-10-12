@@ -15,6 +15,7 @@ class AppDI {
     _initDataSource();
     _initServices();
     _initRepo();
+    _initBackupService();
     _initUseCase();
   }
 
@@ -36,10 +37,6 @@ class AppDI {
       HomeWidgetService(Get.find<CallLocalDataSource>()),
       permanent: true,
     );
-
-    Get.lazyPut<BackupService>(
-      () => BackupService(Get.find<CallRepo>()),
-    );
   }
 
   static void _initRepo() {
@@ -49,6 +46,15 @@ class AppDI {
         Get.find<CloudSyncService>(),
         Get.find<HomeWidgetService>(),
       ),
+    );
+  }
+
+  static void _initBackupService() {
+    // Backup is used from the Settings screen and must remain available
+    // independently of the route lifecycle.
+    Get.put<BackupService>(
+      BackupService(Get.find<CallRepo>()),
+      permanent: true,
     );
   }
 
